@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29123.88
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MathLib", "MathLib.vcxproj", "{47D90E3A-8B69-46A2-9E8B-CDAEA8D83BCF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{47D90E3A-8B69-46A2-9E8B-CDAEA8D83BCF}.Debug|x64.ActiveCfg = Debug|x64
+		{47D90E3A-8B69-46A2-9E8B-CDAEA8D83BCF}.Debug|x64.Build.0 = Debug|x64
+		{47D90E3A-8B69-46A2-9E8B-CDAEA8D83BCF}.Release|x64.ActiveCfg = Release|x64
+		{47D90E3A-8B69-46A2-9E8B-CDAEA8D83BCF}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C5136C20-DDD9-48B6-BFC0-8759D439E125}
+	EndGlobalSection
+EndGlobal
