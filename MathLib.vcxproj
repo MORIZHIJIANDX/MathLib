@@ -65,9 +65,10 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <BrowseInformation>true</BrowseInformation>
+      <PreprocessorDefinitions>USE_OSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -86,6 +87,8 @@
     <ClInclude Include="src\math\Scalar.h" />
     <ClInclude Include="src\math\ScalarArray.h" />
     <ClInclude Include="src\math\ScalarTraits.h" />
+    <ClInclude Include="src\math\Vector2.h" />
+    <ClInclude Include="src\math\Vector3.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

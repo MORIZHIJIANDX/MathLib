@@ -17,7 +17,8 @@ void Print(const DMath::ScalarArray<T, N>& v)
 
 int main()
 {
-	DMath::Float4 data = DMath::Float4(4);
+	DMath::Float4 data = DMath::Float4{};
+	data.Fill(4);
 
 	DMath::Float4 data2{ DMath::Unit<1>{} };
 
@@ -29,9 +30,12 @@ int main()
 
 	//Print(Comot);
 
+	DMath::ScalarArray<float, 2> tm{1, 2};
 
-	std::cout << Comot;
+	DMath::ScalarArray<float, 2> mulre = tm * 2.0f;
+
+	std::cout << DMath::FurthestAxis(mulre);
 	
-
+	
 	std::cin.get();
 }

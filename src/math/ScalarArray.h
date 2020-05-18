@@ -43,7 +43,6 @@ namespace Dash {
 			constexpr ScalarArray();
 			constexpr explicit ScalarArray(Zero);
 			template <std::size_t I> constexpr explicit ScalarArray(Unit<I>);
-			template <typename Scalar2> constexpr explicit ScalarArray(Scalar2 scalar);
 			template <typename Scalar2> constexpr explicit ScalarArray(const Scalar2* v);
 			constexpr explicit ScalarArray(std::initializer_list<Scalar> list);
 			template <typename Scalar2> constexpr explicit ScalarArray(const ScalarArray<Scalar2, N - 1>& v);
@@ -67,6 +66,8 @@ namespace Dash {
 
 			ScalarArray<Scalar, N>& operator*=(Scalar s) noexcept;
 			ScalarArray<Scalar, N>& operator/=(Scalar s) noexcept;
+
+			template<typename Scalar2> void Fill(Scalar2 s) noexcept;
 
 			constexpr SizeType GetSize() const noexcept { return N; }
 
@@ -188,13 +189,6 @@ namespace Dash {
 
 			mData.fill(Scalar{ 0 });
 			mData[I] = Scalar{ 1 };
-		}
-
-		template<typename Scalar, std::size_t N>
-		template<typename Scalar2>
-		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(Scalar2 scalar)
-		{
-			mData.fill(static_cast<Scalar>(scalar));
 		}
 
 		template<typename Scalar, std::size_t N>
@@ -374,6 +368,13 @@ namespace Dash {
 		}
 
 		template<typename Scalar, std::size_t N>
+		template<typename Scalar2>
+		FORCEINLINE void ScalarArray<Scalar, N>::Fill(Scalar2 s) noexcept
+		{
+			mData.fill(static_cast<Scalar>(s));
+		}
+
+		template<typename Scalar, std::size_t N>
 		FORCEINLINE constexpr typename ScalarArray<Scalar, N>::Iterator ScalarArray<Scalar, N>::Begin() noexcept
 		{
 			using Iterator = typename ScalarArray<Scalar, N>::Iterator;
@@ -388,14 +389,14 @@ namespace Dash {
 		}
 
 		template<typename Scalar, std::size_t N>
-		inline constexpr typename ScalarArray<Scalar, N>::Iterator ScalarArray<Scalar, N>::End() noexcept
+		FORCEINLINE constexpr typename ScalarArray<Scalar, N>::Iterator ScalarArray<Scalar, N>::End() noexcept
 		{
 			using Iterator = typename ScalarArray<Scalar, N>::Iterator;
 			return mData.end();
 		}
 
 		template<typename Scalar, std::size_t N>
-		inline constexpr typename ScalarArray<Scalar, N>::ConstIterator ScalarArray<Scalar, N>::End() const noexcept
+		FORCEINLINE constexpr typename ScalarArray<Scalar, N>::ConstIterator ScalarArray<Scalar, N>::End() const noexcept
 		{
 			using ConstIterator = typename ScalarArray<Scalar, N>::ConstIterator;
 			return mData.end();
@@ -907,3 +908,6 @@ namespace Dash {
 
 	}
 }
+
+#include "Vector2.h"
+#include "Vector3.h"
