@@ -30,11 +30,11 @@ int main()
 
 	//Print(Comot);
 
-	DMath::ScalarArray<float, 2> tm{1, 2};
+	DMath::ScalarArray<float, 3> tm{1, 2, 5};
 
-	DMath::ScalarArray<float, 2> mulre = tm * 2.0f;
+	DMath::ScalarArray<float, 3> mulre = tm * 2.0f;
 
-	std::cout << DMath::FurthestAxis(mulre);
+	std::cout << DMath::ClosestAxis(mulre);
 	
 	
 	std::cin.get();

@@ -89,6 +89,7 @@
     <ClInclude Include="src\math\ScalarTraits.h" />
     <ClInclude Include="src\math\Vector2.h" />
     <ClInclude Include="src\math\Vector3.h" />
+    <ClInclude Include="src\math\Vector4.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

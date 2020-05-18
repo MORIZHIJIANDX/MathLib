@@ -27,7 +27,7 @@ namespace Dash
 			constexpr ScalarArray();
 			constexpr explicit ScalarArray(Zero);
 			template <std::size_t I> constexpr explicit ScalarArray(Unit<I>);
-			template <typename Scalar2> constexpr explicit ScalarArray(Scalar2 x, Scalar2 y);
+			template <typename Scalar2> constexpr explicit ScalarArray(Scalar2 x, Scalar2 y, Scalar2 z);
 			template <typename Scalar2> constexpr explicit ScalarArray(const Scalar2* v);
 			template <typename Scalar2> constexpr ScalarArray(const ScalarArray<Scalar2, 3>& v);
 
@@ -64,6 +64,7 @@ namespace Dash
 			{
 				struct { Scalar x, y, z; };
 				DataType mData;
+				ScalarArray<Scalar, 2> xy;
 			};
 		};
 
@@ -72,10 +73,15 @@ namespace Dash
 		typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b);
 
 		template <typename Scalar1, typename Scalar2>
-		typename Promote<Scalar1, Scalar2>::RT PerpDot(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b);
+		ScalarArray<typename Promote<Scalar1, Scalar2>::RT, 3> Cross(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b);
 
 		template <typename Scalar> ScalarArray<Scalar, 3> Abs(const ScalarArray<Scalar, 3>& a);
-		template <typename Scalar> ScalarArray<Scalar, 3> Perp(const ScalarArray<Scalar, 3>& a);
+
+		template <typename Scalar>
+		Scalar Triple(const ScalarArray<Scalar, 3>& a, const ScalarArray<Scalar, 3>& b, const ScalarArray<Scalar, 3>& c);
+
+		template <typename Scalar>
+		ScalarArray<Scalar, 3> Normal(const ScalarArray<Scalar, 3>& a, const ScalarArray<Scalar, 3>& b, const ScalarArray<Scalar, 3>& c);
 
 		template <typename Scalar> std::size_t MaxAxis(const ScalarArray<Scalar, 3>& a);
 		template <typename Scalar> std::size_t MinAxis(const ScalarArray<Scalar, 3>& a);
@@ -121,7 +127,7 @@ namespace Dash
 
 		template<typename Scalar>
 		template<typename Scalar2>
-		FORCEINLINE constexpr ScalarArray<Scalar, 3>::ScalarArray(Scalar2 x, Scalar2 y)
+		FORCEINLINE constexpr ScalarArray<Scalar, 3>::ScalarArray(Scalar2 x, Scalar2 y, Scalar2 z)
 			: x(static_cast<Scalar>(x))
 			, y(static_cast<Scalar>(y))
 			, z(static_cast<Scalar>(z))
@@ -328,39 +334,86 @@ namespace Dash
 		{
 			using RT = typename Promote<Scalar1, Scalar2>::RT;
 
-			return a.x * b.x + a.y * b.y;
+			return a.x * b.x + a.y * b.y + a.z * b.z;
 		}
 
 		template<typename Scalar1, typename Scalar2>
-		FORCEINLINE typename Promote<Scalar1, Scalar2>::RT PerpDot(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b)
+		FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, 3> Cross(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b)
 		{
 			using RT = typename Promote<Scalar1, Scalar2>::RT;
 
-			return a.x * b.y - a.y * b.x;
+			typedef typename Promote<Scalar1, Scalar2>::RT RT;
+			return ScalarArray<RT, 3>{a.y* b.z - a.z * b.y,
+				a.z* b.x - a.x * b.z,
+				a.x* b.y - a.y * b.x};
 		}
 
 		template<typename Scalar>
 		FORCEINLINE ScalarArray<Scalar, 3> Abs(const ScalarArray<Scalar, 3>& a)
 		{
-			return ScalarArray<Scalar, 3>{ Abs(a.x), Abs(a.y) };
+			return ScalarArray<Scalar, 3>{ Abs(a.x), Abs(a.y), Abs(a.z) };
 		}
 
 		template<typename Scalar>
-		FORCEINLINE ScalarArray<Scalar, 3> Perp(const ScalarArray<Scalar, 3>& a)
+		Scalar Triple(const ScalarArray<Scalar, 3>& a, const ScalarArray<Scalar, 3>& b, const ScalarArray<Scalar, 3>& c)
 		{
-			return ScalarArray<Scalar, 3>{ -a.y, a.x };
+#if SPEED_OVER_ACCURACY
+			return Dot(a, Cross(b, c));
+#else
+			ScalarArray<Scalar, 3> e[3];
+
+			e[0] = a;
+			e[1] = b;
+			e[2] = c;
+
+			ScalarArray<Scalar, 3> d{ Dot(e[0], e[0]),
+				Dot(e[1], e[1]),
+				Dot(e[2], e[2]) };
+
+			int axis = MaxAxis(d);
+
+			return Dot(e[axis], Cross(e[(axis + 1) % 3], e[(axis + 2) % 3]));
+#endif
+		}
+
+		template<typename Scalar>
+		ScalarArray<Scalar, 3> Normal(const ScalarArray<Scalar, 3>& a, const ScalarArray<Scalar, 3>& b, const ScalarArray<Scalar, 3>& c)
+		{
+#if SPEED_OVER_ACCURACY
+			return Cross(b - a, c - b);
+#else
+			ScalarArray<Scalar, 3> e[3];
+
+			e[0] = b - a;
+			e[1] = c - b;
+			e[2] = a - c;
+
+			ScalarArray<Scalar, 3> d{ Dot(e[0], e[0]),
+				Dot(e[1], e[1]),
+				Dot(e[2], e[2]) };
+
+			int axis = MaxAxis(d);
+
+			return Cross(e[(axis + 1) % 3], e[(axis + 2) % 3]);
+#endif
 		}
 
 		template<typename Scalar>
 		FORCEINLINE std::size_t MaxAxis(const ScalarArray<Scalar, 3>& a)
 		{
-			return IsLessnn(a.x, a.y);
+			int c0 = IsLessnn(a.x, a.y);
+			int c1 = IsLessnn(a.x, a.z);
+			int c2 = IsLessnn(a.y, a.z);
+			return (c0 & ~c2) | ((c1 & c2) << 1);
 		}
 
 		template<typename Scalar>
 		FORCEINLINE std::size_t MinAxis(const ScalarArray<Scalar, 3>& a)
 		{
-			return IsLessnn(a.y, a.x);
+			int c0 = IsLessnn(a.y, a.x);
+			int c1 = IsLessnn(a.z, a.x);
+			int c2 = IsLessnn(a.z, a.y);
+			return (c0 & ~c2) | ((c1 & c2) << 1);
 		}
 
 		template<typename Scalar>
@@ -378,7 +431,9 @@ namespace Dash
 		template<typename Scalar1, typename Scalar2>
 		FORCEINLINE bool Dominates(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b)
 		{
-			return !IsLessnn(a.x, a.x) && !IsLessnn(a.y, a.y);
+			return !IsLessnn(a.x, b.x) &&
+				!IsLessnn(a.y, b.y) &&
+				!IsLessnn(a.z, b.z);
 		}
 
 		template<typename Scalar1, typename Scalar2>
@@ -386,14 +441,15 @@ namespace Dash
 		{
 			ASSERT(v != nullptr);
 
-			v[0] = a.x;
-			v[1] = a.y;
+			v[0] = Scalar1(a.x);
+			v[1] = Scalar1(a.y);
+			v[2] = Scalar1(a.z);
 		}
 
 		template<typename Scalar>
 		FORCEINLINE bool Isfinite(const ScalarArray<Scalar, 3>& a)
 		{
-			return IsFinite(a.x) && IsFinite(a.y);
+			return IsFinite(a.x) && IsFinite(a.y) && IsFinite(a.z);
 		}
 
 
