@@ -128,7 +128,15 @@ namespace Dash
 
 		template <int X, int Y, int Z, int W>
 		ScalarArray<float, 4> Swizzle(const ScalarArray<float, 4>& a) noexcept;
+
+		ScalarArray<float, 4> Ceil(const ScalarArray<float, 4>& v) noexcept;
+		ScalarArray<float, 4> Floor(const ScalarArray<float, 4>& v) noexcept;
+		ScalarArray<float, 4> Trunc(const ScalarArray<float, 4>& v) noexcept;
+		ScalarArray<float, 4> Round(const ScalarArray<float, 4>& v) noexcept;
+		ScalarArray<float, 4> Frac(const ScalarArray<float, 4>& v) noexcept;
+
 		
+		//Member Function
 
 		FORCEINLINE ScalarArray<float, 4>::ScalarArray()
 			: mVec(_mm_setzero_ps())
@@ -403,19 +411,38 @@ namespace Dash
 		template <int X, int Y, int Z, int W>
 		FORCEINLINE ScalarArray<float, 4> Swizzle(const ScalarArray<float, 4>& a) noexcept
 		{
-			return ScalarArray<float, 4>(_mm_shuffle_ps(a, a, _MM_SHUFFLE(W, Z, Y, X)));
+			return ScalarArray<float, 4>{_mm_shuffle_ps(a, a, _MM_SHUFFLE(W, Z, Y, X))};
 		}
 
 		FORCEINLINE ScalarArray<float, 4> homogenize(const ScalarArray<float, 4>& a)
 		{
 			ASSERT(!IsZero(a.w));
-			return ScalarArray<float, 4>(_Div(a, PERMUTE4(a, 3, 3, 3, 3)));
+			return ScalarArray<float, 4>{_Div(a, PERMUTE4(a, 3, 3, 3, 3))};
 		}
 
-		//floor
-		//ceil
-		//round
-		//frac
-		//trunc
+		FORCEINLINE ScalarArray<float, 4> Ceil(const ScalarArray<float, 4>& v) noexcept
+		{
+			return ScalarArray<float, 4>{_mm_ceil_ps(v)};
+		}
+
+		FORCEINLINE ScalarArray<float, 4> Floor(const ScalarArray<float, 4>& v) noexcept
+		{
+			return ScalarArray<float, 4>{_mm_floor_ps(v)};
+		}
+
+		FORCEINLINE ScalarArray<float, 4> Trunc(const ScalarArray<float, 4>& v) noexcept
+		{
+			return ScalarArray<float, 4>{_mm_round_ps(v, _MM_FROUND_TRUNC)};
+		}
+
+		FORCEINLINE ScalarArray<float, 4> Round(const ScalarArray<float, 4>& v) noexcept
+		{	
+			return ScalarArray<float, 4>{_mm_round_ps(v, _MM_FROUND_NINT)};
+		}
+
+		FORCEINLINE ScalarArray<float, 4> Frac(const ScalarArray<float, 4>& v) noexcept
+		{	
+			return ScalarArray<float, 4>{_mm_sub_ps(v, Floor(v))};
+		}
 	}
 }

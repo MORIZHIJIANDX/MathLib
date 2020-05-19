@@ -55,6 +55,10 @@ namespace Dash {
 
 		template <typename Scalar> constexpr Scalar Ceil(Scalar x) noexcept;
 		template <typename Scalar> constexpr Scalar Floor(Scalar x) noexcept;
+		template <typename Scalar> constexpr Scalar Trunc(Scalar x) noexcept;
+		template <typename Scalar> constexpr Scalar Round(Scalar x) noexcept;
+		template <typename Scalar> constexpr Scalar Frac(Scalar x) noexcept;
+
 		template <typename Scalar> constexpr Scalar Fmod(Scalar x, Scalar y) noexcept;
 		template <typename Scalar> constexpr Scalar Modf(Scalar x, Scalar* iptr) noexcept;
 
@@ -282,6 +286,24 @@ namespace Dash {
 		FORCEINLINE constexpr Scalar Floor(Scalar x) noexcept
 		{
 			return std::floor(x);
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr Scalar Trunc(Scalar x) noexcept
+		{
+			return std::trunc(x);
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr Scalar Round(Scalar x) noexcept
+		{
+			return std::round(x);
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr Scalar Frac(Scalar x) noexcept
+		{
+			return x - Trunc(x);
 		}
 
 		template<typename Scalar>

@@ -35,7 +35,7 @@ int main()
 
 	DMath::ScalarArray<float, 4> mulre{};
 
-	std::cout << DMath::Dot3(tm, rm);
+	std::cout << DMath::Frac(-3.8);
 	
 	
 	std::cin.get();

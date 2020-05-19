@@ -166,10 +166,10 @@ namespace Dash {
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Min(const ScalarArray<Scalar, N>& a, const ScalarArray<Scalar, N>& b) noexcept;
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Max(const ScalarArray<Scalar, N>& a, const ScalarArray<Scalar, N>& b) noexcept;
 
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Floor(const ScalarArray<Scalar, N>& v) noexcept;
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Ceil(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Round(const ScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Floor(const ScalarArray<Scalar, N>& v) noexcept;
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Trunc(const ScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Round(const ScalarArray<Scalar, N>& v) noexcept;		
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Frac(const ScalarArray<Scalar, N>& v) noexcept;
 
 
@@ -906,6 +906,71 @@ namespace Dash {
 			for (size_t i = 0; i < N; i++)
 			{
 				result[i] = Max(a[i], b[i]);
+			}
+
+			return result;
+		}
+
+		template<typename Scalar, std::size_t N>
+		FORCEINLINE ScalarArray<Scalar, N> Ceil(const ScalarArray<Scalar, N>& v) noexcept
+		{
+			ScalarArray<Scalar, N> result;
+
+			for (size_t i = 0; i < N; i++)
+			{
+				result[i] = Ceil(v[i]);
+			}
+
+			return result;
+		}
+
+		template<typename Scalar, std::size_t N>
+		FORCEINLINE ScalarArray<Scalar, N> Floor(const ScalarArray<Scalar, N>& v) noexcept
+		{
+			ScalarArray<Scalar, N> result;
+
+			for (size_t i = 0; i < N; i++)
+			{
+				result[i] = Floor(v[i]);
+			}
+
+			return result;
+		}
+
+		template<typename Scalar, std::size_t N>
+		FORCEINLINE ScalarArray<Scalar, N> Trunc(const ScalarArray<Scalar, N>& v) noexcept
+		{
+			ScalarArray<Scalar, N> result;
+
+			for (size_t i = 0; i < N; i++)
+			{
+				result[i] = Trunc(v[i]);
+			}
+
+			return result;
+		}
+
+		template<typename Scalar, std::size_t N>
+		FORCEINLINE ScalarArray<Scalar, N> Round(const ScalarArray<Scalar, N>& v) noexcept
+		{
+			ScalarArray<Scalar, N> result;
+
+			for (size_t i = 0; i < N; i++)
+			{
+				result[i] = Round(v[i]);
+			}
+
+			return result;
+		}
+
+		template<typename Scalar, std::size_t N>
+		FORCEINLINE ScalarArray<Scalar, N> Frac(const ScalarArray<Scalar, N>& v) noexcept
+		{
+			ScalarArray<Scalar, N> result;
+
+			for (size_t i = 0; i < N; i++)
+			{
+				result[i] = Frac(v[i]);
 			}
 
 			return result;
