@@ -70,32 +70,32 @@ namespace Dash
 
 
 		template <typename Scalar1, typename Scalar2>
-		typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b);
+		typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b) noexcept;
 
 		template <typename Scalar1, typename Scalar2>
-		ScalarArray<typename Promote<Scalar1, Scalar2>::RT, 3> Cross(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b);
+		ScalarArray<typename Promote<Scalar1, Scalar2>::RT, 3> Cross(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b) noexcept;
 
-		template <typename Scalar> ScalarArray<Scalar, 3> Abs(const ScalarArray<Scalar, 3>& a);
+		template <typename Scalar> ScalarArray<Scalar, 3> Abs(const ScalarArray<Scalar, 3>& a) noexcept;
 
 		template <typename Scalar>
-		Scalar Triple(const ScalarArray<Scalar, 3>& a, const ScalarArray<Scalar, 3>& b, const ScalarArray<Scalar, 3>& c);
+		Scalar Triple(const ScalarArray<Scalar, 3>& a, const ScalarArray<Scalar, 3>& b, const ScalarArray<Scalar, 3>& c) noexcept;
 
 		template <typename Scalar>
-		ScalarArray<Scalar, 3> Normal(const ScalarArray<Scalar, 3>& a, const ScalarArray<Scalar, 3>& b, const ScalarArray<Scalar, 3>& c);
+		ScalarArray<Scalar, 3> Normal(const ScalarArray<Scalar, 3>& a, const ScalarArray<Scalar, 3>& b, const ScalarArray<Scalar, 3>& c) noexcept;
 
-		template <typename Scalar> std::size_t MaxAxis(const ScalarArray<Scalar, 3>& a);
-		template <typename Scalar> std::size_t MinAxis(const ScalarArray<Scalar, 3>& a);
+		template <typename Scalar> std::size_t MaxAxis(const ScalarArray<Scalar, 3>& a) noexcept;
+		template <typename Scalar> std::size_t MinAxis(const ScalarArray<Scalar, 3>& a) noexcept;
 
-		template <typename Scalar> std::size_t ClosestAxis(const ScalarArray<Scalar, 3>& a);
-		template <typename Scalar> std::size_t FurthestAxis(const ScalarArray<Scalar, 3>& a);
-
-		template <typename Scalar1, typename Scalar2>
-		bool Dominates(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b);
+		template <typename Scalar> std::size_t ClosestAxis(const ScalarArray<Scalar, 3>& a) noexcept;
+		template <typename Scalar> std::size_t FurthestAxis(const ScalarArray<Scalar, 3>& a) noexcept;
 
 		template <typename Scalar1, typename Scalar2>
-		void Convert(Scalar1* v, const ScalarArray<Scalar2, 3>& a);
+		bool Dominates(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b) noexcept;
 
-		template <typename Scalar> bool Isfinite(const ScalarArray<Scalar, 3>& a);
+		template <typename Scalar1, typename Scalar2>
+		void Convert(Scalar1* v, const ScalarArray<Scalar2, 3>& a) noexcept;
+
+		template <typename Scalar> bool Isfinite(const ScalarArray<Scalar, 3>& a) noexcept;
 
 
 		//Member Function
@@ -330,7 +330,7 @@ namespace Dash
 		//Nomenber Function
 
 		template<typename Scalar1, typename Scalar2>
-		FORCEINLINE typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b)
+		FORCEINLINE typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b) noexcept
 		{
 			using RT = typename Promote<Scalar1, Scalar2>::RT;
 
@@ -338,7 +338,7 @@ namespace Dash
 		}
 
 		template<typename Scalar1, typename Scalar2>
-		FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, 3> Cross(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b)
+		FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, 3> Cross(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b) noexcept
 		{
 			using RT = typename Promote<Scalar1, Scalar2>::RT;
 
@@ -349,13 +349,13 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE ScalarArray<Scalar, 3> Abs(const ScalarArray<Scalar, 3>& a)
+		FORCEINLINE ScalarArray<Scalar, 3> Abs(const ScalarArray<Scalar, 3>& a) noexcept
 		{
 			return ScalarArray<Scalar, 3>{ Abs(a.x), Abs(a.y), Abs(a.z) };
 		}
 
 		template<typename Scalar>
-		Scalar Triple(const ScalarArray<Scalar, 3>& a, const ScalarArray<Scalar, 3>& b, const ScalarArray<Scalar, 3>& c)
+		Scalar Triple(const ScalarArray<Scalar, 3>& a, const ScalarArray<Scalar, 3>& b, const ScalarArray<Scalar, 3>& c) noexcept
 		{
 #if SPEED_OVER_ACCURACY
 			return Dot(a, Cross(b, c));
@@ -377,7 +377,7 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		ScalarArray<Scalar, 3> Normal(const ScalarArray<Scalar, 3>& a, const ScalarArray<Scalar, 3>& b, const ScalarArray<Scalar, 3>& c)
+		ScalarArray<Scalar, 3> Normal(const ScalarArray<Scalar, 3>& a, const ScalarArray<Scalar, 3>& b, const ScalarArray<Scalar, 3>& c) noexcept
 		{
 #if SPEED_OVER_ACCURACY
 			return Cross(b - a, c - b);
@@ -399,7 +399,7 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE std::size_t MaxAxis(const ScalarArray<Scalar, 3>& a)
+		FORCEINLINE std::size_t MaxAxis(const ScalarArray<Scalar, 3>& a) noexcept
 		{
 			int c0 = IsLessnn(a.x, a.y);
 			int c1 = IsLessnn(a.x, a.z);
@@ -408,7 +408,7 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE std::size_t MinAxis(const ScalarArray<Scalar, 3>& a)
+		FORCEINLINE std::size_t MinAxis(const ScalarArray<Scalar, 3>& a) noexcept
 		{
 			int c0 = IsLessnn(a.y, a.x);
 			int c1 = IsLessnn(a.z, a.x);
@@ -417,19 +417,19 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE std::size_t ClosestAxis(const ScalarArray<Scalar, 3>& a)
+		FORCEINLINE std::size_t ClosestAxis(const ScalarArray<Scalar, 3>& a) noexcept
 		{
 			return MaxAxis(a * a);
 		}
 
 		template<typename Scalar>
-		FORCEINLINE std::size_t FurthestAxis(const ScalarArray<Scalar, 3>& a)
+		FORCEINLINE std::size_t FurthestAxis(const ScalarArray<Scalar, 3>& a) noexcept
 		{
 			return MinAxis(a * a);
 		}
 
 		template<typename Scalar1, typename Scalar2>
-		FORCEINLINE bool Dominates(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b)
+		FORCEINLINE bool Dominates(const ScalarArray<Scalar1, 3>& a, const ScalarArray<Scalar2, 3>& b) noexcept
 		{
 			return !IsLessnn(a.x, b.x) &&
 				!IsLessnn(a.y, b.y) &&
@@ -437,7 +437,7 @@ namespace Dash
 		}
 
 		template<typename Scalar1, typename Scalar2>
-		FORCEINLINE void Convert(Scalar1* v, const ScalarArray<Scalar2, 3>& a)
+		FORCEINLINE void Convert(Scalar1* v, const ScalarArray<Scalar2, 3>& a) noexcept
 		{
 			ASSERT(v != nullptr);
 
@@ -447,7 +447,7 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE bool Isfinite(const ScalarArray<Scalar, 3>& a)
+		FORCEINLINE bool Isfinite(const ScalarArray<Scalar, 3>& a) noexcept
 		{
 			return IsFinite(a.x) && IsFinite(a.y) && IsFinite(a.z);
 		}

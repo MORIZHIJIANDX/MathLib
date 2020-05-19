@@ -90,6 +90,7 @@
     <ClInclude Include="src\math\Vector2.h" />
     <ClInclude Include="src\math\Vector3.h" />
     <ClInclude Include="src\math\Vector4.h" />
+    <ClInclude Include="src\math\Vector4_SSE.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

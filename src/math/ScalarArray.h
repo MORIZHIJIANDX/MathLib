@@ -166,6 +166,12 @@ namespace Dash {
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Min(const ScalarArray<Scalar, N>& a, const ScalarArray<Scalar, N>& b) noexcept;
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Max(const ScalarArray<Scalar, N>& a, const ScalarArray<Scalar, N>& b) noexcept;
 
+		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Floor(const ScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Ceil(const ScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Round(const ScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Trunc(const ScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Frac(const ScalarArray<Scalar, N>& v) noexcept;
+
 
 		//Member Function
 
@@ -912,3 +918,8 @@ namespace Dash {
 #include "Vector2.h"
 #include "Vector3.h"
 #include "Vector4.h"
+
+#ifdef USE_SSE
+#include "Vector4_SSE.h"
+#endif // USE_SSE
+

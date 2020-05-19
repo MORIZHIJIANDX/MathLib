@@ -71,23 +71,28 @@ namespace Dash
 
 
 		template <typename Scalar1, typename Scalar2>
-		typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarArray<Scalar1, 4>& a, const ScalarArray<Scalar2, 4>& b);
+		typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarArray<Scalar1, 4>& a, const ScalarArray<Scalar2, 4>& b) noexcept;
 
 		template <typename Scalar1, typename Scalar2>
-		ScalarArray<typename Promote<Scalar1, Scalar2>::RT, 3> Cross(const ScalarArray<Scalar1, 4>& a, const ScalarArray<Scalar2, 4>& b);
-
-		template <typename Scalar> ScalarArray<Scalar, 4> Abs(const ScalarArray<Scalar, 4>& a);
+		typename Promote<Scalar1, Scalar2>::RT Dot3(const ScalarArray<Scalar1, 4>& a, const ScalarArray<Scalar2, 4>& b) noexcept;
 
 		template <typename Scalar1, typename Scalar2>
-		void Convert(Scalar1* v, const ScalarArray<Scalar2, 4>& a);
+		ScalarArray<typename Promote<Scalar1, Scalar2>::RT, 4> Cross(const ScalarArray<Scalar1, 4>& a, const ScalarArray<Scalar2, 4>& b) noexcept;
 
-		template <typename Scalar> bool Isfinite(const ScalarArray<Scalar, 4>& a);
+		template <typename Scalar> ScalarArray<Scalar, 4> Abs(const ScalarArray<Scalar, 4>& a) noexcept;
+
+		template <typename Scalar> Scalar HorizontalAdd3(const ScalarArray<Scalar, 4>& a) noexcept;
+
+		template <typename Scalar1, typename Scalar2>
+		void Convert(Scalar1* v, const ScalarArray<Scalar2, 4>& a) noexcept;
+
+		template <typename Scalar> bool Isfinite(const ScalarArray<Scalar, 4>& a) noexcept;
 
 		template <int X, int Y, int Z, int W, typename Scalar>
-		ScalarArray<Scalar, 4> Swizzle(const ScalarArray<Scalar, 4>& a);
+		ScalarArray<Scalar, 4> Swizzle(const ScalarArray<Scalar, 4>& a) noexcept;
 
 		template <typename Scalar>
-		ScalarArray<Scalar, 4> Homogenize(const ScalarArray<Scalar, 4>& a);
+		ScalarArray<Scalar, 4> Homogenize(const ScalarArray<Scalar, 4>& a) noexcept;
 
 
 		//Member Function
@@ -347,7 +352,7 @@ namespace Dash
 		//Nomenber Function
 
 		template<typename Scalar1, typename Scalar2>
-		FORCEINLINE typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarArray<Scalar1, 4>& a, const ScalarArray<Scalar2, 4>& b)
+		FORCEINLINE typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarArray<Scalar1, 4>& a, const ScalarArray<Scalar2, 4>& b) noexcept
 		{
 			using RT = typename Promote<Scalar1, Scalar2>::RT;
 
@@ -355,22 +360,34 @@ namespace Dash
 		}
 
 		template<typename Scalar1, typename Scalar2>
-		FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, 3> Cross(const ScalarArray<Scalar1, 4>& a, const ScalarArray<Scalar2, 4>& b)
+		typename Promote<Scalar1, Scalar2>::RT Dot3(const ScalarArray<Scalar1, 4>& a, const ScalarArray<Scalar2, 4>& b) noexcept
+		{
+			using RT = typename Promote<Scalar1, Scalar2>::RT;
+			return a.x * b.x + a.y * b.y + a.z * b.z;
+		}
+
+		template<typename Scalar1, typename Scalar2>
+		FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, 4> Cross(const ScalarArray<Scalar1, 4>& a, const ScalarArray<Scalar2, 4>& b) noexcept
 		{
 			using RT = typename Promote<Scalar1, Scalar2>::RT;
 
-			typedef typename Promote<Scalar1, Scalar2>::RT RT;
-			return Cross(a.xyz, b.xyz);
+			return ScalarArray<RT, 4>{ a.y * b.z - b.y * a.z, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x };
 		}
 
 		template<typename Scalar>
-		FORCEINLINE ScalarArray<Scalar, 4> Abs(const ScalarArray<Scalar, 4>& a)
+		FORCEINLINE ScalarArray<Scalar, 4> Abs(const ScalarArray<Scalar, 4>& a) noexcept
 		{
 			return ScalarArray<Scalar, 4>{ Abs(a.x), Abs(a.y), Abs(a.z), Abs(a.w)};
 		}
 
+		template<typename Scalar>
+		FORCEINLINE Scalar HorizontalAdd3(const ScalarArray<Scalar, 4>& a) noexcept
+		{
+			return a.x + a.y + a.z;
+		}
+
 		template<typename Scalar1, typename Scalar2>
-		FORCEINLINE void Convert(Scalar1* v, const ScalarArray<Scalar2, 4>& a)
+		FORCEINLINE void Convert(Scalar1* v, const ScalarArray<Scalar2, 4>& a) noexcept
 		{
 			ASSERT(v != nullptr);
 
@@ -381,19 +398,19 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE bool Isfinite(const ScalarArray<Scalar, 4>& a)
+		FORCEINLINE bool Isfinite(const ScalarArray<Scalar, 4>& a) noexcept
 		{
 			return IsFinite(a.x) && IsFinite(a.y) && IsFinite(a.z) && IsFinite(a.w);
 		}
 
 		template<int X, int Y, int Z, int W, typename Scalar>
-		FORCEINLINE ScalarArray<Scalar, 4> Swizzle(const ScalarArray<Scalar, 4>& a)
+		FORCEINLINE ScalarArray<Scalar, 4> Swizzle(const ScalarArray<Scalar, 4>& a) noexcept
 		{
 			return ScalarArray<Scalar, 4>{a[X], a[Y], a[Z], a[W]};
 		}
 
 		template<typename Scalar>
-		FORCEINLINE ScalarArray<Scalar, 4> Homogenize(const ScalarArray<Scalar, 4>& a)
+		FORCEINLINE ScalarArray<Scalar, 4> Homogenize(const ScalarArray<Scalar, 4>& a) noexcept
 		{
 			ASSERT(!IsZero(a.w));
 			Scalar s = Scalar{ 1 } / a.w;
