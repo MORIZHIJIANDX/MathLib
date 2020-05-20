@@ -99,6 +99,8 @@ namespace Dash {
 		template<typename Scalar1, typename Scalar2, std::size_t N> bool operator==(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
 		template<typename Scalar1, typename Scalar2, std::size_t N> bool operator!=(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
 
+		template <typename Scalar, std::size_t N> ScalarArray<Scalar, N> operator-(const ScalarArray<Scalar, N>& a);
+
 		template<typename Scalar1, typename Scalar2, std::size_t N>
 		ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator+(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
 
@@ -418,10 +420,12 @@ namespace Dash {
 		{
 			for (std::size_t i = 0; i < N; ++i)
 			{
-				os << v[i] << " ";
+				os << v[i];
+				if (i != N - 1)
+				{
+					os << " ";
+				}
 			}
-
-			os << std::endl;
 
 			return os;
 		}
@@ -461,6 +465,19 @@ namespace Dash {
 		FORCEINLINE bool operator!=(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept
 		{
 			return !(v1 == v2);
+		}
+
+		template<typename Scalar, std::size_t N>
+		ScalarArray<Scalar, N> operator-(const ScalarArray<Scalar, N>& a)
+		{
+			ScalarArray<Scalar, N> result;
+
+			for (std::size_t i = 0; i < N; ++i)
+			{
+				result[i] = -a[i];
+			}
+
+			return result;
 		}
 
 		template<typename Scalar1, typename Scalar2, std::size_t N>

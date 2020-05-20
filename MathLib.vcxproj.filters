@@ -48,7 +48,13 @@
     <ClInclude Include="src\math\Vector4_SSE.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\math\Matrix.h">
+    <ClInclude Include="src\math\ScalarMatrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\math\Metric.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\math\BitMask4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

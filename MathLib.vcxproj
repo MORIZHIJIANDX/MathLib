@@ -82,8 +82,10 @@
   <ItemGroup>
     <ClInclude Include="src\consolid\consolid.h" />
     <ClInclude Include="src\math\Algebra.h" />
+    <ClInclude Include="src\math\BitMask4.h" />
     <ClInclude Include="src\math\MathType.h" />
-    <ClInclude Include="src\math\Matrix.h" />
+    <ClInclude Include="src\math\Metric.h" />
+    <ClInclude Include="src\math\ScalarMatrix.h" />
     <ClInclude Include="src\math\Promote.h" />
     <ClInclude Include="src\math\Scalar.h" />
     <ClInclude Include="src\math\ScalarArray.h" />

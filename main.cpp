@@ -17,10 +17,10 @@ void Print(const DMath::ScalarArray<T, N>& v)
 
 int main()
 {
-	DMath::Float4 data = DMath::Float4{};
+	DMath::Vector4 data = DMath::Vector4{};
 	data.Fill(4);
 
-	DMath::Float4 data2{ DMath::Unit<1>{} };
+	DMath::Vector4 data2{ DMath::Unit<1>{} };
 
 	float Comot = DMath::Dot(data, data2);
 
@@ -35,7 +35,8 @@ int main()
 
 	DMath::ScalarArray<float, 4> mulre{};
 
-	std::cout << DMath::Frac(-3.8);
+
+	std::cout << DMath::Mul(DMath::Vector3{1,2,3}, DMath::Matrix3x3{ DMath::Identity{} });
 	
 	
 	std::cin.get();
