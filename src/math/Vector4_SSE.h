@@ -108,6 +108,7 @@ namespace Dash
 			};
 		};
 
+		ScalarArray<float, 4> operator-(const ScalarArray<float, 4>& a) noexcept;
 
 		ScalarArray<float, 4> operator+(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept;
 		ScalarArray<float, 4> operator-(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept;
@@ -340,6 +341,11 @@ namespace Dash
 
 
 		//Nomember Function
+		FORCEINLINE ScalarArray<float, 4> operator-(const ScalarArray<float, 4>& a) noexcept
+		{
+			return ScalarArray<float, 4>{ _mm_sub_ps(_mm_setzero_ps(), a) };
+		}
+
 		FORCEINLINE ScalarArray<float, 4> operator+(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept
 		{
 			return ScalarArray<float, 4>{ _mm_add_ps(v1.mVec, v2.mVec) };

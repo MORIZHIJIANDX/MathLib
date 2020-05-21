@@ -2,6 +2,7 @@
 
 #include "ScalarArray.h"
 #include "ScalarMatrix.h"
+#include "Metric.h"
 
 namespace Dash
 {

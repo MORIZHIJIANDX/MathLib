@@ -99,7 +99,7 @@ namespace Dash {
 		template<typename Scalar1, typename Scalar2, std::size_t N> bool operator==(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
 		template<typename Scalar1, typename Scalar2, std::size_t N> bool operator!=(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
 
-		template <typename Scalar, std::size_t N> ScalarArray<Scalar, N> operator-(const ScalarArray<Scalar, N>& a);
+		template <typename Scalar, std::size_t N> ScalarArray<Scalar, N> operator-(const ScalarArray<Scalar, N>& a) noexcept;
 
 		template<typename Scalar1, typename Scalar2, std::size_t N>
 		ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator+(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
@@ -161,7 +161,7 @@ namespace Dash {
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Log2(const ScalarArray<Scalar, N>& v) noexcept;
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Log10(const ScalarArray<Scalar, N>& v) noexcept;
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Sqrt(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Rsqrt(const ScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> RSqrt(const ScalarArray<Scalar, N>& v) noexcept;
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Cbrt(const ScalarArray<Scalar, N>& v) noexcept;
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Pow(const ScalarArray<Scalar, N>& base, Scalar exp) noexcept;
 		
@@ -468,7 +468,7 @@ namespace Dash {
 		}
 
 		template<typename Scalar, std::size_t N>
-		ScalarArray<Scalar, N> operator-(const ScalarArray<Scalar, N>& a)
+		ScalarArray<Scalar, N> operator-(const ScalarArray<Scalar, N>& a) noexcept
 		{
 			ScalarArray<Scalar, N> result;
 
@@ -864,13 +864,13 @@ namespace Dash {
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Rsqrt(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE ScalarArray<Scalar, N> RSqrt(const ScalarArray<Scalar, N>& v) noexcept
 		{
 			ScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
-				result[i] = Rsqrt(v[i]);
+				result[i] = RSqrt(v[i]);
 			}
 
 			return result;

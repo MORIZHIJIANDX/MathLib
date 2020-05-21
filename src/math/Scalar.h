@@ -70,7 +70,7 @@ namespace Dash {
 		template <typename Scalar> constexpr Scalar Log2(Scalar x) noexcept;
 		template <typename Scalar> constexpr Scalar Log10(Scalar x) noexcept;
 		template <typename Scalar> constexpr Scalar Sqrt(Scalar x) noexcept;
-		template <typename Scalar> constexpr Scalar Rsqrt(Scalar a) noexcept;
+		template <typename Scalar> constexpr Scalar RSqrt(Scalar a) noexcept;
 		template <typename Scalar> constexpr Scalar Cbrt(Scalar a) noexcept;
 		template <typename Scalar> constexpr Scalar Pow(Scalar base, Scalar exp) noexcept;
 
@@ -362,7 +362,7 @@ namespace Dash {
 		}
 
 		template<typename Scalar>
-		FORCEINLINE constexpr Scalar Rsqrt(Scalar a) noexcept
+		FORCEINLINE constexpr Scalar RSqrt(Scalar a) noexcept
 		{
 			ASSERT(IsPositive(a));
 			return Scalar{ 1 } / Sqrt(a);

@@ -525,7 +525,7 @@ namespace Dash
 
 			return result;
 		}
-
-
 	}
 }
+
+#include "Matrix3x3.h"

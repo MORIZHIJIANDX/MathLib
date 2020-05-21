@@ -36,7 +36,9 @@ int main()
 	DMath::ScalarArray<float, 4> mulre{};
 
 
-	std::cout << DMath::Mul(DMath::Vector3{1,2,3}, DMath::Matrix3x3{ DMath::Identity{} });
+	std::cout << DMath::Mul(DMath::Vector3{1,2,3}, DMath::Matrix3x3{ DMath::Identity{} }) << std::endl;
+
+	std::cout << DMath::Normalize(DMath::Vector3{ 1,2,3 }) << std::endl;
 	
 	
 	std::cin.get();
