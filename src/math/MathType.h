@@ -2,7 +2,9 @@
 
 #include "ScalarArray.h"
 #include "ScalarMatrix.h"
+#include "Quaternion.h"
 #include "Metric.h"
+
 
 namespace Dash
 {
@@ -17,5 +19,7 @@ namespace Dash
 		using Matrix2x2 = ScalarMatrix<Scalar, 2, 2>;
 		using Matrix3x3 = ScalarMatrix<Scalar, 3, 3>;
 		using Matrix4x4 = ScalarMatrix<Scalar, 4, 4>;
+
+		using Quaternion = ScalarQuaternion<Scalar>;
 	}
 }

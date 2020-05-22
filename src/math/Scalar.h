@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../consolid/consolid.h" 
+#include "ScalarTraits.h"
 
 #include <cmath>
 
@@ -75,6 +76,9 @@ namespace Dash {
 		template <typename Scalar> constexpr Scalar Pow(Scalar base, Scalar exp) noexcept;
 
 		template <typename To, typename From> To Bitcast(From from) noexcept;
+
+		template <typename Scalar> Scalar Radians(Scalar degs) noexcept;
+		template <typename Scalar> Scalar Degrees(Scalar rads) noexcept;
 
 
 		template<typename Scalar>
@@ -390,5 +394,21 @@ namespace Dash {
 			pun.from = from;
 			return pun.to;
 		}
+
+		template<typename Scalar>
+		FORCEINLINE Scalar Radians(Scalar degs) noexcept
+		{
+			static const Scalar RADS_PER_DEG = ScalarTraits<Scalar>::Pi() / Scalar(180);
+			return RADS_PER_DEG * degs;
+		}
+
+		template<typename Scalar>
+		FORCEINLINE Scalar Degrees(Scalar rads) noexcept
+		{
+			static const Scalar DEGS_PER_RAD = Scalar(180) / ScalarTraits<Scalar>::Pi();
+			return DEGS_PER_RAD * rads;
+		}
+
+
 	}
 }

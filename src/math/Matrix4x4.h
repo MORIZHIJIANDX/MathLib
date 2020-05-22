@@ -57,15 +57,15 @@ namespace Dash
 				const ScalarArray<Scalar, 4>& r2,
 				const ScalarArray<Scalar, 4>& r3) noexcept;
 
-			void SetRows(int i, const ScalarArray<Scalar, 4>& v) noexcept;
-			void SetRows(int i, const ScalarArray<Scalar, 3>& v) noexcept;
+			void SetRow(int i, const ScalarArray<Scalar, 4>& v) noexcept;
+			void SetRow(int i, const ScalarArray<Scalar, 3>& v) noexcept;
 
 			void SetColumns(const ScalarArray<Scalar, 4>& c0,
 				const ScalarArray<Scalar, 4>& c1,
 				const ScalarArray<Scalar, 4>& c2,
 				const ScalarArray<Scalar, 4>& c3) noexcept;
 
-			void SetColumns(int j, const ScalarArray<Scalar, 4>& v) noexcept;
+			void SetColumn(int j, const ScalarArray<Scalar, 4>& v) noexcept;
 
 			void SetBasis(const ScalarMatrix<Scalar, 3, 3>& basis) noexcept;
 
@@ -146,6 +146,9 @@ namespace Dash
 		template <typename Scalar> Scalar TDot(const ScalarMatrix<Scalar, 4, 4>& a, int i, const ScalarArray<Scalar, 4>& v) noexcept;
 
 		template <int I, int J, typename Scalar> Scalar Cofactor(const ScalarMatrix<Scalar, 4, 4>& a) noexcept;
+
+		template <typename Scalar>
+		Scalar Trace(const ScalarMatrix<Scalar, 4, 4>& a) noexcept;
 
 
 
@@ -347,18 +350,16 @@ namespace Dash
 			mRows[1] = r1;
 			mRows[2] = r2;
 			mRows[3] = r3;
-
-			return *this;
 		}
 
 		template<typename Scalar>
-		FORCEINLINE void ScalarMatrix<Scalar, 4, 4>::SetRows(int i, const ScalarArray<Scalar, 4>& v) noexcept
+		FORCEINLINE void ScalarMatrix<Scalar, 4, 4>::SetRow(int i, const ScalarArray<Scalar, 4>& v) noexcept
 		{
 			mRows[i] = v;
 		}
 
 		template<typename Scalar>
-		FORCEINLINE void ScalarMatrix<Scalar, 4, 4>::SetRows(int i, const ScalarArray<Scalar, 3>& v) noexcept
+		FORCEINLINE void ScalarMatrix<Scalar, 4, 4>::SetRow(int i, const ScalarArray<Scalar, 3>& v) noexcept
 		{
 			mRows[i] = ScalarArray<Scalar, 4>{ v.x, v.y, v.z, mRows[i].w };
 		}
@@ -370,12 +371,10 @@ namespace Dash
 			mRows[1] = ScalarArray<Scalar, 4>{ c0.y, c1.y, c2.y, c3.y };
 			mRows[2] = ScalarArray<Scalar, 4>{ c0.z, c1.z, c2.z, c3.z };
 			mRows[3] = ScalarArray<Scalar, 4>{ c0.w, c1.w, c2.w, c3.w };
-
-			return *this;
 		}
 
 		template<typename Scalar>
-		FORCEINLINE void ScalarMatrix<Scalar, 4, 4>::SetColumns(int j, const ScalarArray<Scalar, 4>& v) noexcept
+		FORCEINLINE void ScalarMatrix<Scalar, 4, 4>::SetColumn(int j, const ScalarArray<Scalar, 4>& v) noexcept
 		{
 			mRows[0][j] = v.x;
 			mRows[1][j] = v.y;
@@ -696,6 +695,12 @@ namespace Dash
 			return a[(I + 1) & 3][(J + 1) & 3] * (a[(I + 2) & 3][(J + 2) & 3] * a[(I + 3) & 3][(J + 3) & 3] - a[(I + 3) & 3][(J + 2) & 3] * a[(I + 2) & 3][(J + 3) & 3]) +
 				a[(I + 2) & 3][(J + 1) & 3] * (a[(I + 3) & 3][(J + 2) & 3] * a[(I + 1) & 3][(J + 3) & 3] - a[(I + 1) & 3][(J + 2) & 3] * a[(I + 3) & 3][(J + 3) & 3]) +
 				a[(I + 3) & 3][(J + 1) & 3] * (a[(I + 1) & 3][(J + 2) & 3] * a[(I + 2) & 3][(J + 3) & 3] - a[(I + 2) & 3][(J + 2) & 3] * a[(I + 1) & 3][(J + 3) & 3]);
+		}
+
+		template <typename Scalar>
+		Scalar Trace(const ScalarMatrix<Scalar, 4, 4>& a) noexcept
+		{
+			return a[0][0] + a[1][1] + a[2][2] + a[3][3];
 		}
 	}
 }

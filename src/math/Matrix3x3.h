@@ -53,9 +53,13 @@ namespace Dash
 				const ScalarArray<Scalar, 3>& r1,
 				const ScalarArray<Scalar, 3>& r2) noexcept;
 
+			void SetRow(int i, const ScalarArray<Scalar, 3>& v) noexcept;
+
 			void SetColumns(const ScalarArray<Scalar, 3>& c0,
 				const ScalarArray<Scalar, 3>& c1,
 				const ScalarArray<Scalar, 3>& c2) noexcept;
+
+			void SetColumn(int j, const ScalarArray<Scalar, 3>& v) noexcept;
 
 		private:
 			ScalarArray<Scalar, 3> mRows[3];
@@ -127,8 +131,9 @@ namespace Dash
 
 		template <int I, int J, typename Scalar> Scalar Cofactor(const ScalarMatrix<Scalar, 3, 3>& a) noexcept;
 
-		//template <typename Scalar>
-		//Quaternion<Scalar> DecomposeRotation(const ScalarMatrix<Scalar, 3, 3>& a);
+		template <typename Scalar>
+		Scalar Trace(const ScalarMatrix<Scalar, 3, 3>& a) noexcept;
+
 
 
 		//Member Function 
@@ -315,8 +320,12 @@ namespace Dash
 			mRows[0] = r0;
 			mRows[1] = r1;
 			mRows[2] = r2;
+		}
 
-			return *this;
+		template<typename Scalar>
+		FORCEINLINE void ScalarMatrix<Scalar, 3, 3>::SetRow(int i, const ScalarArray<Scalar, 3>& v) noexcept
+		{
+			mRows[i] = v;
 		}
 
 		template<typename Scalar>
@@ -325,8 +334,14 @@ namespace Dash
 			mRows[0] = ScalarArray<Scalar, 3>{ c0.x, c1.x, c2.x };
 			mRows[1] = ScalarArray<Scalar, 3>{ c0.y, c1.y, c2.x };
 			mRows[2] = ScalarArray<Scalar, 3>{ c0.z, c1.z, c2.x };
+		}
 
-			return *this;
+		template<typename Scalar>
+		FORCEINLINE void ScalarMatrix<Scalar, 3, 3>::SetColumn(int j, const ScalarArray<Scalar, 3>& v) noexcept
+		{
+			mRows[0][j] = v.x;
+			mRows[1][j] = v.y;
+			mRows[2][j] = v.z;
 		}
 
 
@@ -498,6 +513,12 @@ namespace Dash
 		{
 			return a[(I + 1) % 3][(J + 1) % 3] * a[(I + 2) % 3][(J + 2) % 3] -
 				a[(I + 2) % 3][(J + 1) % 3] * a[(I + 1) % 3][(J + 2) % 3];
+		}
+
+		template<typename Scalar>
+		FORCEINLINE Scalar Trace(const ScalarMatrix<Scalar, 3, 3>& a) noexcept
+		{
+			return a[0][0] + a[1][1] + a[2][2] ;
 		}
 
 
