@@ -249,9 +249,9 @@ namespace Dash
 		template<typename Scalar>
 		FORCEINLINE ScalarMatrix<Scalar, 3, 3>& ScalarMatrix<Scalar, 3, 3>::operator*=(Scalar s) noexcept
 		{
-			mRows[0] = s;
-			mRows[1] = s;
-			mRows[2] = s;
+			mRows[0] *= s;
+			mRows[1] *= s;
+			mRows[2] *= s;
 
 			return *this;
 		}
@@ -416,7 +416,7 @@ namespace Dash
 		FORCEINLINE ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, 3, 3> operator/(const ScalarMatrix<Scalar1, 3, 3>& a, Scalar2 s) noexcept
 		{
 			ASSERT(!IsZero(s));
-			return a * (Scalar2{ 1 } / s);
+			return a * (Scalar1{ 1 } / s);
 		}
 
 		template <typename Scalar1, typename Scalar2>

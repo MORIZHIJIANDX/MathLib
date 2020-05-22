@@ -87,6 +87,7 @@
     <ClInclude Include="src\math\Matrix3x3.h" />
     <ClInclude Include="src\math\Matrix4x4.h" />
     <ClInclude Include="src\math\Metric.h" />
+    <ClInclude Include="src\math\Quaternion.h" />
     <ClInclude Include="src\math\ScalarMatrix.h" />
     <ClInclude Include="src\math\Promote.h" />
     <ClInclude Include="src\math\Scalar.h" />
