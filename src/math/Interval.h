@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../consolid/consolid.h"
+#include "Scalar.h"
 #include "Promote.h"
 
 #ifdef USE_OSTREAM
@@ -160,6 +161,44 @@ namespace Dash
 		FORCEINLINE bool In(Scalar x, const Interval<Scalar>& z) noexcept
 		{
 			return !(x < z.Lower() || x > z.Upper()) ;
+		}
+
+		template<typename Scalar>
+		FORCEINLINE Interval<Scalar> Hull(Scalar x, Scalar y) noexcept
+		{
+			return x < y ? Interval<Scalar>{ x , y } : Interval<Scalar>{ y , x };
+		}
+
+		template<typename Scalar>
+		FORCEINLINE Interval<Scalar> Hull(const Interval<Scalar>& z, Scalar x) noexcept
+		{
+			return x < z.Lower() ?  Interval<Scalar>{x, z.Upper()} : ( x > z.Upper() ? Interval<Scalar>{ z.Lower(), x } : z);
+		}
+
+		template<typename Scalar>
+		FORCEINLINE Interval<Scalar> Hull(Scalar x, const Interval<Scalar>& z) noexcept
+		{
+			return Hull(z, x);
+		}
+
+		template<typename Scalar>
+		FORCEINLINE Interval<Scalar> Hull(const Interval<Scalar>& z1, const Interval<Scalar>& z2) noexcept
+		{
+			return Interval<Scalar>{ Min(z1.Lower(), z2.Lower()) , Max(z1.Upper(), z2.Upper()) };
+		}
+
+		template<typename Scalar>
+		FORCEINLINE Scalar Clamp(Scalar x, const Interval<Scalar>& z) noexcept
+		{
+			return Clamp(x, z.Lower(), z.Upper());
+		}
+
+		template<typename Scalar>
+		FORCEINLINE Interval<Scalar> Clamp(const Interval<Scalar>& z1, const Interval<Scalar>& z2) noexcept
+		{
+			return z1.Upper() < z2.Lower() ? Interval<Scalar>(z2.Lower(), z2.Lower()) :
+				z2.Upper() < z1.Lower() ? Interval<Scalar>(z2.Upper(), z2.Upper()) :
+				Interval<Scalar>{ Max(z1.Lower(), z2.Lower()), Min(z1.Upper(), z2.Upper()) };
 		}
 
 
