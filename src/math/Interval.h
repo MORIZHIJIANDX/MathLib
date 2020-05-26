@@ -153,7 +153,15 @@ namespace Dash
 		template<typename Scalar1, typename Scalar2>
 		FORCEINLINE bool Subset(const Interval<Scalar1>& z1, const Interval<Scalar2>& z2) noexcept
 		{
-			return false;
+			return !(z1.Lower() < z2.Lower() || (z2.Upper() < z1.Upper()));
 		}
+
+		template<typename Scalar>
+		FORCEINLINE bool In(Scalar x, const Interval<Scalar>& z) noexcept
+		{
+			return !(x < z.Lower() || x > z.Upper()) ;
+		}
+
+
 	}
 }
