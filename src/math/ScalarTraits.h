@@ -9,6 +9,35 @@ namespace Dash
 		template<typename Scalar>
 		struct ScalarTraits{};
 
+        template<>
+        struct ScalarTraits<std::size_t>
+        {
+            static std::size_t Pi()
+            {
+                return 3;
+            }
+
+            static std::size_t Infinity()
+            {
+                return std::numeric_limits<std::size_t>::infinity();
+            }
+
+            static std::size_t Epsilon()
+            {
+                return std::numeric_limits<std::size_t>::epsilon();
+            }
+
+            static std::size_t Max()
+            {
+                return std::numeric_limits<std::size_t>::max();
+            }
+
+            static std::size_t Lowest()
+            {
+                return std::numeric_limits<std::size_t>::lowest();
+            }
+        };
+
 		template<>
 		struct ScalarTraits<float> 
 		{
@@ -30,6 +59,11 @@ namespace Dash
             static float Max()
             {
                 return std::numeric_limits<float>::max();
+            }
+
+            static float Lowest()
+            {
+                return std::numeric_limits<float>::lowest();
             }
 		};
 
@@ -56,6 +90,11 @@ namespace Dash
             {
                 return std::numeric_limits<double>::max();
             }
+
+            static double Lowest()
+            {
+                return std::numeric_limits<double>::lowest();
+            }
         };
 
 
@@ -80,6 +119,11 @@ namespace Dash
             static long double Max()
             {
                 return std::numeric_limits<long double>::max();
+            }
+
+            static long double Lowest()
+            {
+                return std::numeric_limits<long double>::lowest();
             }
         };
 

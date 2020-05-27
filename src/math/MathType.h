@@ -3,7 +3,10 @@
 #include "ScalarArray.h"
 #include "ScalarMatrix.h"
 #include "Quaternion.h"
+#include "Interval.h"
+#include "Bounds.h"
 #include "Metric.h"
+
 
 
 namespace Dash

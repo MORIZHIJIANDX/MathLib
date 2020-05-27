@@ -40,6 +40,7 @@ namespace Dash {
 
 		template <typename Scalar> constexpr Scalar Min(Scalar a, Scalar b) noexcept;
 		template <typename Scalar> constexpr Scalar Max(Scalar a, Scalar b) noexcept;
+		template <typename Scalar> constexpr Scalar Max(Scalar a, Scalar b, Scalar c) noexcept;
 
 		template <typename Scalar> constexpr Scalar& Minimize(Scalar& a, Scalar b) noexcept;
 		template <typename Scalar> constexpr Scalar& Maximize(Scalar& a, Scalar b) noexcept;
@@ -213,6 +214,12 @@ namespace Dash {
 		FORCEINLINE constexpr Scalar Max(Scalar a, Scalar b) noexcept
 		{
 			return a > b ? a : b;
+		}
+
+		template<typename Scalar>
+		constexpr Scalar Max(Scalar a, Scalar b, Scalar c) noexcept
+		{
+			return Max(Max(a, b), c);
 		}
 
 		template<typename Scalar>
