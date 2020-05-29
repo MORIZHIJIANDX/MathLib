@@ -67,10 +67,8 @@ namespace Dash
 		template <typename Scalar1, typename Scalar2, std::size_t M, std::size_t N>
 		ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, M, N> operator-(const ScalarMatrix<Scalar1, M , N>& a, const ScalarMatrix<Scalar2, M , N>& b) noexcept;
 
-#if USE_MATRIX_COMP_MULT
 		template <typename Scalar1, typename Scalar2, std::size_t M, std::size_t N>
-		ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, std::size_t M, std::size_t N> operator*(const ScalarMatrix<Scalar1, M , N>& a, const ScalarMatrix<Scalar2, M , N>& b);
-#endif
+		ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, M, N> operator*(const ScalarMatrix<Scalar1, M , N>& a, const ScalarMatrix<Scalar2, M , N>& b);
 
 		template <typename Scalar1, typename Scalar2, std::size_t M, std::size_t N>
 		ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, M, N> operator*(const ScalarMatrix<Scalar1, M , N>& a, Scalar2 s) noexcept;
@@ -385,21 +383,21 @@ namespace Dash
 			return result;
 		}
 
-#if USE_MATRIX_COMP_MULT
 		template<typename Scalar1, typename Scalar2, std::size_t M, std::size_t N>
 		FORCEINLINE ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, M, N> operator*(const ScalarMatrix<Scalar1, M, N>& a, const ScalarMatrix<Scalar2, M, N>& b)
 		{
-			using RT = typename Promote<Scalar1, Scalar2>::RT;
-			ScalarMatrix<RT, M, N> result;
+			//using RT = typename Promote<Scalar1, Scalar2>::RT;
+			//ScalarMatrix<RT, M, N> result;
 
-			for (std::size_t i = 0; i < M; i++)
-			{
-				result[i] = a[i] * b[i];
-			}
+			//for (std::size_t i = 0; i < M; i++)
+			//{
+			//	result[i] = a[i] * b[i];
+			//}
 
-			return result;
+			//return result;
+
+			return Mul(a, b);
 		}
-#endif
 
 		template<typename Scalar1, typename Scalar2, std::size_t M, std::size_t N>
 		FORCEINLINE ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, M, N> operator*(const ScalarMatrix<Scalar1, M, N>& a, Scalar2 s) noexcept

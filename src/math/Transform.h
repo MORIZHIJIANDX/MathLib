@@ -9,8 +9,8 @@ namespace Dash
 		class Transform
 		{
 		public:
-			Transform() noexcept;
-			template<typename Scalar> Transform(const ScalarArray<Scalar, 3>& scale, const Quaternion& rotation = Quaternion{ Identity{} }, const ScalarArray<Scalar, 3>& translation = ScalarArray<Scalar, 3>{ Zero{} }) noexcept;
+			Transform() noexcept = default;
+			template<typename Scalar> Transform(const ScalarArray<Scalar, 3>& scale, const Quaternion& rotation, const ScalarArray<Scalar, 3>& position) noexcept;
 			explicit Transform(const Matrix4x4& mat) noexcept;
 			Transform(const Matrix4x4& mat, const Matrix4x4& inverseMat) noexcept;
 			Transform(const Transform& t) noexcept;
@@ -60,6 +60,18 @@ namespace Dash
 			Vector4f TransformNormal(const Vector4f& v) const noexcept;
 
 		private:
+			void UpdateMatrix()
+			{
+				mMat = ScaleMatrix4x4<Scalar>(mScale) * RotateMatrix4x4<Scalar>(mRotation) * TranslateMatrix4x4<Scalar>(mPosition);
+				mInverseMat = Inverse(mMat);
+				mDirty = false;
+			}
+
+			void MakeDirty() 
+			{
+				mDirty = true;
+			}
+
 			Vector3f mScale;
 			Quaternion mRotation;
 			Vector3f mPosition;
@@ -73,12 +85,44 @@ namespace Dash
 		Transform operator*(const Transform& t1, const Transform& t2) noexcept;
 
 		Transform Scale(const Vector3f& r);
+		Transform Scale(Scalar x, Scalar y, Scalar z);
+
 		Transform Rotate(const Vector3f& r);
 		Transform Rotate(Scalar yaw, Scalar roll, Scalar pitch);
 		Transform Rotate(const Quaternion& r);
+
 		Transform Translate(const Vector3f& r);
+		Transform Translate(Scalar x, Scalar y, Scalar z);
 
 		Transform RotateAxis(const Vector3f& axis, Scalar angle);
+
+		Transform RotateAround(const Vector3f& point, const Vector3f& axis, Scalar angle);
+
+
+
+		//Member Function
+
+		template<typename Scalar>
+		FORCEINLINE Transform::Transform(const ScalarArray<Scalar, 3>& scale, const Quaternion& rotation, const ScalarArray<Scalar, 3>& position) noexcept
+			: mScale(scale)
+			, mRotation(rotation)
+			, mPosition(translation)
+			, mDirty(true)
+		{
+			UpdateMatrix();
+		}
+
+		FORCEINLINE Transform::Transform(const Matrix4x4& mat) noexcept
+		{
+		}
+
+		FORCEINLINE Transform::Transform(const Matrix4x4& mat, const Matrix4x4& inverseMat) noexcept
+			: mMat(mat)
+			, mInverseMat(inverseMat)
+			, mDirty(false)
+		{
+			DecomposeAffineMatrix4x4(mScale, mRotation, mPosition, mMat);
+		}
 
 	}
 }

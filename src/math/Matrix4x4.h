@@ -102,10 +102,8 @@ namespace Dash
 		template <typename Scalar1, typename Scalar2>
 		ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, 4, 4> operator-(const ScalarMatrix<Scalar1, 4, 4>& a, const ScalarMatrix<Scalar2, 4, 4>& b) noexcept;
 
-#if USE_MATRIX_COMP_MULT
 		template <typename Scalar1, typename Scalar2>
-		ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT> operator*(const ScalarMatrix<Scalar1, 4, 4>& a, const ScalarMatrix<Scalar2, 4, 4>& b);
-#endif
+		ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, 4, 4> operator*(const ScalarMatrix<Scalar1, 4, 4>& a, const ScalarMatrix<Scalar2, 4, 4>& b);
 
 		template <typename Scalar1, typename Scalar2>
 		ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, 4, 4> operator*(const ScalarMatrix<Scalar1, 4, 4>& a, Scalar2 s) noexcept;
@@ -154,25 +152,31 @@ namespace Dash
 		Scalar Trace(const ScalarMatrix<Scalar, 4, 4>& a) noexcept;
 
 		template <typename Scalar>
-		ScalarMatrix<Scalar, 4, 4> ScaleMatrix(const ScalarArray<Scalar, 3>& a) noexcept;
+		ScalarMatrix<Scalar, 4, 4> ScaleMatrix4x4(const ScalarArray<Scalar, 3>& a) noexcept;
 
 		template <typename Scalar>
-		ScalarMatrix<Scalar, 4, 4> ScaleMatrix(Scalar x, Scalar y, Scalar z) noexcept;
+		ScalarMatrix<Scalar, 4, 4> ScaleMatrix4x4(Scalar x, Scalar y, Scalar z) noexcept;
 
 		template <typename Scalar>
-		ScalarMatrix<Scalar, 4, 4> RotateMatrix(const ScalarArray<Scalar, 3>& a) noexcept;
+		ScalarMatrix<Scalar, 4, 4> RotateMatrix4x4(const ScalarArray<Scalar, 3>& a) noexcept;
 
 		template <typename Scalar>
-		ScalarMatrix<Scalar, 4, 4> RotateMatrix(Scalar yaw, Scalar roll, Scalar pitch) noexcept;
+		ScalarMatrix<Scalar, 4, 4> RotateMatrix4x4(Scalar yaw, Scalar roll, Scalar pitch) noexcept;
 
 		template <typename Scalar>
-		ScalarMatrix<Scalar, 4, 4> RotateMatrix(const ScalarQuaternion<Scalar>& q) noexcept;
+		ScalarMatrix<Scalar, 4, 4> RotateMatrix4x4(const ScalarQuaternion<Scalar>& q) noexcept;
 
 		template <typename Scalar>
-		ScalarMatrix<Scalar, 4, 4> TranslateMatrix(const ScalarArray<Scalar, 3>& a) noexcept;
+		ScalarMatrix<Scalar, 4, 4> TranslateMatrix4x4(const ScalarArray<Scalar, 3>& a) noexcept;
+
+		template <typename Scalar>
+		void DecomposeAffineMatrix4x4(ScalarArray<Scalar, 3>& scale, ScalarQuaternion<Scalar>& rotation, ScalarArray<Scalar, 3>& translation, const ScalarMatrix<Scalar, 4, 4>& a) noexcept;
+
+
 
 
 		//Member Function 
+
 		template<typename Scalar>
 		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix() noexcept
 		{
@@ -344,9 +348,7 @@ namespace Dash
 			mRows[0] = ScalarArray<Scalar, 4>{ a00, a01, a02, a03 };
 			mRows[1] = ScalarArray<Scalar, 4>{ a10, a11, a12, a13 };
 			mRows[2] = ScalarArray<Scalar, 4>{ a20, a21, a22, a23 };
-			mRows[3] = ScalarArray<Scalar, 4>{ a20, a21, a22, a33 };
-
-			return *this;
+			mRows[3] = ScalarArray<Scalar, 4>{ a30, a31, a32, a33 };
 		}
 
 		template<typename Scalar>
@@ -359,8 +361,6 @@ namespace Dash
 			mRows[1] = ScalarArray<Scalar, 4>{ Scalar{v[4]}, Scalar{v[5]}, Scalar{v[6]}, Scalar{v[7]} };
 			mRows[2] = ScalarArray<Scalar, 4>{ Scalar{v[8]}, Scalar{v[9]}, Scalar{v[10]}, Scalar{v[11]} };
 			mRows[3] = ScalarArray<Scalar, 4>{ Scalar{v[12]}, Scalar{v[13]}, Scalar{v[14]}, Scalar{v[15]} };
-
-			return *this;
 		}
 
 		template<typename Scalar>
@@ -474,17 +474,19 @@ namespace Dash
 				a[3][0] - b[3][0], a[3][1] - b[3][1], a[3][2] - b[3][2], a[3][3] - b[3][3] };
 		}
 
-#if USE_MATRIX_COMP_MULT
+//#if USE_MATRIX_COMP_MULT
 		template <typename Scalar1, typename Scalar2>
-		FORCEINLINE ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT> operator*(const ScalarMatrix<Scalar1, 4, 4>& a, const ScalarMatrix<Scalar2, 4, 4>& b)
+		FORCEINLINE ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, 4, 4> operator*(const ScalarMatrix<Scalar1, 4, 4>& a, const ScalarMatrix<Scalar2, 4, 4>& b)
 		{
-			using RT = typename Promote<Scalar1, Scalar2>::RT;
-			return ScalarMatrix<RT, 4, 4>{ a[0][0] * b[0][0], a[0][1] * b[0][1], a[0][2] * b[0][2], a[0][3] * b[0][3],
-				a[1][0] * b[1][0], a[1][1] * b[1][1], a[1][2] * b[1][2], a[1][3] * b[1][3],
-				a[2][0] * b[2][0], a[2][1] * b[2][1], a[2][2] * b[2][2], a[2][3] * b[2][3],
-				a[3][0] * b[3][0], a[3][1] * b[3][1], a[3][2] * b[3][2], a[3][3] * b[3][3] };
+			//using RT = typename Promote<Scalar1, Scalar2>::RT;
+			//return ScalarMatrix<RT, 4, 4>{ a[0][0] * b[0][0], a[0][1] * b[0][1], a[0][2] * b[0][2], a[0][3] * b[0][3],
+			//	a[1][0] * b[1][0], a[1][1] * b[1][1], a[1][2] * b[1][2], a[1][3] * b[1][3],
+			//	a[2][0] * b[2][0], a[2][1] * b[2][1], a[2][2] * b[2][2], a[2][3] * b[2][3],
+			//	a[3][0] * b[3][0], a[3][1] * b[3][1], a[3][2] * b[3][2], a[3][3] * b[3][3] };
+
+			return Mul(a, b);
 		}
-#endif
+//#endif
 
 		template <typename Scalar1, typename Scalar2>
 		FORCEINLINE ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, 4, 4> operator*(const ScalarMatrix<Scalar1, 4, 4>& a, Scalar2 s) noexcept
@@ -624,13 +626,10 @@ namespace Dash
 		template <typename Scalar>
 		FORCEINLINE ScalarMatrix<Scalar, 4, 4> Inverse(const ScalarMatrix<Scalar, 4, 4>& a) noexcept
 		{
-			// From: Streaming SIMD Extensions - Inverse of 4x4 Matrix, Intel
-
-			Scalar tmp[12]; /* temp array for pairs */
+			Scalar tmp[12];
 
 			ScalarMatrix<Scalar, 4, 4> dst;
 
-			/* calculate pairs for first 8 elements (cofactors) */
 			tmp[0] = a[2][2] * a[3][3];
 			tmp[1] = a[3][2] * a[2][3];
 			tmp[2] = a[1][2] * a[3][3];
@@ -644,7 +643,6 @@ namespace Dash
 			tmp[10] = a[0][2] * a[1][3];
 			tmp[11] = a[1][2] * a[0][3];
 
-			/* calculate first 8 elements (cofactors) */
 			dst[0][0] = (tmp[0] - tmp[1]) * a[1][1] + (tmp[3] - tmp[2]) * a[2][1] + (tmp[4] - tmp[5]) * a[3][1];
 			dst[0][1] = (tmp[1] - tmp[0]) * a[0][1] + (tmp[6] - tmp[7]) * a[2][1] + (tmp[9] - tmp[8]) * a[3][1];
 			dst[0][2] = (tmp[2] - tmp[3]) * a[0][1] + (tmp[7] - tmp[6]) * a[1][1] + (tmp[10] - tmp[11]) * a[3][1];
@@ -654,7 +652,6 @@ namespace Dash
 			dst[1][2] = (tmp[3] - tmp[2]) * a[0][0] + (tmp[6] - tmp[7]) * a[1][0] + (tmp[11] - tmp[10]) * a[3][0];
 			dst[1][3] = (tmp[4] - tmp[5]) * a[0][0] + (tmp[9] - tmp[8]) * a[1][0] + (tmp[10] - tmp[11]) * a[2][0];
 
-			/* calculate pairs for second 8 elements (cofactors) */
 			tmp[0] = a[2][0] * a[3][1];
 			tmp[1] = a[3][0] * a[2][1];
 			tmp[2] = a[1][0] * a[3][1];
@@ -668,7 +665,6 @@ namespace Dash
 			tmp[10] = a[0][0] * a[1][1];
 			tmp[11] = a[1][0] * a[0][1];
 
-			/* calculate second 8 elements (cofactors) */
 			dst[2][0] = (tmp[0] - tmp[1]) * a[1][3] + (tmp[3] - tmp[2]) * a[2][3] + (tmp[4] - tmp[5]) * a[3][3];
 			dst[2][1] = (tmp[1] - tmp[0]) * a[0][3] + (tmp[6] - tmp[7]) * a[2][3] + (tmp[9] - tmp[8]) * a[3][3];
 			dst[2][2] = (tmp[2] - tmp[3]) * a[0][3] + (tmp[7] - tmp[6]) * a[1][3] + (tmp[10] - tmp[11]) * a[3][3];
@@ -678,7 +674,6 @@ namespace Dash
 			dst[3][2] = (tmp[6] - tmp[7]) * a[1][2] + (tmp[11] - tmp[10]) * a[3][2] + (tmp[3] - tmp[2]) * a[0][2];
 			dst[3][3] = (tmp[10] - tmp[11]) * a[2][2] + (tmp[4] - tmp[5]) * a[0][2] + (tmp[9] - tmp[8]) * a[1][2];
 
-			/* calculate determinant */
 			Scalar det = a[0][0] * dst[0][0] + a[1][0] * dst[0][1] + a[2][0] * dst[0][2] + a[3][0] * dst[0][3];
 
 			ASSERT(!IsZero(det));
@@ -724,12 +719,94 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE ScalarMatrix<Scalar, 4, 4> ScaleMatrix(const ScalarArray<Scalar, 3>& a) noexcept
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4> ScaleMatrix4x4(const ScalarArray<Scalar, 3>& a) noexcept
+		{
+			return ScaleMatrix4x4(a.x, a.y, a.z);
+		}
+
+		template<typename Scalar>
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4> ScaleMatrix4x4(Scalar x, Scalar y, Scalar z) noexcept
 		{
 			return ScalarMatrix<Scalar, 4, 4>{
-				a.x, Scalar{}, Scalar{}, Scalar{},
-
+					x, Scalar{}, Scalar{}, Scalar{},
+					Scalar{}, y, Scalar{}, Scalar{},
+					Scalar{}, Scalar{}, z, Scalar{},
+					Scalar{}, Scalar{}, Scalar{}, Scalar{ 1 }
 			};
 		}
+
+		template<typename Scalar>
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4> RotateMatrix4x4(const ScalarArray<Scalar, 3>& a) noexcept
+		{
+			return RotateMatrix4x4(a.x, a.y, a.z);
+		}
+
+		template<typename Scalar>
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4> RotateMatrix4x4(Scalar yaw, Scalar roll, Scalar pitch) noexcept
+		{
+			Scalar sinx = Sin(yaw);
+			Scalar cosx = Cos(yaw);
+
+			Scalar siny = Sin(roll);
+			Scalar cosy = Cos(roll);
+
+			Scalar sinz = Sin(pitch);
+			Scalar cosz = Cos(pitch);
+
+			return ScalarMatrix<Scalar, 4, 4>{
+				-sinz * sinx * siny + cosz * cosy, -sinz * cosx, sinz * sinx * cosy + cosz * siny,  0,
+				-cosz * sinx * siny + sinz * cosy, -cosz * cosx, -cosz* sinx * cosy + sinz * siny,  0,
+				-cosx * siny					 , sinx		   , cosx * cosy,				        0,
+				0								 , 0		   , 0								 ,  1
+			};
+		}
+
+		template<typename Scalar>
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4> RotateMatrix4x4(const ScalarQuaternion<Scalar>& q) noexcept
+		{
+			ScalarMatrix<Scalar, 4, 4> m{ Identity{} };
+			m[0][0] = 1 - 2 * q.y * q.y - 2 * q.z * q.z;
+			m[0][1] = 2 * q.x * q.y + 2 * q.z * q.w;
+			m[0][2] = 2 * q.x * q.z - 2 * q.y * q.w;
+
+			m[1][0] = 2 * q.x * q.y - 2 * q.z * q.w;
+			m[1][1] = 1 - 2 * q.x * q.x - 2 * q.z * q.z;
+			m[1][2] = 2 * q.y * q.z + 2 * q.x * q.w;
+
+			m[2][0] = 2 * q.x * q.z + 2 * q.y * q.w;
+			m[2][1] = 2 * q.y * q.z - 2 * q.x * q.w;
+			m[2][2] = 1 - 2 * q.x * q.x - 2 * q.y * q.y;
+
+			return m;
+		}
+
+		template<typename Scalar>
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4> TranslateMatrix4x4(const ScalarArray<Scalar, 3>& a) noexcept
+		{
+			return ScalarMatrix<Scalar, 4, 4>{
+				Scalar{ 1 }, Scalar{}, Scalar{}, Scalar{},
+				Scalar{}, Scalar{ 1 }, Scalar{}, Scalar{},
+				Scalar{}, Scalar{}, Scalar{ 1 }, Scalar{},
+				a.x		,      a.y,         a.z, Scalar{ 1 }
+			};
+		}
+
+		template<typename Scalar>
+		FORCEINLINE void DecomposeAffineMatrix4x4(ScalarArray<Scalar, 3>& scale, ScalarQuaternion<Scalar>& rotation, ScalarArray<Scalar, 3>& translation, const ScalarMatrix<Scalar, 4, 4>& a) noexcept
+		{
+			translation = ScalarArray<Scalar, 3>{ a[3][0], a[3][1], a[3][2] };
+
+			scale = ScalarArray<Scalar, 3>{ Length(Row(a, 0).xyz), Length(Row(a, 1).xyz), Length(Row(a, 2).xyz) };
+
+			ScalarArray<Scalar, 3> inverseScale{ 1 / scale.x, 1 / scale.y, 1 / scale.z };
+
+			rotation = FromMatrix(ScalarMatrix<Scalar, 3, 3>{
+				a[0][0] * inverseScale.x, a[0][1] * inverseScale.x, a[0][2] * inverseScale.x,
+				a[1][0] * inverseScale.y, a[1][1] * inverseScale.y, a[1][2] * inverseScale.y,
+				a[2][0] * inverseScale.z, a[2][1] * inverseScale.z, a[2][2] * inverseScale.z,
+			});
+		}
+
+
 	}
 }

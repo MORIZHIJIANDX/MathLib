@@ -89,10 +89,8 @@ namespace Dash
 		template <typename Scalar1, typename Scalar2>
 		ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, 3, 3> operator-(const ScalarMatrix<Scalar1, 3, 3>& a, const ScalarMatrix<Scalar2, 3, 3>& b) noexcept;
 
-#if USE_MATRIX_COMP_MULT
 		template <typename Scalar1, typename Scalar2>
-		ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT> operator*(const ScalarMatrix<Scalar1, 3, 3>& a, const ScalarMatrix<Scalar2, 3, 3>& b);
-#endif
+		ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, 3, 3> operator*(const ScalarMatrix<Scalar1, 3, 3>& a, const ScalarMatrix<Scalar2, 3, 3>& b);
 
 		template <typename Scalar1, typename Scalar2>
 		ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, 3, 3> operator*(const ScalarMatrix<Scalar1, 3, 3>& a, Scalar2 s) noexcept;
@@ -297,8 +295,6 @@ namespace Dash
 			mRows[0] = ScalarArray<Scalar, 3>{ a00, a01, a02 };
 			mRows[1] = ScalarArray<Scalar, 3>{ a10, a11, a12 };
 			mRows[2] = ScalarArray<Scalar, 3>{ a20, a21, a22 };
-
-			return *this;
 		}
 
 		template<typename Scalar>
@@ -310,8 +306,6 @@ namespace Dash
 			mRows[0] = ScalarArray<Scalar, 3>{ Scalar{v[0]}, Scalar{v[1]}, Scalar{v[2]} };
 			mRows[1] = ScalarArray<Scalar, 3>{ Scalar{v[3]}, Scalar{v[4]}, Scalar{v[5]} };
 			mRows[2] = ScalarArray<Scalar, 3>{ Scalar{v[6]}, Scalar{v[7]}, Scalar{v[8]} };
-
-			return *this;
 		}
 
 		template<typename Scalar>
@@ -400,16 +394,16 @@ namespace Dash
 				a[2][0] - b[2][0], a[2][1] - b[2][1], a[2][2] - b[2][2]};
 		}
 
-#if USE_MATRIX_COMP_MULT
 		template <typename Scalar1, typename Scalar2>
-		FORCEINLINE ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT> operator*(const ScalarMatrix<Scalar1, 3, 3>& a, const ScalarMatrix<Scalar2, 3, 3>& b)
+		FORCEINLINE ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, 3, 3> operator*(const ScalarMatrix<Scalar1, 3, 3>& a, const ScalarMatrix<Scalar2, 3, 3>& b)
 		{
-			using RT = typename Promote<Scalar1, Scalar2>::RT;
-			return ScalarMatrix<RT, 3, 3>{a[0][0] * b[0][0], a[0][1] * b[0][1], a[0][2] * b[0][2],
-				a[1][0] * b[1][0], a[1][1] * b[1][1], a[1][2] * b[1][2],
-				a[2][0] * b[2][0], a[2][1] * b[2][1], a[2][2] * b[2][2]};
+			//using RT = typename Promote<Scalar1, Scalar2>::RT;
+			//return ScalarMatrix<RT, 3, 3>{a[0][0] * b[0][0], a[0][1] * b[0][1], a[0][2] * b[0][2],
+			//	a[1][0] * b[1][0], a[1][1] * b[1][1], a[1][2] * b[1][2],
+			//	a[2][0] * b[2][0], a[2][1] * b[2][1], a[2][2] * b[2][2]};
+
+			return Mul(a, b);
 		}
-#endif
 
 		template <typename Scalar1, typename Scalar2>
 		FORCEINLINE ScalarMatrix<typename Promote<Scalar1, Scalar2>::RT, 3, 3> operator*(const ScalarMatrix<Scalar1, 3, 3>& a, Scalar2 s) noexcept

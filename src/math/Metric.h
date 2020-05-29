@@ -29,7 +29,7 @@ namespace Dash
 		template<typename Vector>
 		FORCEINLINE typename Vector::ScalarType Length(const Vector& v)
 		{
-			return Sqrt(LengthSquared(v, v));
+			return Sqrt(LengthSquared(v));
 		}
 
 		template<typename Vector>
