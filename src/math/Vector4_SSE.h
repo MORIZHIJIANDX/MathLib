@@ -6,8 +6,7 @@ namespace Dash
 {
 	namespace Math
 	{
-
-		__m128 _Div(__m128 a, __m128 b)
+		static __m128 _Div(__m128 a, __m128 b)
 		{
 #ifdef FAST_APPROX
 			return _mm_mul_ps(a, _mm_rcp_ps(b));
@@ -16,7 +15,7 @@ namespace Dash
 #endif // FAST_APPROX
 		}
 		
-		__m128 _Div(__m128 a, float s)
+		static __m128 _Div(__m128 a, float s)
 		{
 			ASSERT( s != 0.0f);
 #ifdef FAST_APPROX
@@ -51,14 +50,14 @@ namespace Dash
 			using ReverseIterator = typename DataType::reverse_iterator;
 			using ConstReverseIterator = typename DataType::const_reverse_iterator;
 
-			ScalarArray();
-			explicit ScalarArray(Zero);
-			constexpr explicit ScalarArray(__m128 v);
-			template <std::size_t I> constexpr explicit ScalarArray(Unit<I>);
-			template <typename Scalar2> constexpr explicit ScalarArray(Scalar2 x, Scalar2 y, Scalar2 z, Scalar2 w = 0.0f );
-			template <typename Scalar2> constexpr explicit ScalarArray(const ScalarArray<Scalar2, 3> v, Scalar2 w = 0.0f );
-			template <typename Scalar2> constexpr explicit ScalarArray(const Scalar2* v);
-			template <typename Scalar2> constexpr ScalarArray(const ScalarArray<Scalar2, 4>& v);
+			ScalarArray() noexcept;
+			explicit ScalarArray(Zero) noexcept;
+			constexpr explicit ScalarArray(__m128 v) noexcept;
+			template <std::size_t I> constexpr explicit ScalarArray(Unit<I>) noexcept;
+			template <typename Scalar2> constexpr explicit ScalarArray(Scalar2 x, Scalar2 y, Scalar2 z, Scalar2 w = 0.0f ) noexcept;
+			template <typename Scalar2> constexpr explicit ScalarArray(const ScalarArray<Scalar2, 3> v, Scalar2 w = 0.0f ) noexcept;
+			template <typename Scalar2> constexpr explicit ScalarArray(const Scalar2* v) noexcept;
+			template <typename Scalar2> constexpr ScalarArray(const ScalarArray<Scalar2, 4>& v) noexcept;
 
 			operator ConstPointer () const noexcept;
 			operator Pointer () noexcept;
@@ -139,48 +138,48 @@ namespace Dash
 		
 		//Member Function
 
-		FORCEINLINE ScalarArray<float, 4>::ScalarArray()
+		FORCEINLINE ScalarArray<float, 4>::ScalarArray() noexcept
 			: mVec(_mm_setzero_ps())
 		{
 		}
 
-		FORCEINLINE ScalarArray<float, 4>::ScalarArray(Zero)
+		FORCEINLINE ScalarArray<float, 4>::ScalarArray(Zero) noexcept
 			: mVec(_mm_setzero_ps())
 		{
 		}
 
-		FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(__m128 v)
+		FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(__m128 v) noexcept
 			: mVec(v)
 		{
 		}
 
 		template<std::size_t I>
-		FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(Unit<I>)
+		FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(Unit<I>) noexcept
 			: mVec(_mm_setr_ps(float(I == 0), float(I == 1), float( I == 2), float(I == 3)))
 		{	
 		}
 
 		template <typename Scalar2> 
-		FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(Scalar2 x, Scalar2 y, Scalar2 z, Scalar2 w)
+		FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(Scalar2 x, Scalar2 y, Scalar2 z, Scalar2 w) noexcept
 			: mVec(_mm_setr_ps(float(x), float(y), float(z), float(w)))
 		{
 		}
 
 		template <typename Scalar2>
-		FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(const ScalarArray<Scalar2, 3> v, Scalar2 w)
+		FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(const ScalarArray<Scalar2, 3> v, Scalar2 w) noexcept
 			: mVec(_mm_setr_ps(float(v.x), float(v.y), float(v.z), float(w)))
 		{
 		}
 
 		template <typename Scalar2>
-		FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(const Scalar2* v)
+		FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(const Scalar2* v) noexcept
 			: mVec(_mm_setr_ps(float(v[0]), float(v[1]), float(v[2]), float(v[3])))
 		{
 			ASSERT(v != nullptr);
 		}
 
 		template <typename Scalar2>
-		FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(const ScalarArray<Scalar2, 4>& v)
+		FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(const ScalarArray<Scalar2, 4>& v) noexcept
 			: mVec(_mm_setr_ps(float(v.x), float(v.y), float(v.z), float(v.w)))
 		{
 		}

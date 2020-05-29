@@ -39,10 +39,10 @@ namespace Dash
 		template <typename Scalar1, typename Scalar2> bool Subset(const Interval<Scalar1>& z1, const Interval<Scalar2>& z2) noexcept;
 		template <typename Scalar> bool In(Scalar x, const Interval<Scalar>& z) noexcept;
 
-		template <typename Scalar> Interval<Scalar> Hull(Scalar x, Scalar y) noexcept;
-		template <typename Scalar> Interval<Scalar> Hull(const Interval<Scalar>& z, Scalar x) noexcept;
-		template <typename Scalar> Interval<Scalar> Hull(Scalar x, const Interval<Scalar>& z) noexcept;
-		template <typename Scalar> Interval<Scalar> Hull(const Interval<Scalar>& z1, const Interval<Scalar>& z2) noexcept;
+		template <typename Scalar> Interval<Scalar> Union(Scalar x, Scalar y) noexcept;
+		template <typename Scalar> Interval<Scalar> Union(const Interval<Scalar>& z, Scalar x) noexcept;
+		template <typename Scalar> Interval<Scalar> Union(Scalar x, const Interval<Scalar>& z) noexcept;
+		template <typename Scalar> Interval<Scalar> Union(const Interval<Scalar>& z1, const Interval<Scalar>& z2) noexcept;
 
 		template <typename Scalar> Scalar           Clamp(Scalar x, const Interval<Scalar>& z) noexcept;
 		template <typename Scalar> Interval<Scalar> Clamp(const Interval<Scalar>& z1, const Interval<Scalar>& z2) noexcept;
@@ -131,25 +131,25 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE Interval<Scalar> Hull(Scalar x, Scalar y) noexcept
+		FORCEINLINE Interval<Scalar> Union(Scalar x, Scalar y) noexcept
 		{
 			return x < y ? Interval<Scalar>{ x , y } : Interval<Scalar>{ y , x };
 		}
 
 		template<typename Scalar>
-		FORCEINLINE Interval<Scalar> Hull(const Interval<Scalar>& z, Scalar x) noexcept
+		FORCEINLINE Interval<Scalar> Union(const Interval<Scalar>& z, Scalar x) noexcept
 		{
 			return x < z.Lower ?  Interval<Scalar>{x, z.Upper} : ( x > z.Upper ? Interval<Scalar>{ z.Lower, x } : z);
 		}
 
 		template<typename Scalar>
-		FORCEINLINE Interval<Scalar> Hull(Scalar x, const Interval<Scalar>& z) noexcept
+		FORCEINLINE Interval<Scalar> Union(Scalar x, const Interval<Scalar>& z) noexcept
 		{
-			return Hull(z, x);
+			return Union(z, x);
 		}
 
 		template<typename Scalar>
-		FORCEINLINE Interval<Scalar> Hull(const Interval<Scalar>& z1, const Interval<Scalar>& z2) noexcept
+		FORCEINLINE Interval<Scalar> Union(const Interval<Scalar>& z1, const Interval<Scalar>& z2) noexcept
 		{
 			return Interval<Scalar>{ Min(z1.Lower, z2.Lower) , Max(z1.Upper, z2.Upper) };
 		}

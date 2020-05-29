@@ -4,6 +4,9 @@ namespace Dash
 {
 	namespace Math
 	{
+		template <typename Scalar>
+		class ScalarQuaternion;
+
 		template<typename Scalar>
 		class ScalarMatrix<Scalar, 4, 4>
 		{
@@ -13,22 +16,22 @@ namespace Dash
 			using ScalarType = Scalar;
 			using SizeType = std::size_t;
 
-			constexpr ScalarMatrix();
-			constexpr explicit ScalarMatrix(Zero);
-			constexpr explicit ScalarMatrix(Identity);
-			constexpr explicit ScalarMatrix(Scalar s);
-			template <typename Scalar2> constexpr explicit ScalarMatrix(const Scalar2* v);
+			constexpr ScalarMatrix() noexcept;
+			constexpr explicit ScalarMatrix(Zero) noexcept;
+			constexpr explicit ScalarMatrix(Identity) noexcept;
+			constexpr explicit ScalarMatrix(Scalar s) noexcept;
+			template <typename Scalar2> constexpr explicit ScalarMatrix(const Scalar2* v) noexcept;
 			constexpr ScalarMatrix(Scalar a00, Scalar a01, Scalar a02, Scalar a03,
 				Scalar a10, Scalar a11, Scalar a12, Scalar a13,
 				Scalar a20, Scalar a21, Scalar a22, Scalar a23,
-				Scalar a30, Scalar a31, Scalar a32, Scalar a33);
+				Scalar a30, Scalar a31, Scalar a32, Scalar a33) noexcept;
 			constexpr explicit ScalarMatrix(const ScalarArray<Scalar, 4>& r0,
 				const ScalarArray<Scalar, 4>& r1,
 				const ScalarArray<Scalar, 4>& r2,
-				const ScalarArray<Scalar, 4>& r3);
+				const ScalarArray<Scalar, 4>& r3) noexcept;
 
-			operator const ScalarArray<Scalar, 4>* () const;
-			operator ScalarArray<Scalar, 4>* ();
+			operator const ScalarArray<Scalar, 4>* () const noexcept;
+			operator ScalarArray<Scalar, 4>* () noexcept;
 
 			ScalarMatrix<Scalar, 4, 4>& operator=(Zero) noexcept;
 			ScalarMatrix<Scalar, 4, 4>& operator+=(Zero) noexcept;
@@ -72,7 +75,7 @@ namespace Dash
 			void SetOrigin(const ScalarArray<Scalar, 3>& origin) noexcept;
 
 		private:
-			ScalarArray<Scalar, 4> mRows[3];
+			ScalarArray<Scalar, 4> mRows[4];
 		};
 
 #ifdef USE_OSTREAM
@@ -150,35 +153,52 @@ namespace Dash
 		template <typename Scalar>
 		Scalar Trace(const ScalarMatrix<Scalar, 4, 4>& a) noexcept;
 
+		template <typename Scalar>
+		ScalarMatrix<Scalar, 4, 4> ScaleMatrix(const ScalarArray<Scalar, 3>& a) noexcept;
+
+		template <typename Scalar>
+		ScalarMatrix<Scalar, 4, 4> ScaleMatrix(Scalar x, Scalar y, Scalar z) noexcept;
+
+		template <typename Scalar>
+		ScalarMatrix<Scalar, 4, 4> RotateMatrix(const ScalarArray<Scalar, 3>& a) noexcept;
+
+		template <typename Scalar>
+		ScalarMatrix<Scalar, 4, 4> RotateMatrix(Scalar yaw, Scalar roll, Scalar pitch) noexcept;
+
+		template <typename Scalar>
+		ScalarMatrix<Scalar, 4, 4> RotateMatrix(const ScalarQuaternion<Scalar>& q) noexcept;
+
+		template <typename Scalar>
+		ScalarMatrix<Scalar, 4, 4> TranslateMatrix(const ScalarArray<Scalar, 3>& a) noexcept;
 
 
 		//Member Function 
 		template<typename Scalar>
-		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix()
+		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix() noexcept
 		{
 		}
 
 		template<typename Scalar>
-		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix(Zero)
+		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix(Zero) noexcept
 		{
 			*this = Zero{};
 		}
 
 		template<typename Scalar>
-		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix(Identity)
+		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix(Identity) noexcept
 		{
 			*this = Identity{};
 		}
 
 		template<typename Scalar>
-		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix(Scalar s)
+		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix(Scalar s) noexcept
 		{
 			*this = s;
 		}
 
 		template<typename Scalar>
 		template <typename Scalar2>
-		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix(const Scalar2* v)
+		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix(const Scalar2* v) noexcept
 		{
 			SetValue(v);
 		}
@@ -187,7 +207,7 @@ namespace Dash
 		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix(Scalar a00, Scalar a01, Scalar a02, Scalar a03,
 			Scalar a10, Scalar a11, Scalar a12, Scalar a13,
 			Scalar a20, Scalar a21, Scalar a22, Scalar a23,
-			Scalar a30, Scalar a31, Scalar a32, Scalar a33)
+			Scalar a30, Scalar a31, Scalar a32, Scalar a33) noexcept
 		{
 			SetValue(a00, a01, a02, a03,
 				a10, a11, a12, a13,
@@ -199,7 +219,7 @@ namespace Dash
 		FORCEINLINE constexpr ScalarMatrix<Scalar, 4, 4>::ScalarMatrix(const ScalarArray<Scalar, 4>& r0,
 			const ScalarArray<Scalar, 4>& r1,
 			const ScalarArray<Scalar, 4>& r2,
-			const ScalarArray<Scalar, 4>& r3)
+			const ScalarArray<Scalar, 4>& r3) noexcept
 		{
 			mRows[0] = r0;
 			mRows[1] = r1;
@@ -208,13 +228,13 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE ScalarMatrix<Scalar, 4, 4>::operator const ScalarArray<Scalar, 4>* () const
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4>::operator const ScalarArray<Scalar, 4>* () const noexcept
 		{
 			return mRows;
 		}
 
 		template<typename Scalar>
-		FORCEINLINE ScalarMatrix<Scalar, 4, 4>::operator ScalarArray<Scalar, 4>* ()
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4>::operator ScalarArray<Scalar, 4>* () noexcept
 		{
 			return mRows;
 		}
@@ -698,9 +718,18 @@ namespace Dash
 		}
 
 		template <typename Scalar>
-		Scalar Trace(const ScalarMatrix<Scalar, 4, 4>& a) noexcept
+		FORCEINLINE Scalar Trace(const ScalarMatrix<Scalar, 4, 4>& a) noexcept
 		{
 			return a[0][0] + a[1][1] + a[2][2] + a[3][3];
+		}
+
+		template<typename Scalar>
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4> ScaleMatrix(const ScalarArray<Scalar, 3>& a) noexcept
+		{
+			return ScalarMatrix<Scalar, 4, 4>{
+				a.x, Scalar{}, Scalar{}, Scalar{},
+
+			};
 		}
 	}
 }

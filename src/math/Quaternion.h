@@ -21,21 +21,21 @@ namespace Dash
 		public:
 			typedef Scalar ScalarType;
 
-			ScalarQuaternion();
-			ScalarQuaternion(Identity);
-			ScalarQuaternion(Scalar x, Scalar y, Scalar z, Scalar w);
+			ScalarQuaternion() noexcept;
+			ScalarQuaternion(Identity) noexcept;
+			ScalarQuaternion(Scalar x, Scalar y, Scalar z, Scalar w) noexcept;
 
-			template <typename Scalar2> explicit ScalarQuaternion(const Scalar2* v);
-			template <typename Scalar2> explicit ScalarQuaternion(const ScalarQuaternion<Scalar2>& a);
-			template <typename Scalar2> explicit ScalarQuaternion(const ScalarArray<Scalar2, 4>& a);
-			template <typename Scalar2> ScalarQuaternion(const ScalarArray<Scalar2, 3>& axis, Scalar2 angle);
+			template <typename Scalar2> explicit ScalarQuaternion(const Scalar2* v) noexcept;
+			template <typename Scalar2> explicit ScalarQuaternion(const ScalarQuaternion<Scalar2>& a) noexcept;
+			template <typename Scalar2> explicit ScalarQuaternion(const ScalarArray<Scalar2, 4>& a) noexcept;
+			template <typename Scalar2> ScalarQuaternion(const ScalarArray<Scalar2, 3>& axis, Scalar2 angle) noexcept;
 
-			operator const Scalar* () const;
-			operator Scalar* ();
+			operator const Scalar* () const noexcept;
+			operator Scalar* () noexcept;
 
-			template <typename Scalar2> ScalarQuaternion<Scalar>& operator*=(const ScalarQuaternion<Scalar2>& other);
+			template <typename Scalar2> ScalarQuaternion<Scalar>& operator*=(const ScalarQuaternion<Scalar2>& other) noexcept;
 
-			template <typename Scalar2> ScalarArray<typename Promote<Scalar, Scalar2>::RT, 3> operator()(const ScalarArray<Scalar2, 3>& v) const;
+			template <typename Scalar2> ScalarArray<typename Promote<Scalar, Scalar2>::RT, 3> operator()(const ScalarArray<Scalar2, 3>& v) const noexcept;
 
 			union
 			{
@@ -102,12 +102,16 @@ namespace Dash
 		//Member Function
 
 		template<typename Scalar>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion()
+		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion() noexcept
+			: x()
+			, y()
+			, z()
+			, w()
 		{}
 
 		template<typename Scalar>
 		FORCEINLINE
-			ScalarQuaternion<Scalar>::ScalarQuaternion(Identity)
+			ScalarQuaternion<Scalar>::ScalarQuaternion(Identity) noexcept
 			: x()
 			, y()
 			, z()
@@ -115,7 +119,7 @@ namespace Dash
 		{}
 
 		template<typename Scalar>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(Scalar x, Scalar y, Scalar z, Scalar w)
+		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(Scalar x, Scalar y, Scalar z, Scalar w) noexcept
 			: x(x)
 			, y(y)
 			, z(z)
@@ -124,7 +128,7 @@ namespace Dash
 
 		template<typename Scalar>
 		template<typename Scalar2>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const Scalar2* v)
+		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const Scalar2* v) noexcept
 			: x(Scalar{ v[0] })
 			, y(Scalar{ v[1] })
 			, z(Scalar{ v[2] })
@@ -135,7 +139,7 @@ namespace Dash
 
 		template<typename Scalar>
 		template<typename Scalar2>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarQuaternion<Scalar2>& a)
+		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarQuaternion<Scalar2>& a) noexcept
 			: x(Scalar{ a.x })
 			, y(Scalar{ a.y })
 			, z(Scalar{ a.z })
@@ -144,7 +148,7 @@ namespace Dash
 
 		template<typename Scalar>
 		template<typename Scalar2>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarArray<Scalar2, 4>& a)
+		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarArray<Scalar2, 4>& a) noexcept
 			: x(Scalar{ a.x })
 			, y(Scalar{ a.y })
 			, z(Scalar{ a.z })
@@ -154,7 +158,7 @@ namespace Dash
 
 		template<typename Scalar>
 		template<typename Scalar2>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarArray<Scalar2, 3>& axis, Scalar2 angle)
+		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarArray<Scalar2, 3>& axis, Scalar2 angle) noexcept
 		{
 			Scalar halfTheta = angle * Scalar(0.5);
 			ScalarArray<Scalar, 3> normalizedAxis = Normalize(axis) * Sin(halfTheta);
@@ -165,20 +169,20 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE ScalarQuaternion<Scalar>::operator const Scalar* () const
+		FORCEINLINE ScalarQuaternion<Scalar>::operator const Scalar* () const noexcept
 		{
 			return &x;
 		}
 
 		template<typename Scalar>
-		FORCEINLINE ScalarQuaternion<Scalar>::operator Scalar* ()
+		FORCEINLINE ScalarQuaternion<Scalar>::operator Scalar* () noexcept
 		{
 			return &x;
 		}
 
 		template<typename Scalar>
 		template<typename Scalar2>
-		FORCEINLINE ScalarQuaternion<Scalar>& ScalarQuaternion<Scalar>::operator*=(const ScalarQuaternion<Scalar2>& other)
+		FORCEINLINE ScalarQuaternion<Scalar>& ScalarQuaternion<Scalar>::operator*=(const ScalarQuaternion<Scalar2>& other) noexcept
 		{
 			ScalarQuaternion<Scalar> temp;
 			temp.x = w * other.x + x * other.w + y * other.z - z * other.y;
@@ -192,7 +196,7 @@ namespace Dash
 
 		template<typename Scalar>
 		template<typename Scalar2>
-		FORCEINLINE ScalarArray<typename Promote<Scalar, Scalar2>::RT, 3> ScalarQuaternion<Scalar>::operator()(const ScalarArray<Scalar2, 3>& v) const
+		FORCEINLINE ScalarArray<typename Promote<Scalar, Scalar2>::RT, 3> ScalarQuaternion<Scalar>::operator()(const ScalarArray<Scalar2, 3>& v) const noexcept
 		{
 			ScalarArray<Scalar, 3> u(x, y, z);
 			return v + Scalar(2) * Cross(u, Cross(u, v) + v * w);

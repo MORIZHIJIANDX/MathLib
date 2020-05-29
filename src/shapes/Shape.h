@@ -1,14 +1,16 @@
 #pragma once
 
+#include "../math/MathType.h"
+
 namespace Dash
 {
 	namespace Math
 	{
-		class BitMask4
+		class Shape
 		{
 		public:
-			BitMask4();
-			~BitMask4();
+			Shape();
+			~Shape();
 
 		private:
 

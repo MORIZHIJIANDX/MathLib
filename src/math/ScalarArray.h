@@ -40,13 +40,13 @@ namespace Dash {
 			using ReverseIterator = typename DataType::reverse_iterator;
 			using ConstReverseIterator = typename DataType::const_reverse_iterator;
 
-			constexpr ScalarArray();
-			constexpr explicit ScalarArray(Zero);
-			template <std::size_t I> constexpr explicit ScalarArray(Unit<I>);
-			template <typename Scalar2> constexpr explicit ScalarArray(const Scalar2* v);
-			constexpr explicit ScalarArray(std::initializer_list<Scalar> list);
-			template <typename Scalar2> constexpr explicit ScalarArray(const ScalarArray<Scalar2, N - 1>& v);
-			template <typename Scalar2> constexpr ScalarArray(const ScalarArray<Scalar2, N>& v);
+			constexpr ScalarArray() noexcept;
+			constexpr explicit ScalarArray(Zero) noexcept;
+			template <std::size_t I> constexpr explicit ScalarArray(Unit<I>) noexcept;
+			template <typename Scalar2> constexpr explicit ScalarArray(const Scalar2* v) noexcept;
+			constexpr explicit ScalarArray(std::initializer_list<Scalar> list) noexcept;
+			template <typename Scalar2> constexpr explicit ScalarArray(const ScalarArray<Scalar2, N - 1>& v) noexcept;
+			template <typename Scalar2> constexpr ScalarArray(const ScalarArray<Scalar2, N>& v) noexcept;
 
 			operator ConstPointer () const noexcept;
 			operator Pointer () noexcept;
@@ -178,20 +178,20 @@ namespace Dash {
 		//Member Function
 
 		template<typename T, std::size_t N>
-		FORCEINLINE constexpr ScalarArray<T, N>::ScalarArray()
+		FORCEINLINE constexpr ScalarArray<T, N>::ScalarArray() noexcept
 			: mData{}
 		{
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(Zero)
+		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(Zero) noexcept
 		{
 			mData.fill(Scalar{ 0 });
 		}
 
 		template<typename Scalar, std::size_t N>
 		template<std::size_t I>
-		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(Unit<I>)
+		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(Unit<I>) noexcept
 		{
 			ASSERT(GetSize() >= I);
 
@@ -201,7 +201,7 @@ namespace Dash {
 
 		template<typename Scalar, std::size_t N>
 		template<typename Scalar2>
-		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(const Scalar2* v)
+		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(const Scalar2* v) noexcept
 		{
 			ASSERT(v != nullptr);
 
@@ -212,7 +212,7 @@ namespace Dash {
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(std::initializer_list<Scalar> list)
+		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(std::initializer_list<Scalar> list) noexcept
 		{
 			ASSERT(GetSize() >= list.size());
 
@@ -227,7 +227,7 @@ namespace Dash {
 
 		template<typename Scalar, std::size_t N>
 		template<typename Scalar2>
-		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(const ScalarArray<Scalar2, N - 1>& v)
+		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(const ScalarArray<Scalar2, N - 1>& v) noexcept
 		{
 			for (SizeType i = 0; i < GetSize() - 1; ++i)
 			{
@@ -239,7 +239,7 @@ namespace Dash {
 
 		template<typename Scalar, std::size_t N>
 		template<typename Scalar2>
-		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(const ScalarArray<Scalar2, N>& v)
+		FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(const ScalarArray<Scalar2, N>& v) noexcept
 		{
 			for (SizeType i = 0; i < GetSize(); ++i)
 			{

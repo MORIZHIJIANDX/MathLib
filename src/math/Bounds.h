@@ -11,21 +11,25 @@ namespace Dash
 		class Bounds
 		{
 		public:
+			using ScalarType = Scalar;
+
 			constexpr Bounds() noexcept;
 			constexpr explicit Bounds(const ScalarArray<Scalar, N>& p) noexcept;
 			constexpr Bounds(const ScalarArray<Scalar, N>& lower, const ScalarArray<Scalar, N>& upper) noexcept;
 
 			const ScalarArray<Scalar, N>& operator[](int i) const noexcept;
 			ScalarArray<Scalar, N>& operator[](int i) noexcept;
-			
-			ScalarArray<Scalar, N> Lerp(const ScalarArray<Scalar, N>& t) noexcept;
-			ScalarArray<Scalar, N> Offset(const ScalarArray<Scalar, N>& p) noexcept;
-			void BoundingSphere(ScalarArray<Scalar, N>& center, Scalar& radius) noexcept;
 
 			ScalarArray<Scalar, N> Lower;
 			ScalarArray<Scalar, N> Upper;
 		};
 
+
+		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Lerp(const Bounds<Scalar, N>& b, const ScalarArray<Scalar, N>& t) noexcept;
+		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Offset(const Bounds<Scalar, N>& b, const ScalarArray<Scalar, N>& p) noexcept;
+		template<typename Scalar, std::size_t N> void BoundingSphere(const Bounds<Scalar, N>& b, ScalarArray<Scalar, N>& center, Scalar& radius) noexcept;
+
+		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Diagonal(const Bounds<Scalar, N>& b) noexcept;
 		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Center(const Bounds<Scalar, N>& b) noexcept;
 
 		template<typename Scalar, std::size_t N> Bounds<Scalar, N> Union(const ScalarArray<Scalar, N>& p1,
@@ -99,40 +103,49 @@ namespace Dash
 			return (i == 0) ? &Lower : &Upper;
 		}
 
+
+
+
+
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Bounds<Scalar, N>::Lerp(const ScalarArray<Scalar, N>& t) noexcept
+		FORCEINLINE ScalarArray<Scalar, N> Lerp(const Bounds<Scalar, N>& b, const ScalarArray<Scalar, N>& t) noexcept
 		{
 			ScalarArray<Scalar, N> result;
 			for (std::size_t i = 0; i < N; i++)
 			{
-				result[i] = Lerp(Lower[i], Upper[i], t[i]);
+				result[i] = Lerp(b.Lower[i], b.Upper[i], t[i]);
 			}
 
 			return result;
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Bounds<Scalar, N>::Offset(const ScalarArray<Scalar, N>& p) noexcept
+		ScalarArray<Scalar, N> Offset(const Bounds<Scalar, N>& b, const ScalarArray<Scalar, N>& p) noexcept
 		{
-			ScalarArray<Scalar, N> result = p - Lower;
+			ScalarArray<Scalar, N> result = p - b.Lower;
 			for (std::size_t i = 0; i < N; i++)
 			{
-				if (Upper[i] > Lower[i])
+				if (b.Upper[i] > b.Lower[i])
 				{
-					result[i] /= Upper[i] - Lower[i];
-				}	
+					result[i] /= b.Upper[i] - b.Lower[i];
+				}
 			}
 
 			return result;
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE void Bounds<Scalar, N>::BoundingSphere(ScalarArray<Scalar, N>& center, Scalar& radius) noexcept
+		FORCEINLINE void BoundingSphere(const Bounds<Scalar, N>& b, ScalarArray<Scalar, N>& center, Scalar& radius) noexcept
 		{
-			center = (Lower + Upper) / Scalar{ 2 };
-			radius = Inside(center, *this) ? Distance(center, Upper) : Scalar{};
+			center = (b.Lower + b.Upper) / Scalar{ 2 };
+			radius = Inside(center, *this) ? Distance(center, b.Upper) : Scalar{};
 		}
 
+		template<typename Scalar, std::size_t N>
+		FORCEINLINE ScalarArray<Scalar, N> Diagonal(const Bounds<Scalar, N>& b) noexcept
+		{
+			return b.Upper - b.Lower;
+		}
 
 		template<typename Scalar, std::size_t N>
 		FORCEINLINE ScalarArray<Scalar, N> Center(const Bounds<Scalar, N>& b) noexcept
@@ -204,7 +217,7 @@ namespace Dash
 			ScalarArray<bool, N> result;
 			for (std::size_t i = 0; i < N; i++)
 			{
-				result[i] = (b1.Upper[i] >= b2.Upper[i]) && (b1.Lower[i] <= b2.Upper[i]);
+				result[i] = (b1.Upper[i] >= b2.Lower[i]) && (b1.Lower[i] <= b2.Upper[i]);
 			}
 
 			for (std::size_t i = 1; i < N; i++)
@@ -276,8 +289,8 @@ namespace Dash
 		{
 			return Sqrt(Distance(p, b));
 		}
-
-
-
 	}
 }
+
+#include "Bounds2.h"
+#include "Bounds3.h"

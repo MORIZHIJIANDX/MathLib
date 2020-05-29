@@ -15,14 +15,14 @@ namespace Dash
 			using ScalarType = Scalar;
 			using SizeType = std::size_t;
 
-			constexpr ScalarMatrix();
-			constexpr explicit ScalarMatrix(Zero);
-			constexpr explicit ScalarMatrix(Identity);
-			constexpr explicit ScalarMatrix(std::initializer_list<Scalar> list);
-			template <typename Scalar2> constexpr explicit ScalarMatrix(const Scalar2* v);
+			constexpr ScalarMatrix() noexcept;
+			constexpr explicit ScalarMatrix(Zero) noexcept;
+			constexpr explicit ScalarMatrix(Identity) noexcept;
+			constexpr explicit ScalarMatrix(std::initializer_list<Scalar> list) noexcept;
+			template <typename Scalar2> constexpr explicit ScalarMatrix(const Scalar2* v) noexcept;
 
-			operator const ScalarArray<Scalar, N>* () const;
-			operator ScalarArray<Scalar, N>* ();
+			operator const ScalarArray<Scalar, N>* () const noexcept;
+			operator ScalarArray<Scalar, N>* () noexcept;
 
 			ScalarMatrix<Scalar, M, N>& operator=(Zero) noexcept;
 			ScalarMatrix<Scalar, M, N>& operator+=(Zero) noexcept;
@@ -102,12 +102,12 @@ namespace Dash
 
 		//Member Function
 		template<typename Scalar, std::size_t M, std::size_t N>
-		FORCEINLINE constexpr ScalarMatrix<Scalar, M, N>::ScalarMatrix()
+		FORCEINLINE constexpr ScalarMatrix<Scalar, M, N>::ScalarMatrix() noexcept
 		{
 		}
 
 		template<typename Scalar, std::size_t M, std::size_t N>
-		FORCEINLINE constexpr ScalarMatrix<Scalar, M, N>::ScalarMatrix(Zero)
+		FORCEINLINE constexpr ScalarMatrix<Scalar, M, N>::ScalarMatrix(Zero) noexcept
 		{
 			for (std::size_t i = 0; i < M; i++)
 			{
@@ -116,7 +116,7 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t M, std::size_t N>
-		FORCEINLINE constexpr ScalarMatrix<Scalar, M, N>::ScalarMatrix(Identity)
+		FORCEINLINE constexpr ScalarMatrix<Scalar, M, N>::ScalarMatrix(Identity) noexcept
 		{
 			for (std::size_t i = 0; i < M; i++)
 			{
@@ -135,7 +135,7 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t M, std::size_t N>
-		FORCEINLINE constexpr ScalarMatrix<Scalar, M, N>::ScalarMatrix(std::initializer_list<Scalar> list)
+		FORCEINLINE constexpr ScalarMatrix<Scalar, M, N>::ScalarMatrix(std::initializer_list<Scalar> list) noexcept
 		{
 			ASSERT((M * N) == list.size());
 
@@ -153,7 +153,7 @@ namespace Dash
 
 		template<typename Scalar, std::size_t M, std::size_t N>
 		template<typename Scalar2>
-		FORCEINLINE constexpr ScalarMatrix<Scalar, M, N>::ScalarMatrix(const Scalar2* v)
+		FORCEINLINE constexpr ScalarMatrix<Scalar, M, N>::ScalarMatrix(const Scalar2* v) noexcept
 		{
 			ASSERT(v != nullptr);
 
@@ -167,13 +167,13 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t M, std::size_t N>
-		FORCEINLINE ScalarMatrix<Scalar, M, N>::operator const ScalarArray<Scalar, N>* () const
+		FORCEINLINE ScalarMatrix<Scalar, M, N>::operator const ScalarArray<Scalar, N>* () const noexcept
 		{
 			return mRows;
 		}
 
 		template<typename Scalar, std::size_t M, std::size_t N>
-		FORCEINLINE ScalarMatrix<Scalar, M, N>::operator ScalarArray<Scalar, N>* ()
+		FORCEINLINE ScalarMatrix<Scalar, M, N>::operator ScalarArray<Scalar, N>* () noexcept
 		{
 			return mRows;
 		}
