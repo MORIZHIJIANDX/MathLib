@@ -81,7 +81,10 @@ namespace Dash
 		template <typename Scalar> void ToAxisAngle(ScalarArray<Scalar, 3>& axis, Scalar& theta, const ScalarQuaternion<Scalar>& q) noexcept;
 
 		template <typename Scalar> ScalarQuaternion<Scalar> FromEuler(Scalar yaw, Scalar pitch, Scalar roll) noexcept;
+		template <typename Scalar> ScalarQuaternion<Scalar> FromEuler(const ScalarArray<Scalar, 3>& euler) noexcept;
+
 		template <typename Scalar> void ToEuler(Scalar& yaw, Scalar& pitch, Scalar& roll, const ScalarQuaternion<Scalar>& q) noexcept;
+		template <typename Scalar> void ToEuler(ScalarArray<Scalar, 3>& euler, const ScalarQuaternion<Scalar>& q) noexcept;
 
 		template <typename Scalar> ScalarQuaternion<Scalar> FromSpherical(Scalar rho, Scalar phi, Scalar theta) noexcept;
 		template <typename Scalar> void ToSpherical(Scalar& rho, Scalar& phi, Scalar& theta, const ScalarQuaternion<Scalar>& u) noexcept;
@@ -346,11 +349,23 @@ namespace Dash
 		}
 
 		template<typename Scalar>
+		FORCEINLINE ScalarQuaternion<Scalar> FromEuler(const ScalarArray<Scalar, 3>& euler) noexcept
+		{
+			return FromEuler(euler.x, euler.y, euler.z);
+		}
+
+		template<typename Scalar>
 		FORCEINLINE void ToEuler(Scalar& yaw, Scalar& pitch, Scalar& roll, const ScalarQuaternion<Scalar>& q) noexcept
 		{
 			yaw = Atan2(Scalar{ 2 } *(q.w * q.y + q.z * q.x), Scalar{ 1 } -Scalar{ 2 } *(q.x * q.x + q.y * q.y));
 			pitch = ASin(Scalar{ 2 } *(q.w * q.x - q.y * q.z));
 			roll = Atan2(Scalar{ 2 } *(q.w * q.z + q.x * q.y), Scalar{ 1 } -Scalar{ 2 } *(q.z * q.z + q.x * q.x));
+		}
+
+		template<typename Scalar>
+		FORCEINLINE void ToEuler(ScalarArray<Scalar, 3>& euler, const ScalarQuaternion<Scalar>& q) noexcept
+		{
+			ToEuler(euler.x, euler.y, euler.z, q);
 		}
 
 		template<typename Scalar>

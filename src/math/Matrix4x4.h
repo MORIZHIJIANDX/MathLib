@@ -47,6 +47,8 @@ namespace Dash
 			ScalarMatrix<Scalar, 4, 4>& operator+=(const ScalarMatrix<Scalar, 4, 4>& a) noexcept;
 			ScalarMatrix<Scalar, 4, 4>& operator-=(const ScalarMatrix<Scalar, 4, 4>& a) noexcept;
 
+			ScalarMatrix<Scalar, 4, 4>& operator*=(ScalarMatrix<Scalar, 4, 4> a) noexcept;
+
 			void SetValue(Scalar a00, Scalar a01, Scalar a02, Scalar a03, 
 				Scalar a10, Scalar a11, Scalar a12, Scalar a13,
 				Scalar a20, Scalar a21, Scalar a22, Scalar a23, 
@@ -340,6 +342,32 @@ namespace Dash
 		}
 
 		template<typename Scalar>
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4>& ScalarMatrix<Scalar, 4, 4>::operator*=(ScalarMatrix<Scalar, 4, 4> a) noexcept
+		{
+			mRows[0][0] = Dot(mRows[0], Column(a, 0));
+			mRows[0][1] = Dot(mRows[0], Column(a, 1));
+			mRows[0][2] = Dot(mRows[0], Column(a, 2));
+			mRows[0][3] = Dot(mRows[0], Column(a, 3));
+
+			mRows[1][0] = Dot(mRows[1], Column(a, 0));
+			mRows[1][1] = Dot(mRows[1], Column(a, 1));
+			mRows[1][2] = Dot(mRows[1], Column(a, 2));
+			mRows[1][3] = Dot(mRows[1], Column(a, 3));
+
+			mRows[2][0] = Dot(mRows[2], Column(a, 0));
+			mRows[2][1] = Dot(mRows[2], Column(a, 1));
+			mRows[2][2] = Dot(mRows[2], Column(a, 2));
+			mRows[2][3] = Dot(mRows[2], Column(a, 3));
+
+			mRows[3][0] = Dot(mRows[3], Column(a, 0));
+			mRows[3][1] = Dot(mRows[3], Column(a, 1));
+			mRows[3][2] = Dot(mRows[3], Column(a, 2));
+			mRows[3][3] = Dot(mRows[3], Column(a, 3));
+
+			return *this;
+		}
+
+		template<typename Scalar>
 		FORCEINLINE void ScalarMatrix<Scalar, 4, 4>::SetValue(Scalar a00, Scalar a01, Scalar a02, Scalar a03, 
 			Scalar a10, Scalar a11, Scalar a12, Scalar a13, 
 			Scalar a20, Scalar a21, Scalar a22, Scalar a23, 
@@ -525,7 +553,7 @@ namespace Dash
 		FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, 4> Mul(const ScalarArray<Scalar1, 4>& v, const ScalarMatrix<Scalar2, 4, 4>& a) noexcept
 		{
 			using RT = typename Promote<Scalar1, Scalar2>::RT;
-			return ScalarArray<RT, 3>(TDot(a, 0, v),
+			return ScalarArray<RT, 4>(TDot(a, 0, v),
 				TDot(a, 1, v),
 				TDot(a, 2, v),
 				TDot(a, 3, v));

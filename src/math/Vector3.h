@@ -26,6 +26,7 @@ namespace Dash
 
 			constexpr ScalarArray() noexcept;
 			constexpr explicit ScalarArray(Zero) noexcept;
+			constexpr explicit ScalarArray(Identity) noexcept;
 			template <std::size_t I> constexpr explicit ScalarArray(Unit<I>) noexcept;
 			template <typename Scalar2> constexpr explicit ScalarArray(Scalar2 x, Scalar2 y, Scalar2 z) noexcept;
 			template <typename Scalar2> constexpr explicit ScalarArray(const Scalar2* v) noexcept;
@@ -112,9 +113,17 @@ namespace Dash
 
 		template<typename Scalar>
 		FORCEINLINE constexpr ScalarArray<Scalar, 3>::ScalarArray(Zero) noexcept
-			: x(0)
-			, y(0)
-			, z(0)
+			: x(Scalar{})
+			, y(Scalar{})
+			, z(Scalar{})
+		{
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr ScalarArray<Scalar, 3>::ScalarArray(Identity) noexcept
+			: x(Scalar{1})
+			, y(Scalar{1})
+			, z(Scalar{1})
 		{
 		}
 
