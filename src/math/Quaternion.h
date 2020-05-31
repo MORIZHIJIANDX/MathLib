@@ -29,6 +29,7 @@ namespace Dash
 			template <typename Scalar2> explicit ScalarQuaternion(const ScalarQuaternion<Scalar2>& a) noexcept;
 			template <typename Scalar2> explicit ScalarQuaternion(const ScalarArray<Scalar2, 4>& a) noexcept;
 			template <typename Scalar2> ScalarQuaternion(const ScalarArray<Scalar2, 3>& axis, Scalar2 angle) noexcept;
+			template <typename Scalar2> ScalarQuaternion(const ScalarArray<Scalar2, 3>& from, const ScalarArray<Scalar2, 3>& to) noexcept;
 
 			operator const Scalar* () const noexcept;
 			operator Scalar* () noexcept;
@@ -88,6 +89,8 @@ namespace Dash
 
 		template <typename Scalar> ScalarQuaternion<Scalar> FromSpherical(Scalar rho, Scalar phi, Scalar theta) noexcept;
 		template <typename Scalar> void ToSpherical(Scalar& rho, Scalar& phi, Scalar& theta, const ScalarQuaternion<Scalar>& u) noexcept;
+
+		template <typename Scalar> ScalarQuaternion<Scalar> FromToRotation(const ScalarArray<Scalar, 3>& from, const ScalarArray<Scalar, 3>& to) noexcept;
 
 		template <typename Scalar> ScalarQuaternion<Scalar> FromMatrix(const ScalarMatrix<Scalar, 3, 3>& m) noexcept;
 		template <typename Scalar> ScalarQuaternion<Scalar> FromMatrix(const ScalarMatrix<Scalar, 4, 4>& m) noexcept;
@@ -172,6 +175,43 @@ namespace Dash
 		}
 
 		template<typename Scalar>
+		template<typename Scalar2>
+		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarArray<Scalar2, 3>& from, const ScalarArray<Scalar2, 3>& to) noexcept
+		{
+			const ScalarArray<Scalar, 3> normStart = Normalize(from);
+			const ScalarArray<Scalar, 3> normEnd = Normalize(to);
+			const Scalar d = Dot(normStart, normEnd);
+
+			if (d > Scalar{ -1 } + ScalarTraits<Scalar>::Epsilon())
+			{
+				const ScalarArray<Scalar, 3> c = Cross(normStart,normEnd);
+				const Scalar s = Sqrt((Scalar{ 1 } +d) * Scalar { 2 });
+				const Scalar invS = 1.0f / s;
+
+				x = c.x * invS;
+				y = c.y * invS;
+				z = c.z * invS;
+				w = Scalar{ 0.5 } *s;
+			}
+			else
+			{
+				ScalarArray<Scalar, 3> axis = Cross(ScalarArray<Scalar, 3>{ Unit<0>{} }, normStart);
+
+				if (Length(axis) < ScalarTraits<Scalar>::Epsilon())
+				{
+					axis = Cross(ScalarArray<Scalar, 3>{ Unit<1>{} }, normStart);
+				}
+
+				Scalar halfTheta = Math::Radians(Scalar{180}) * Scalar(0.5);
+				ScalarArray<Scalar, 3> normalizedAxis = Normalize(axis) * Sin(halfTheta);
+				x = normalizedAxis.x;
+				y = normalizedAxis.y;
+				z = normalizedAxis.z;
+				w = Cos(halfTheta);
+			}
+		}
+
+		template<typename Scalar>
 		FORCEINLINE ScalarQuaternion<Scalar>::operator const Scalar* () const noexcept
 		{
 			return &x;
@@ -201,8 +241,14 @@ namespace Dash
 		template<typename Scalar2>
 		FORCEINLINE ScalarArray<typename Promote<Scalar, Scalar2>::RT, 3> ScalarQuaternion<Scalar>::operator()(const ScalarArray<Scalar2, 3>& v) const noexcept
 		{
-			ScalarArray<Scalar, 3> u(x, y, z);
-			return v + Scalar(2) * Cross(u, Cross(u, v) + v * w);
+			using RT = typename Promote<Scalar, Scalar2>::RT;
+
+			ScalarArray<RT, 3> u{ x, y, z };
+
+			ScalarArray<RT, 3> c1 = Cross(u, v);
+			ScalarArray<RT, 3> c2 = Cross(u, c1);
+
+			return v + RT{ 2 } *(c1 * w + c2);
 		}
 
 
@@ -273,8 +319,13 @@ namespace Dash
 		FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, 3> Mul(const ScalarQuaternion<Scalar2>& q, const ScalarArray<Scalar1, 3>& v) noexcept
 		{
 			typedef typename Promote<Scalar1, Scalar2>::RT RT;
-			ScalarArray<RT, 3> t = RT(2) * Cross(q.xyz, v);
-			return v + q.w * t + Cross(q.xyz, t);
+
+			ScalarArray<RT, 3> u{ q.xyz };
+
+			ScalarArray<RT, 3> c1 = Cross(u, v);
+			ScalarArray<RT, 3> c2 = Cross(u, c1);
+
+			return v + RT{ 2 } *(c1 * q.w + c2);
 		}
 
 		template<typename Scalar>
@@ -384,6 +435,47 @@ namespace Dash
 			ScalarArray<Scalar, 3> axis = Normalize(u.xyz);
 			phi = ACos(axis.z);
 			theta = Atan2(axis.y, axis.x);
+		}
+
+		template<typename Scalar>
+		ScalarQuaternion<Scalar> FromToRotation(const ScalarArray<Scalar, 3>& from, const ScalarArray<Scalar, 3>& to) noexcept
+		{
+			const ScalarArray<Scalar, 3> normStart = Normalize(from);
+			const ScalarArray<Scalar, 3> normEnd = Normalize(to);
+			const Scalar d = Dot(normStart, normEnd);
+
+			if (d > Scalar{ -1 } +ScalarTraits<Scalar>::Epsilon())
+			{
+				const ScalarArray<Scalar, 3> c = Cross(normStart, normEnd);
+				const Scalar s = Sqrt((Scalar{ 1 } +d) * Scalar { 2 });
+				const Scalar invS = 1.0f / s;
+
+				return ScalarQuaternion<Scalar>{
+					c.x * invS,
+					c.y * invS,
+					c.z * invS,
+					Scalar{ 0.5 } *s
+				};
+			}
+			else
+			{
+				ScalarArray<Scalar, 3> axis = Cross(ScalarArray<Scalar, 3>{ Unit<0>{} }, normStart);
+
+				if (Length(axis) < ScalarTraits<Scalar>::Epsilon())
+				{
+					axis = Cross(ScalarArray<Scalar, 3>{ Unit<1>{} }, normStart);
+				}
+
+				Scalar halfTheta = Math::Radians(Scalar{ 180 }) * Scalar(0.5);
+				ScalarArray<Scalar, 3> normalizedAxis = Normalize(axis) * Sin(halfTheta);
+
+				return ScalarQuaternion<Scalar>{
+						normalizedAxis.x,
+						normalizedAxis.y,
+						normalizedAxis.z,
+						Cos(halfTheta)
+				};
+			}
 		}
 
 		template<typename Scalar>

@@ -4,7 +4,8 @@
 #include "ScalarMatrix.h"
 #include "Quaternion.h"
 #include "Interval.h"
-#include "Bounds.h"
+#include "AABB.h"
+#include "Ray.h"
 #include "Metric.h"
 
 
@@ -25,6 +26,11 @@ namespace Dash
 		using Matrix2x2 = ScalarMatrix<Scalar, 2, 2>;
 		using Matrix3x3 = ScalarMatrix<Scalar, 3, 3>;
 		using Matrix4x4 = ScalarMatrix<Scalar, 4, 4>;
+
+		using Rectangle = AABB<Scalar, 2>;
+		using BoundingBox = AABB<Scalar, 3>;
+
+		using Ray = ScalarRay<Scalar>;
 
 		using Quaternion = ScalarQuaternion<Scalar>;
 	}

@@ -81,17 +81,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\consolid\consolid.h" />
+    <ClInclude Include="src\math\AABB2.h" />
     <ClInclude Include="src\math\Algebra.h" />
     <ClInclude Include="src\math\BitMask.h" />
-    <ClInclude Include="src\math\Bounds.h" />
-    <ClInclude Include="src\math\Bounds2.h" />
-    <ClInclude Include="src\math\Bounds3.h" />
+    <ClInclude Include="src\math\AABB.h" />
+    <ClInclude Include="src\math\AABB3.h" />
     <ClInclude Include="src\math\Interval.h" />
     <ClInclude Include="src\math\MathType.h" />
     <ClInclude Include="src\math\Matrix3x3.h" />
     <ClInclude Include="src\math\Matrix4x4.h" />
     <ClInclude Include="src\math\Metric.h" />
     <ClInclude Include="src\math\Quaternion.h" />
+    <ClInclude Include="src\math\Ray.h" />
     <ClInclude Include="src\math\ScalarMatrix.h" />
     <ClInclude Include="src\math\Promote.h" />
     <ClInclude Include="src\math\Scalar.h" />
@@ -103,10 +104,12 @@
     <ClInclude Include="src\math\Vector4.h" />
     <ClInclude Include="src\math\Vector4_SSE.h" />
     <ClInclude Include="src\shapes\Shape.h" />
+    <ClInclude Include="src\shapes\Triangle.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\shapes\Shape.cpp" />
+    <ClCompile Include="src\shapes\Triangle.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

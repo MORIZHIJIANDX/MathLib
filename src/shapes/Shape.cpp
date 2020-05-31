@@ -1,11 +1,20 @@
 #include "Shape.h"
 
-
-
-Dash::Math::Shape::Shape()
+namespace Dash
 {
+	namespace Math
+	{
+		Shape::Shape(const Transform& objectToWorld, const Transform& worldToObject) noexcept
+			: ObjectToWorld(objectToWorld)
+			, WorldToObject(worldToObject)
+		{
+		}
+
+		BoundingBox Shape::WorldBound() const noexcept
+		{
+			return ObjectToWorld.TransformBoundingBox(ObjectBound());
+		}
+	}
 }
 
-Dash::Math::Shape::~Shape()
-{
-}
+

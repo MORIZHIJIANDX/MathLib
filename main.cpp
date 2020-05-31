@@ -1,5 +1,6 @@
 
 #include "src/math/MathType.h"
+#include "src/math/Transform.h"
 #include <iostream>
 
 namespace DMath = Dash::Math;
@@ -51,6 +52,14 @@ int main()
 
 	std::cout << mat << std::endl;
 
+	struct POI
+	{
+		char p;
+		DMath::Vector3f c;
+	};
+
+	std::cout << "P offset : " << offsetof(POI, p) << std::endl;
+	std::cout << "C offset : " << offsetof(POI, c) << std::endl;
 	
 	std::cin.get();
 }

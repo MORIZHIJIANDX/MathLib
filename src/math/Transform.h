@@ -10,6 +10,7 @@ namespace Dash
 		{
 		public:
 			Transform() noexcept;
+			Transform(Identity) noexcept;
 			template<typename Scalar> Transform(const ScalarArray<Scalar, 3>& scale, const Quaternion& rotation, const ScalarArray<Scalar, 3>& position) noexcept;
 			template<typename Scalar> Transform(const ScalarArray<Scalar, 3>& scale, const ScalarArray<Scalar, 3>& rotationEuler, const ScalarArray<Scalar, 3>& position) noexcept;
 			explicit Transform(const Matrix4x4& mat) noexcept;
@@ -75,6 +76,9 @@ namespace Dash
 			Vector4f TransformPoint(const Vector4f& p) const noexcept;
 			Vector4f TransformNormal(const Vector4f& n) const noexcept;
 
+			BoundingBox TransformBoundingBox(const BoundingBox& b) const noexcept;
+			Ray TransformRay(const Ray& r) const noexcept;
+
 		private:
 			void UpdateMatrix() const;
 
@@ -92,19 +96,31 @@ namespace Dash
 
 		bool operator==(const Transform& a, const Transform& b) noexcept;
 
-		Transform Scale(const Vector3f& s);
-		Transform Scale(Scalar x, Scalar y, Scalar z);
+		Transform Inverse(const Transform& t) noexcept;
 
-		Transform Rotate(const Vector3f& r);
-		Transform Rotate(Scalar yaw, Scalar roll, Scalar pitch);
-		Transform Rotate(const Quaternion& r);
+		Transform Scale(const Vector3f& s) noexcept;
+		Transform Scale(Scalar x, Scalar y, Scalar z) noexcept;
 
-		Transform RotateAxis(const Vector3f& axis, Scalar angle);
-		Transform RotateAround(const Vector3f& point, const Vector3f& axis, Scalar angle);
+		Transform Rotate(const Vector3f& r) noexcept;
+		Transform Rotate(Scalar yaw, Scalar roll, Scalar pitch) noexcept;
+		Transform Rotate(const Quaternion& r) noexcept;
 
-		Transform Translate(const Vector3f& t);
-		Transform Translate(Scalar x, Scalar y, Scalar z);
+		Transform RotateAxis(const Vector3f& axis, Scalar angle) noexcept;
+		Transform RotateAround(const Vector3f& point, const Vector3f& axis, Scalar angle) noexcept;
 
+		Transform Translate(const Vector3f& t) noexcept;
+		Transform Translate(Scalar x, Scalar y, Scalar z) noexcept;
+
+		Vector3f TransformVector(const Transform& a, const Vector3f& v) noexcept;
+		Vector3f TransformPoint(const Transform& a, const Vector3f& p) noexcept;
+		Vector3f TransformNormal(const Transform& a, const Vector3f& n) noexcept;
+
+		Vector4f TransformVector(const Transform& a, const Vector4f& v) noexcept;
+		Vector4f TransformPoint(const Transform& a, const Vector4f& p) noexcept;
+		Vector4f TransformNormal(const Transform& a, const Vector4f& n) noexcept;
+
+		BoundingBox TransformBoundingBox(const Transform& a, const BoundingBox& b) noexcept;
+		Ray TransformRay(const Transform& a, const Ray& r) noexcept;
 
 
 
@@ -118,6 +134,16 @@ namespace Dash
 			, mDirty(true)
 			, mMat()
 			, mInverseMat()
+		{
+		}
+
+		FORCEINLINE Transform::Transform(Identity) noexcept
+			: mScale(Identity{})
+			, mRotation(Identity{})
+			, mPosition(Identity{})
+			, mDirty(false)
+			, mMat(Identity{})
+			, mInverseMat(Identity{})
 		{
 		}
 
@@ -448,6 +474,25 @@ namespace Dash
 			};
 		}
 
+		FORCEINLINE BoundingBox Transform::TransformBoundingBox(const BoundingBox& b) const noexcept
+		{
+			const Transform& M = *this;
+			BoundingBox ret(M.TransformPoint(Vector3f(b.Lower.x, b.Lower.y, b.Lower.z)));
+			ret = Union(ret, (M.TransformPoint(Vector3f{ b.Upper.x, b.Lower.y, b.Lower.z })));
+			ret = Union(ret, (M.TransformPoint(Vector3f{ b.Lower.x, b.Upper.y, b.Lower.z })));
+			ret = Union(ret, (M.TransformPoint(Vector3f{ b.Lower.x, b.Lower.y, b.Upper.z })));
+			ret = Union(ret, (M.TransformPoint(Vector3f{ b.Lower.x, b.Upper.y, b.Upper.z })));
+			ret = Union(ret, (M.TransformPoint(Vector3f{ b.Upper.x, b.Upper.y, b.Lower.z })));
+			ret = Union(ret, (M.TransformPoint(Vector3f{ b.Upper.x, b.Lower.y, b.Upper.z })));
+			ret = Union(ret, (M.TransformPoint(Vector3f{ b.Upper.x, b.Upper.y, b.Upper.z })));
+			return ret;
+		}
+
+		FORCEINLINE Ray Transform::TransformRay(const Ray& r) const noexcept
+		{
+			return Ray{ TransformPoint(r.Origin), Normalize(TransformVector(r.Direction)), r.TMax, r.Time };
+		}
+
 		FORCEINLINE void Transform::UpdateMatrix() const
 		{
 			if (mDirty)
@@ -463,37 +508,42 @@ namespace Dash
 			return a.GetScale() == b.GetScale() && a.GetRotation() == b.GetRotation() && a.GetPosition() == b.GetPosition();
 		}
 
-		FORCEINLINE Transform Scale(const Vector3f& s)
+		FORCEINLINE Transform Inverse(const Transform& t) noexcept
+		{
+			return Transform{ t.GetInverseMatrix(), t.GetMatrix() };
+		}
+
+		FORCEINLINE Transform Scale(const Vector3f& s) noexcept
 		{
 			return Transform{ s, Quaternion{Identity{}}, Vector3f{Zero{}} };
 		}
 
-		FORCEINLINE Transform Scale(Scalar x, Scalar y, Scalar z)
+		FORCEINLINE Transform Scale(Scalar x, Scalar y, Scalar z) noexcept
 		{
 			return Transform{ Vector3f{x,y,z}, Quaternion{Identity{}}, Vector3f{Zero{}} };
 		}
 
-		FORCEINLINE Transform Rotate(const Vector3f& r)
+		FORCEINLINE Transform Rotate(const Vector3f& r) noexcept
 		{
 			return Transform{ Vector3f{Identity{}}, r, Vector3f{Zero{}} };
 		}
 
-		FORCEINLINE Transform Rotate(Scalar yaw, Scalar roll, Scalar pitch)
+		FORCEINLINE Transform Rotate(Scalar yaw, Scalar roll, Scalar pitch) noexcept
 		{
 			return Transform{ Vector3f{Identity{}}, Vector3f{yaw, roll, pitch}, Vector3f{Zero{}} };
 		}
 
-		FORCEINLINE Transform Rotate(const Quaternion& r)
+		FORCEINLINE Transform Rotate(const Quaternion& r) noexcept
 		{
 			return Transform{ Vector3f{Identity{}}, r, Vector3f{Zero{}} };
 		}
 
-		FORCEINLINE Transform RotateAxis(const Vector3f& axis, Scalar angle)
+		FORCEINLINE Transform RotateAxis(const Vector3f& axis, Scalar angle) noexcept
 		{
 			return Transform{ Vector3f{Identity{}}, FromAxisAngle(axis, angle), Vector3f{Zero{}} };
 		}
 
-		FORCEINLINE Transform RotateAround(const Vector3f& point, const Vector3f& axis, Scalar angle)
+		FORCEINLINE Transform RotateAround(const Vector3f& point, const Vector3f& axis, Scalar angle) noexcept
 		{
 			Vector3f pos = Vector3f{ Zero{} };
 			Quaternion rot = FromAxisAngle(axis, angle);
@@ -505,15 +555,57 @@ namespace Dash
 			return Transform{ Vector3f{Identity{}}, rot, pos };
 		}
 
-		FORCEINLINE Transform Translate(const Vector3f& t)
+		FORCEINLINE Transform Translate(const Vector3f& t) noexcept
 		{
 			return Transform{ Vector3f{Identity{}}, Quaternion{Identity{}}, t };
 		}
 
-		FORCEINLINE Transform Translate(Scalar x, Scalar y, Scalar z)
+		FORCEINLINE Transform Translate(Scalar x, Scalar y, Scalar z) noexcept
 		{
 			return Transform{ Vector3f{Identity{}}, Quaternion{Identity{}}, Vector3f{x, y, z} };
 		}
+
+		FORCEINLINE Vector3f TransformVector(const Transform& a, const Vector3f& v) noexcept
+		{
+			return a.TransformVector(v);
+		}
+
+		FORCEINLINE Vector3f TransformPoint(const Transform& a, const Vector3f& p) noexcept
+		{
+			return a.TransformPoint(p);
+		}
+
+		FORCEINLINE Vector3f TransformNormal(const Transform& a, const Vector3f& n) noexcept
+		{
+			return a.TransformNormal(n);
+		}
+
+		FORCEINLINE Vector4f TransformVector(const Transform& a, const Vector4f& v) noexcept
+		{
+			return a.TransformVector(v);
+		}
+
+		FORCEINLINE Vector4f TransformPoint(const Transform& a, const Vector4f& p) noexcept
+		{
+			return a.TransformPoint(p);
+		}
+
+		FORCEINLINE Vector4f TransformNormal(const Transform& a, const Vector4f& n) noexcept
+		{
+			return a.TransformNormal(n);
+		}
+
+		FORCEINLINE BoundingBox TransformBoundingBox(const Transform& a, const BoundingBox& b) noexcept
+		{
+			return a.TransformBoundingBox(b);
+		}
+
+		FORCEINLINE Ray TransformRay(const Transform& a, const Ray& r) noexcept
+		{
+			return a.TransformRay(r);
+		}
+
+
 
 
 	}
