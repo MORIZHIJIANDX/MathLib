@@ -86,6 +86,7 @@
     <ClInclude Include="src\math\BitMask.h" />
     <ClInclude Include="src\math\AABB.h" />
     <ClInclude Include="src\math\AABB3.h" />
+    <ClInclude Include="src\math\Intersection.h" />
     <ClInclude Include="src\math\Interval.h" />
     <ClInclude Include="src\math\MathType.h" />
     <ClInclude Include="src\math\Matrix3x3.h" />

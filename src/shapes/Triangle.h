@@ -4,39 +4,30 @@
 
 namespace Dash
 {
-	namespace Math
+	struct RayTraceTrianglePoint
 	{
-		struct RayTraceTriangle
-		{
-			Vector3f Position;
-			Vector3f Normal;
-			Vector2f TexCoord;
-			Vector2f LightMapUV;
-			Vector3f Tangent;
-			Vector3f Bitangent;
-		};
+		Math::Vector3f Position;
+		Math::Vector3f Normal;
+		Math::Vector3f Tangent;
+		Math::Vector2f TexCoord;
+	};
 
-		class Triangle : public Shape
-		{
-		public:
-			Triangle(const Transform& objectToWorld, const Transform& worldToObject, const std::shared_ptr<TriangleMesh>& mesh, std::uint32_t faceId);
-			~Triangle();
+	class Triangle : public Shape
+	{
+	public:
+		Triangle(const Math::Transform& objectToWorld, const Math::Transform& worldToObject, const std::shared_ptr<TriangleMesh>& mesh, std::uint32_t faceId);
+		~Triangle();
 
-			virtual bool Intersection(const Ray& r, Scalar* t, HitInfo* hitInfo) const noexcept override;
+		virtual bool Intersection(const Math::Ray& r, Math::Scalar* t, HitInfo* hitInfo) const noexcept override;
 
-			virtual BoundingBox ObjectBound() const noexcept override;
-			virtual BoundingBox WorldBound() const noexcept override;
+		virtual Math::BoundingBox ObjectBound() const noexcept override;
+		virtual Math::BoundingBox WorldBound() const noexcept override;
 
-			virtual std::shared_ptr<TriangleMesh> ConvertToTriangleMesh() const noexcept override;
+		virtual std::shared_ptr<TriangleMesh> ConvertToTriangleMesh() const noexcept override;
 
-		private:
-			std::shared_ptr<TriangleMesh> mMesh;
-			const std::uint32_t* mVertexIndex;
-			std::uint32_t mFaceIndex;
-		};
-
-
-
-
-	}
+	private:
+		std::shared_ptr<TriangleMesh> mMesh;
+		const std::uint32_t* mVertexIndex;
+		std::uint32_t mFaceIndex;
+	};
 }

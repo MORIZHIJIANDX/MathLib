@@ -33,5 +33,6 @@ namespace Dash
 		using Ray = ScalarRay<Scalar>;
 
 		using Quaternion = ScalarQuaternion<Scalar>;
+
 	}
 }

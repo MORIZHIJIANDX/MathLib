@@ -1,6 +1,8 @@
 
 #include "src/math/MathType.h"
 #include "src/math/Transform.h"
+#include "src/shapes/Shape.h"
+#include "src/shapes/Triangle.h"
 #include <iostream>
 
 namespace DMath = Dash::Math;
@@ -16,50 +18,95 @@ void Print(const DMath::ScalarArray<T, N>& v)
 	std::cout << std::endl;
 }
 
+std::shared_ptr<Dash::TriangleMesh> CreateTriangleMesh()
+{
+	std::shared_ptr<Dash::TriangleMesh> triangleMesh = std::make_shared<Dash::TriangleMesh>();
+	triangleMesh->IndexType = Dash::DASH_FORMAT::R16_UINT;
+	triangleMesh->NumVertices = 3;
+	triangleMesh->NumIndices = 3;
+	triangleMesh->MeshParts.emplace_back(0, 3, 0, 3, 0);
+
+	triangleMesh->InputElements.emplace_back("POSITION", 0, Dash::DASH_FORMAT::R32G32B32_FLOAT, 0);
+	triangleMesh->InputElements.emplace_back("NORMAL", 0, Dash::DASH_FORMAT::R32G32B32_FLOAT, 12);
+	triangleMesh->InputElements.emplace_back("TANGENT", 0, Dash::DASH_FORMAT::R32G32B32_FLOAT, 24);
+	triangleMesh->InputElements.emplace_back("TEXCOORD", 0, Dash::DASH_FORMAT::R32G32B32_FLOAT, 36);
+
+	triangleMesh->VertexStride = 0;
+	for (size_t i = 0; i < triangleMesh->InputElements.size(); i++)
+	{
+		triangleMesh->InputElementMap.insert(std::pair(triangleMesh->InputElements[i].SemanticName,
+			triangleMesh->InputElements[i].AlignedByteOffset));
+
+		triangleMesh->VertexStride += (uint32_t)GetDashFormatSize(triangleMesh->InputElements[i].Format);
+	}
+
+
+	std::size_t positionOffset = triangleMesh->InputElementMap["POSITION"];
+	std::size_t normalOffset = triangleMesh->InputElementMap["NORMAL"];
+	std::size_t tangentOffset = triangleMesh->InputElementMap["TANGENT"];
+	std::size_t texCoordOffset = triangleMesh->InputElementMap["TEXCOORD"];
+
+	DMath::Vector3f pos1{ 0.0f, 0.5f, 0.0f };
+	DMath::Vector3f pos2{ 0.5f, 0.0f, 0.0f };
+	DMath::Vector3f pos3{ -0.5f, 0.0f, 0.0f };
+
+	DMath::Vector2f uv1{ 0.5f, 0.0f };
+	DMath::Vector2f uv2{ 1.0f, 1.0f };
+	DMath::Vector2f uv3{ 0.0f, 1.0f };
+
+	DMath::Vector3f normal{ 0.0f, 0.0f, -1.0f };
+	DMath::Vector3f tangent{ 1.0f, 0.0f, 0.0f };
+
+	triangleMesh->Vertices.reserve((std::size_t)(triangleMesh->VertexStride) * 3);
+
+	WriteData(pos1, triangleMesh->Vertices.data(), 0 * triangleMesh->VertexStride + positionOffset);
+	WriteData(normal, triangleMesh->Vertices.data(), 0 * triangleMesh->VertexStride + normalOffset);
+	WriteData(tangent, triangleMesh->Vertices.data(), 0 * triangleMesh->VertexStride + tangentOffset);
+	WriteData(uv1, triangleMesh->Vertices.data(), 0 * triangleMesh->VertexStride + texCoordOffset);
+
+	WriteData(pos2, triangleMesh->Vertices.data(), 1 * triangleMesh->VertexStride + positionOffset);
+	WriteData(normal, triangleMesh->Vertices.data(), 1 * triangleMesh->VertexStride + normalOffset);
+	WriteData(tangent, triangleMesh->Vertices.data(), 1 * triangleMesh->VertexStride + tangentOffset);
+	WriteData(uv2, triangleMesh->Vertices.data(), 1 * triangleMesh->VertexStride + texCoordOffset);
+
+	WriteData(pos3, triangleMesh->Vertices.data(), (std::size_t)2 * triangleMesh->VertexStride + positionOffset);
+	WriteData(normal, triangleMesh->Vertices.data(), (std::size_t)2 * triangleMesh->VertexStride + normalOffset);
+	WriteData(tangent, triangleMesh->Vertices.data(), (std::size_t)2 * triangleMesh->VertexStride + tangentOffset);
+	WriteData(uv3, triangleMesh->Vertices.data(), (std::size_t)2 * triangleMesh->VertexStride + texCoordOffset);
+
+	triangleMesh->Indices.resize(sizeof(std::uint32_t) * 3);
+
+	uint16_t indices[3] = { 0, 1, 2 };
+
+	std::memcpy(triangleMesh->Indices.data(), indices, sizeof(indices));
+
+	return triangleMesh;
+}
+
 int main()
 {
-	DMath::Vector4f data = DMath::Vector4f{};
-	data.Fill(4);
+	std::shared_ptr<Dash::TriangleMesh> triangleMesh = CreateTriangleMesh();
 
+	DMath::Transform trans{ DMath::Identity{} };
+	Dash::Triangle triangle{ trans , trans, triangleMesh, 0 };
+	std::shared_ptr<Dash::TriangleMesh> testTriangle = triangle.ConvertToTriangleMesh();
 
-	DMath::Vector4f data2{ DMath::Unit<1>{} };
+	DMath::Vector2f uv;
 
-	float Comot = DMath::Dot(data, data2);
+	testTriangle->GetVertexTexCoord(uv, 2);
 
-	float m = static_cast<float>(DMath::Zero{});
+	std::cout << uv << std::endl;
 
-	Print(DMath::Pow(data, 1 / 2.2f));
+	float pot = 99.5f;
+	float got = 0.0f;
 
-	DMath::ScalarArray<float, 4> tm{1, 2, 5, 1};
-	DMath::ScalarArray<float, 4> rm{ 0, 1, 1, 1 };
+	std::vector<uint8_t> data;
+	data.reserve(4);
 
-	DMath::ScalarArray<float, 4> mulre{};
+	WriteData(pot, data.data());
+	GetData(got, data.data());
 
-	auto mat = DMath::ScaleMatrix4x4(DMath::Vector3f{ 1.0f, 2.0f, 3.0f });
+	std::cout << got << std::endl;
 
-	std::cout <<  DMath::RotateMatrix4x4<float>(DMath::Quaternion(DMath::Identity{})) * DMath::RotateMatrix4x4<float>(DMath::Quaternion(DMath::Identity{})) << std::endl;
-
-	DMath::Vector3f scale;
-	DMath::Vector3f translation;
-	DMath::Quaternion rotation;
-
-	DecomposeAffineMatrix4x4(scale, rotation, translation, mat);
-
-	std::cout << scale << std::endl;
-	std::cout << translation << std::endl;
-	std::cout << rotation << std::endl;
-
-
-	std::cout << mat << std::endl;
-
-	struct POI
-	{
-		char p;
-		DMath::Vector3f c;
-	};
-
-	std::cout << "P offset : " << offsetof(POI, p) << std::endl;
-	std::cout << "C offset : " << offsetof(POI, c) << std::endl;
-	
 	std::cin.get();
 }
