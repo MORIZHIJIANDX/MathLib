@@ -9,7 +9,11 @@ namespace Dash
 		bool RayTriangleIntersection(const Ray& r, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2, Scalar& u, Scalar& v, Scalar& t) noexcept;
 		bool RayTriangleIntersection(const Ray& r, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2) noexcept;
 
-		bool RayIntersectionBoundingBox(const Ray& r, const BoundingBox& b, Scalar& t) noexcept;
+		bool RayBoundingBoxIntersection(const Ray& r, const BoundingBox& b, Scalar& t) noexcept;
+
+		bool RaySphereIntersection(const Ray& r, const Vector3f& center, Scalar radius,  Scalar& t) noexcept;
+
+		bool Quadratic(Scalar a, Scalar b, Scalar c, Scalar& t0, Scalar& t1) noexcept;
 	
 		FORCEINLINE bool RayTriangleIntersection(const Ray& r, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2) noexcept
 		{
@@ -44,7 +48,27 @@ namespace Dash
 			return true;
 		}
 
-		FORCEINLINE bool RayIntersectionBoundingBox(const Ray& r, const BoundingBox& b, Scalar& t) noexcept
+		FORCEINLINE bool RayBoundingBoxIntersection(const Ray& r, const BoundingBox& b, Scalar& t) noexcept
+		{
+			return false;
+		}
+
+		FORCEINLINE bool RaySphereIntersection(const Ray& r, const Vector3f& center, Scalar radius, Scalar& t) noexcept
+		{
+			Vector3f oc = r.Origin - center;
+			Scalar a = Dot(r.Origin, r.Origin);
+			Scalar halfB = Dot(oc, r.Origin);
+			Scalar c = Dot(oc, oc) - radius * radius;
+
+			Scalar discrim = halfB * halfB - a * c;
+
+			if (discrim < 0) return false;
+			
+			t = (-halfB - Sqrt(discrim)) / a;
+			return true;
+		}
+
+		bool Quadratic(Scalar a, Scalar b, Scalar c, Scalar& t0, Scalar& t1) noexcept
 		{
 			return false;
 		}
