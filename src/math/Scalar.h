@@ -26,6 +26,8 @@ namespace Dash {
 		template <typename Scalar> constexpr Scalar Cos(Scalar x) noexcept;
 		template <typename Scalar> constexpr Scalar Cosh(Scalar x) noexcept;
 
+		template <typename Scalar> constexpr void SinCos(Scalar x, Scalar& sin, Scalar& cos) noexcept;
+
 		template <typename Scalar> constexpr bool IsNan(Scalar a) noexcept;
 		template <typename Scalar> constexpr bool IsInf(Scalar a) noexcept;
 		template <typename Scalar> constexpr bool IsFinite(Scalar a) noexcept;
@@ -142,6 +144,13 @@ namespace Dash {
 		FORCEINLINE constexpr Scalar Cosh(Scalar x) noexcept
 		{
 			return std::cosh(x);
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr void SinCos(Scalar x, Scalar& sin, Scalar& cos) noexcept
+		{
+			sin = Sin(x);
+			cos = Cos(x);
 		}
 
 		template<typename Scalar>

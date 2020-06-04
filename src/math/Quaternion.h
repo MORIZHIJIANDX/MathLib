@@ -90,6 +90,9 @@ namespace Dash
 		template <typename Scalar> ScalarQuaternion<Scalar> FromSpherical(Scalar rho, Scalar phi, Scalar theta) noexcept;
 		template <typename Scalar> void ToSpherical(Scalar& rho, Scalar& phi, Scalar& theta, const ScalarQuaternion<Scalar>& u) noexcept;
 
+		template <typename Scalar> ScalarArray<Scalar, 2> CartesianToSpherical(const ScalarArray<Scalar, 3>& norm);
+		template <typename Scalar> ScalarArray<Scalar, 3> SphericalToCartesian(const ScalarArray<Scalar, 2>& s);
+
 		template <typename Scalar> ScalarQuaternion<Scalar> FromToRotation(const ScalarArray<Scalar, 3>& from, const ScalarArray<Scalar, 3>& to) noexcept;
 
 		template <typename Scalar> ScalarQuaternion<Scalar> FromMatrix(const ScalarMatrix<Scalar, 3, 3>& m) noexcept;
@@ -438,7 +441,28 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		ScalarQuaternion<Scalar> FromToRotation(const ScalarArray<Scalar, 3>& from, const ScalarArray<Scalar, 3>& to) noexcept
+		FORCEINLINE ScalarArray<Scalar, 2> CartesianToSpherical(const ScalarArray<Scalar, 3>& norm)
+		{
+			Scalar theta = Atan2(norm.y, norm.x);
+			Scalar phi = ACos(norm.z);
+
+			return ScalarArray<Scalar, 2>{theta, phi};
+		}
+
+		template<typename Scalar>
+		FORCEINLINE ScalarArray<Scalar, 3> SphericalToCartesian(const ScalarArray<Scalar, 2>& s)
+		{
+			Scalar sinTheta, cosTheta;
+			SinCos(s.x, sinTheta, cosTheta);
+			
+			Scalar sinPhi = Sqrt(1 - s.y * s.y);
+			Scalar cosPhi = s.y;
+
+			return ScalarArray<Scalar, 3>{ sinPhi * cosTheta, sinPhi * sinTheta, cosPhi };
+		}
+
+		template<typename Scalar>
+		FORCEINLINE ScalarQuaternion<Scalar> FromToRotation(const ScalarArray<Scalar, 3>& from, const ScalarArray<Scalar, 3>& to) noexcept
 		{
 			const ScalarArray<Scalar, 3> normStart = Normalize(from);
 			const ScalarArray<Scalar, 3> normEnd = Normalize(to);
