@@ -81,6 +81,8 @@ namespace Dash {
 		template <typename Scalar> Scalar Radians(Scalar degs) noexcept;
 		template <typename Scalar> Scalar Degrees(Scalar rads) noexcept;
 
+		template <typename Scalar> constexpr Scalar Swap(Scalar& x, Scalar& y) noexcept;
+
 
 		template<typename Scalar>
 		FORCEINLINE constexpr Scalar ACos(Scalar x) noexcept
@@ -414,6 +416,12 @@ namespace Dash {
 		{
 			static const Scalar DEGS_PER_RAD = Scalar(180) / ScalarTraits<Scalar>::Pi();
 			return DEGS_PER_RAD * rads;
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr Scalar Swap(Scalar& x, Scalar& y) noexcept
+		{
+			return std::swap(x, y);
 		}
 
 

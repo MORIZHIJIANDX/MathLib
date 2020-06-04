@@ -26,10 +26,13 @@ namespace Dash
 		Math::Scalar u, v, tp;
 		if (RayTriangleIntersection(r, p0, p1, p2, u, v, tp))
 		{
+			if (tp > r.TMax)
+				return false;
+
 			if (t != nullptr)
 				*t = tp;
 
-			if (hitInfo)
+			if (hitInfo != nullptr)
 			{
 				const Math::Vector3f& n0 = ObjectToWorld.TransformNormal(data[mVertexIndex[0]].Normal);
 				const Math::Vector3f& n1 = ObjectToWorld.TransformNormal(data[mVertexIndex[1]].Normal);

@@ -18,7 +18,7 @@ namespace Dash
 		public:
 			constexpr Interval() noexcept;
 			constexpr explicit Interval(Scalar x) noexcept;
-			constexpr Interval(Scalar lower, Scalar upper) noexcept;
+			constexpr Interval(Scalar a, Scalar b) noexcept;
 			template<typename Scalar2> Interval(const Interval<Scalar2> inter) noexcept;
 
 			Scalar Lower;
@@ -64,11 +64,10 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE constexpr Interval<Scalar>::Interval(Scalar lower, Scalar upper) noexcept
-			: Lower(lower)
-			, Upper(upper)
+		FORCEINLINE constexpr Interval<Scalar>::Interval(Scalar a, Scalar b) noexcept
+			: Lower(Min(a, b))
+			, Upper(Max(a, b))
 		{
-			ASSERT(upper >= lower);
 		}
 
 		template<typename Scalar>

@@ -9,7 +9,7 @@ namespace Dash
 		bool RayTriangleIntersection(const Ray& r, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2, Scalar& u, Scalar& v, Scalar& t) noexcept;
 		bool RayTriangleIntersection(const Ray& r, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2) noexcept;
 
-		bool RayBoundingBoxIntersection(const Ray& r, const BoundingBox& b, Scalar& t) noexcept;
+		bool RayBoundingBoxIntersection(const Ray& r, const BoundingBox& b, Scalar& t0, Scalar& t1) noexcept;
 
 		bool RaySphereIntersection(const Ray& r, const Vector3f& center, Scalar radius,  Scalar& t) noexcept;
 
@@ -48,16 +48,42 @@ namespace Dash
 			return true;
 		}
 
-		FORCEINLINE bool RayBoundingBoxIntersection(const Ray& r, const BoundingBox& b, Scalar& t) noexcept
+		FORCEINLINE Scalar ErrorGamma(int n) {
+			return (n * ScalarTraits<Scalar>::Epsilon()) / (1 - n * ScalarTraits<Scalar>::Epsilon());
+		}
+
+		FORCEINLINE bool RayBoundingBoxIntersection(const Ray& r, const BoundingBox& b, Scalar& t0, Scalar& t1) noexcept
 		{
-			return false;
+			Scalar tMin = 0, tMax = r.TMax;
+			for (std::size_t i = 0; i < 3; i++)
+			{
+				Scalar invRayDir = Scalar{ 1 } / r.Direction[i];
+				Scalar tNear = (b.Lower[i] - r.Origin[i]) * invRayDir;
+				Scalar tFar = (b.Upper[i] - r.Origin[i]) * invRayDir;
+
+				if (tNear > tFar)
+					Swap(tNear, tFar);
+
+				tFar *= 1 + 2 * ErrorGamma(3);
+
+				tMin = tNear > tMin ? tNear : tMin;
+				tMax = tFar < tMax ? tFar : tMax;
+
+				if (tMin > tMax)
+					return false;
+			}
+
+			t0 = tMin;
+			t1 = tMax;
+
+			return true;
 		}
 
 		FORCEINLINE bool RaySphereIntersection(const Ray& r, const Vector3f& center, Scalar radius, Scalar& t) noexcept
 		{
 			Vector3f oc = r.Origin - center;
-			Scalar a = Dot(r.Origin, r.Origin);
-			Scalar halfB = Dot(oc, r.Origin);
+			Scalar a = Dot(r.Direction, r.Direction);
+			Scalar halfB = Dot(oc, r.Direction);
 			Scalar c = Dot(oc, oc) - radius * radius;
 
 			Scalar discrim = halfB * halfB - a * c;
