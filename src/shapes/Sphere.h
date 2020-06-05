@@ -7,14 +7,11 @@ namespace Dash
 	class Sphere : public Shape
 	{
 	public:
-		Sphere(const Math::Transform& objectToWorld, const Math::Transform& worldToObject, Math::Scalar radius);
+		Sphere(const Math::Transform& objectToWorld, const Math::Transform& worldToObject, Math::Scalar radius, 
+			std::size_t level, std::size_t slice);
 		~Sphere();
 
 		virtual bool Intersection(const Math::Ray& r, Math::Scalar* t, HitInfo* hitInfo) const noexcept;
-		bool IntersectionFast(const Math::Ray& r) const noexcept
-		{
-			return Intersection(r, nullptr, nullptr);
-		}
 
 		Math::Vector3f GetCenter() const noexcept;
 		Math::Scalar GetRadius() const noexcept;
@@ -26,5 +23,7 @@ namespace Dash
 
 	private:
 		Math::Scalar mRadius;
+		std::size_t mLevels;
+		std::size_t mSlices;
 	};
 }

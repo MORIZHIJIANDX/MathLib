@@ -29,7 +29,7 @@ std::shared_ptr<Dash::TriangleMesh> CreateTriangleMesh()
 	triangleMesh->InputElements.emplace_back("POSITION", 0, Dash::DASH_FORMAT::R32G32B32_FLOAT, 0);
 	triangleMesh->InputElements.emplace_back("NORMAL", 0, Dash::DASH_FORMAT::R32G32B32_FLOAT, 12);
 	triangleMesh->InputElements.emplace_back("TANGENT", 0, Dash::DASH_FORMAT::R32G32B32_FLOAT, 24);
-	triangleMesh->InputElements.emplace_back("TEXCOORD", 0, Dash::DASH_FORMAT::R32G32B32_FLOAT, 36);
+	triangleMesh->InputElements.emplace_back("TEXCOORD", 0, Dash::DASH_FORMAT::R32G32_FLOAT, 36);
 
 	triangleMesh->VertexStride = 0;
 	for (size_t i = 0; i < triangleMesh->InputElements.size(); i++)

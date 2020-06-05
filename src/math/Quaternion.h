@@ -443,8 +443,8 @@ namespace Dash
 		template<typename Scalar>
 		FORCEINLINE ScalarArray<Scalar, 2> CartesianToSpherical(const ScalarArray<Scalar, 3>& norm)
 		{
-			Scalar theta = Atan2(norm.y, norm.x);
-			Scalar phi = ACos(norm.z);
+			Scalar theta = Atan2(norm.z, norm.x);
+			Scalar phi = ACos(norm.y);
 
 			return ScalarArray<Scalar, 2>{theta, phi};
 		}
@@ -458,7 +458,19 @@ namespace Dash
 			Scalar sinPhi = Sqrt(1 - s.y * s.y);
 			Scalar cosPhi = s.y;
 
-			return ScalarArray<Scalar, 3>{ sinPhi * cosTheta, sinPhi * sinTheta, cosPhi };
+			return ScalarArray<Scalar, 3>{ sinPhi* cosTheta, cosPhi, sinPhi* sinTheta };
+		}
+
+		template<typename Scalar>
+		FORCEINLINE ScalarArray<Scalar, 3> SphericalToCartesian(Scalar theta, Scalar phi)
+		{
+			Scalar sinTheta, cosTheta;
+			SinCos(theta, sinTheta, cosTheta);
+
+			Scalar sinPhi = Sqrt(1 - phi * phi);
+			Scalar cosPhi = phi;
+
+			return ScalarArray<Scalar, 3>{ sinPhi* cosTheta, cosPhi, sinPhi* sinTheta };
 		}
 
 		template<typename Scalar>

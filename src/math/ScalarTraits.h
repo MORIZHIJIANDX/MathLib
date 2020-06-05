@@ -17,6 +17,21 @@ namespace Dash
                 return 3;
             }
 
+            static std::size_t Pi()
+            {
+                return 6;
+            }
+
+            static std::size_t InvPi()
+            {
+                return 0;
+            }
+
+            static float InvTwoPi()
+            {
+                return 0;
+            }
+
             static std::size_t Infinity()
             {
                 return std::numeric_limits<std::size_t>::infinity();
@@ -44,6 +59,21 @@ namespace Dash
             static float Pi()
             {
                 return 3.14159265358979323846f;
+            }
+
+            static float TwoPi()
+            {
+                return 6.283185307179586476925f;
+            }
+
+            static float InvPi()
+            {
+                return 0.318309886183790671537f;
+            }
+
+            static float InvTwoPi()
+            {
+                return 0.1591549430918953357688f;
             }
 
             static float Infinity()
@@ -76,6 +106,21 @@ namespace Dash
                 return 3.14159265358979323846;
             }
 
+            static double TwoPi()
+            {
+                return 6.283185307179586476925;
+            }
+
+            static double InvPi()
+            {
+                return 0.318309886183790671537;
+            }
+
+            static double InvTwoPi()
+            {
+                return 0.1591549430918953357688;
+            }
+
             static double Infinity()
             {
                 return std::numeric_limits<double>::infinity();
@@ -104,6 +149,21 @@ namespace Dash
             static long double Pi()
             {
                 return 3.1415926535897932384626433832795029L;
+            }
+
+            static long double TwoPi()
+            {
+                return 6.283185307179586476925286766559L;
+            }
+
+            static long double InvPi()
+            {
+                return 0.31830988618379067153776752674503L;
+            }
+
+            static long double InvTwoPi()
+            {
+                return 0.15915494309189533576888376337251L;
             }
 
             static long double Infinity()

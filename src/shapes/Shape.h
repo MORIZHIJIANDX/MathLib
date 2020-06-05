@@ -144,7 +144,7 @@ namespace Dash
 		~Shape() = default;
 
 		virtual bool Intersection(const Math::Ray& r, Math::Scalar* t, HitInfo* hitInfo) const noexcept = 0;
-		bool IntersectionFast(const Math::Ray& r) const noexcept
+		virtual bool IntersectionFast(const Math::Ray& r) const noexcept
 		{
 			return Intersection(r, nullptr, nullptr);
 		}
