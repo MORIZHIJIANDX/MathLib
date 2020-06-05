@@ -3,6 +3,7 @@
 #include "src/math/Transform.h"
 #include "src/shapes/Shape.h"
 #include "src/shapes/Triangle.h"
+#include "src/shapes/Sphere.h"
 #include <iostream>
 
 namespace DMath = Dash::Math;
@@ -93,8 +94,12 @@ int main()
 
 	DMath::Vector2f uv;
 
-	testTriangle->GetVertexTexCoord(uv, 2);
 
+	std::shared_ptr<Dash::Sphere> sphere = std::make_shared<Dash::Sphere>(trans, trans, 1.0f);
+
+	testTriangle = sphere->ConvertToTriangleMesh();
+
+	testTriangle->GetVertexTexCoord(uv, 2);
 	std::cout << uv << std::endl;
 
 	float pot = 99.5f;

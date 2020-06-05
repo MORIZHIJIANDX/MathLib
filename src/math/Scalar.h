@@ -83,7 +83,7 @@ namespace Dash {
 		template <typename Scalar> Scalar Radians(Scalar degs) noexcept;
 		template <typename Scalar> Scalar Degrees(Scalar rads) noexcept;
 
-		template <typename Scalar> constexpr Scalar Swap(Scalar& x, Scalar& y) noexcept;
+		template <typename Scalar> constexpr void Swap(Scalar& x, Scalar& y) noexcept;
 
 
 		template<typename Scalar>
@@ -428,7 +428,7 @@ namespace Dash {
 		}
 
 		template<typename Scalar>
-		FORCEINLINE constexpr Scalar Swap(Scalar& x, Scalar& y) noexcept
+		FORCEINLINE constexpr void Swap(Scalar& x, Scalar& y) noexcept
 		{
 			return std::swap(x, y);
 		}

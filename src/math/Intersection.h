@@ -94,7 +94,7 @@ namespace Dash
 			return true;
 		}
 
-		bool Quadratic(Scalar a, Scalar b, Scalar c, Scalar& t0, Scalar& t1) noexcept
+		FORCEINLINE bool Quadratic(Scalar a, Scalar b, Scalar c, Scalar& t0, Scalar& t1) noexcept
 		{
 			return false;
 		}

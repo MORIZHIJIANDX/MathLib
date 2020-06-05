@@ -467,8 +467,8 @@ namespace Dash
 			Scalar sinTheta, cosTheta;
 			SinCos(theta, sinTheta, cosTheta);
 
-			Scalar sinPhi = Sqrt(1 - phi * phi);
-			Scalar cosPhi = phi;
+			Scalar sinPhi, cosPhi;
+			SinCos(phi, sinPhi, cosPhi);
 
 			return ScalarArray<Scalar, 3>{ sinPhi* cosTheta, cosPhi, sinPhi* sinTheta };
 		}

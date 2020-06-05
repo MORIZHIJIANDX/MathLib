@@ -104,6 +104,7 @@
     <ClInclude Include="src\math\Vector3.h" />
     <ClInclude Include="src\math\Vector4.h" />
     <ClInclude Include="src\math\Vector4_SSE.h" />
+    <ClInclude Include="src\shapes\Box.h" />
     <ClInclude Include="src\shapes\Shape.h" />
     <ClInclude Include="src\shapes\Sphere.h" />
     <ClInclude Include="src\shapes\Triangle.h" />

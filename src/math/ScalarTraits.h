@@ -17,7 +17,7 @@ namespace Dash
                 return 3;
             }
 
-            static std::size_t Pi()
+            static std::size_t TwoPi()
             {
                 return 6;
             }

@@ -8,7 +8,7 @@ namespace Dash
 	{
 	public:
 		Sphere(const Math::Transform& objectToWorld, const Math::Transform& worldToObject, Math::Scalar radius, 
-			std::size_t level, std::size_t slice);
+			std::uint16_t level = 16, std::uint16_t slice = 16);
 		~Sphere();
 
 		virtual bool Intersection(const Math::Ray& r, Math::Scalar* t, HitInfo* hitInfo) const noexcept;
@@ -23,7 +23,7 @@ namespace Dash
 
 	private:
 		Math::Scalar mRadius;
-		std::size_t mLevels;
-		std::size_t mSlices;
+		std::uint16_t mLevels;
+		std::uint16_t mSlices;
 	};
 }
