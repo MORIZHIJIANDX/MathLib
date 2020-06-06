@@ -80,12 +80,14 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Image.h" />
     <ClInclude Include="src\consolid\consolid.h" />
     <ClInclude Include="src\math\AABB2.h" />
     <ClInclude Include="src\math\Algebra.h" />
     <ClInclude Include="src\math\BitMask.h" />
     <ClInclude Include="src\math\AABB.h" />
     <ClInclude Include="src\math\AABB3.h" />
+    <ClInclude Include="src\math\Enums.h" />
     <ClInclude Include="src\math\Intersection.h" />
     <ClInclude Include="src\math\Interval.h" />
     <ClInclude Include="src\math\MathType.h" />
@@ -104,13 +106,15 @@
     <ClInclude Include="src\math\Vector3.h" />
     <ClInclude Include="src\math\Vector4.h" />
     <ClInclude Include="src\math\Vector4_SSE.h" />
-    <ClInclude Include="src\shapes\Box.h" />
+    <ClInclude Include="src\shapes\Plane.h" />
     <ClInclude Include="src\shapes\Shape.h" />
     <ClInclude Include="src\shapes\Sphere.h" />
     <ClInclude Include="src\shapes\Triangle.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\shapes\Plane.cpp" />
     <ClCompile Include="src\shapes\Shape.cpp" />
     <ClCompile Include="src\shapes\Sphere.cpp" />
     <ClCompile Include="src\shapes\Triangle.cpp" />

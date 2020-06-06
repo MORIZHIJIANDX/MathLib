@@ -7,6 +7,7 @@
 #include "AABB.h"
 #include "Ray.h"
 #include "Metric.h"
+#include "Enums.h"
 
 
 namespace Dash
@@ -14,6 +15,16 @@ namespace Dash
 	namespace Math
 	{
 		using Scalar = float;
+
+		template<typename T> 
+		using Vector2 = ScalarArray<T, 2>;
+
+		template<typename T>
+		using Vector3 = ScalarArray<T, 3>;
+
+		template<typename T>
+		using Vector4 = ScalarArray<T, 4>;
+
 
 		using Vector2f = ScalarArray<Scalar, 2>;
 		using Vector3f = ScalarArray<Scalar, 3>;

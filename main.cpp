@@ -4,6 +4,9 @@
 #include "src/shapes/Shape.h"
 #include "src/shapes/Triangle.h"
 #include "src/shapes/Sphere.h"
+
+#include "Image.h"
+
 #include <iostream>
 
 namespace DMath = Dash::Math;
@@ -84,7 +87,7 @@ std::shared_ptr<Dash::TriangleMesh> CreateTriangleMesh()
 	return triangleMesh;
 }
 
-int main()
+void GeometryTest()
 {
 	std::shared_ptr<Dash::TriangleMesh> triangleMesh = CreateTriangleMesh();
 
@@ -112,6 +115,63 @@ int main()
 	GetData(got, data.data());
 
 	std::cout << got << std::endl;
+}
+
+DMath::Vector3f GetRayColor(const DMath::Ray& r, std::shared_ptr<Dash::Shape> shape)
+{
+	DMath::Scalar t;
+	Dash::HitInfo hitInfo;
+
+	if (shape->Intersection(r, &t, &hitInfo))
+	{
+		//return DMath::Vector3f{ hitInfo.TexCoord, 0.0f };
+		return DMath::Vector3f{ hitInfo.Normal * 0.5f + DMath::Vector3f{0.5f, 0.5f, 0.5f} };
+	}
+
+	DMath::Vector3f normDir = DMath::Normalize(r.Direction);
+	DMath::Scalar lerpVal = 0.5f * (normDir.y + 1.0f);
+	return DMath::Lerp(DMath::Vector3f{1.0f, 1.0f, 1.0f}, DMath::Vector3f{ 0.5f, 0.7f, 1.0f }, lerpVal);
+}
+
+int main()
+{
+	const DMath::Scalar aspectRatio = 16.0f / 9.0f;
+	const std::size_t imageWidth = 512;
+	const std::size_t imageHeight = static_cast<std::size_t>(imageWidth / aspectRatio);
+
+	const DMath::Scalar viewPortWidth = 2;
+	const DMath::Scalar viewPortHeight = viewPortWidth / aspectRatio;
+
+	const DMath::Scalar focalLength = 1.0f;
+
+	const DMath::Vector3f camPos = DMath::Vector3f{ DMath::Zero{} };
+	const DMath::Vector3f horizon = DMath::Vector3f{ viewPortWidth, 0.0f, 0.0f };
+	const DMath::Vector3f vertical = DMath::Vector3f{ 0.0f, viewPortHeight, 0.0f };
+
+	const DMath::Vector3f leftBottomCorner = camPos + DMath::Vector3f{ 0.0f, 0.0f, focalLength } - horizon * 0.5f - vertical * 0.5f;
+
+	std::shared_ptr<Image> tempImage = std::make_shared<Image>(imageWidth, imageHeight, Dash::DASH_FORMAT::R32G32B32_FLOAT);
+	tempImage->ClearImage(DMath::Vector3f{0.5f, 0.5f, 0.5f});
+
+	DMath::Transform trans{ DMath::Vector3f{1.0f, 1.0f, 1.0f},  DMath::Quaternion{DMath::Identity{}},  DMath::Vector3f{0.0f, 0.0f, 5.0f} };
+	std::shared_ptr<Dash::Sphere> sphere = std::make_shared<Dash::Sphere>(trans, trans, 1.0f);
+
+	for (std::size_t i = 0; i < imageHeight; i++)
+	{
+		for (std::size_t j = 0; j < imageWidth; j++)
+		{
+			DMath::Scalar u = j / (DMath::Scalar)(imageWidth - 1);
+			DMath::Scalar v = i / (DMath::Scalar)(imageHeight - 1);
+
+			DMath::Ray r{camPos, DMath::Normalize(leftBottomCorner + u * horizon + v * vertical - camPos)};
+
+			tempImage->SetPixel(GetRayColor(r, sphere), j, i);
+		}
+	}
+
+	SavePPMImage(tempImage, "render_target.ppm");
+
+	std::cout << "Program End" << std::endl;
 
 	std::cin.get();
 }

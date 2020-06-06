@@ -19,33 +19,37 @@ namespace Dash
 	
 	bool Sphere::Intersection(const Math::Ray& r, Math::Scalar* t, HitInfo* hitInfo) const noexcept
 	{
-		Math::Scalar tp;
+		Math::Scalar t0, t1;
 		Math::Vector3f sphereCenter = GetCenter();
-		if (Math::RaySphereIntersection(r, sphereCenter, mRadius, tp))
+		if (Math::RaySphereIntersection(r, sphereCenter, mRadius, t0, t1))
 		{
-			if (tp > r.TMax)
+			if (t1 < t0)
+				Math::Swap(t0, t1);
+
+			if (t0 > r.TMax)
 				return false;
 
 			if (t != nullptr)
-				*t = tp;
+				*t = t0;
 
 			if (hitInfo != nullptr)
 			{
-				Math::Vector3f hitPos = r(tp);
+				Math::Vector3f hitPos = r(t0);
 
-				hitInfo->Position = sphereCenter - mRadius * r.Direction;
-				hitInfo->Normal = -r.Direction;
+				hitInfo->Normal = (hitPos - sphereCenter) / mRadius;
+				hitInfo->Position = sphereCenter + mRadius * hitInfo->Normal;
 
 				//https://computergraphics.stackexchange.com/questions/5498/compute-sphere-tangent-for-normal-mapping
 
 				Math::Vector2f spherical = Math::CartesianToSpherical(hitInfo->Normal);
 				Math::Scalar theta = spherical.x;
-				Math::Scalar phi = spherical.x;
+				Math::Scalar phi = spherical.y;
 				hitInfo->Tangent = Math::Vector3f{-Math::Sin(theta), Math::Cos(theta), 0.0f};
 			
-				hitInfo->TexCoord = Math::Vector2f{ theta * Math::ScalarTraits<Math::Scalar>::InvTwoPi(), phi * Math::ScalarTraits<Math::Scalar>::InvPi() };
+				hitInfo->TexCoord = Math::Vector2f{ (theta * Math::ScalarTraits<Math::Scalar>::InvPi() + Math::Scalar{1}) * Math::Scalar{0.5}, phi * Math::ScalarTraits<Math::Scalar>::InvPi() };
 			}
 
+			return true;
 		}
 
 		return false;
@@ -76,8 +80,8 @@ namespace Dash
 	{
 		std::shared_ptr<TriangleMesh> triangleMesh = std::make_shared<TriangleMesh>();
 		triangleMesh->IndexType = DASH_FORMAT::R16_UINT;
-		triangleMesh->NumVertices = 2 + (mLevels - 1) * (mSlices + 1);
-		triangleMesh->NumIndices = 6 * (mLevels - 1) * mSlices;
+		triangleMesh->NumVertices = std::uint16_t{ 2 } +(mLevels - std::uint16_t{ 1 }) * (mSlices + std::uint16_t{ 1 });
+		triangleMesh->NumIndices = std::uint16_t{ 6 } *(mLevels - std::uint16_t{ 1 }) * mSlices;
 		triangleMesh->MeshParts.emplace_back(0, triangleMesh->NumVertices, 0, triangleMesh->NumIndices, 0);
 
 

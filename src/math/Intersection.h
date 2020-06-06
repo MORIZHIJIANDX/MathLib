@@ -11,9 +11,12 @@ namespace Dash
 
 		bool RayBoundingBoxIntersection(const Ray& r, const BoundingBox& b, Scalar& t0, Scalar& t1) noexcept;
 
-		bool RaySphereIntersection(const Ray& r, const Vector3f& center, Scalar radius,  Scalar& t) noexcept;
+		bool RaySphereIntersection(const Ray& r, const Vector3f& center, Scalar radius, Scalar& t0, Scalar& t1) noexcept;
 
-		bool Quadratic(Scalar a, Scalar b, Scalar c, Scalar& t0, Scalar& t1) noexcept;
+		bool RayPlaneIntersection(const Ray& r, const Vector3f& normal, const Vector3f& p, Scalar& t) noexcept;
+
+
+
 	
 		FORCEINLINE bool RayTriangleIntersection(const Ray& r, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2) noexcept
 		{
@@ -79,24 +82,64 @@ namespace Dash
 			return true;
 		}
 
-		FORCEINLINE bool RaySphereIntersection(const Ray& r, const Vector3f& center, Scalar radius, Scalar& t) noexcept
+		FORCEINLINE bool RaySphereIntersection(const Ray& r, const Vector3f& center, Scalar radius, Scalar& t0, Scalar& t1) noexcept
 		{
 			Vector3f oc = r.Origin - center;
 			Scalar a = Dot(r.Direction, r.Direction);
-			Scalar halfB = Dot(oc, r.Direction);
+			Scalar b = Math::Scalar{ 2} * Dot(oc, r.Direction);
 			Scalar c = Dot(oc, oc) - radius * radius;
 
-			Scalar discrim = halfB * halfB - a * c;
+			Scalar discrim = b * b - Math::Scalar{ 4 } * a * c;
 
-			if (discrim < 0) return false;
-			
-			t = (-halfB - Sqrt(discrim)) / a;
+			if (discrim >= Scalar{ 0 })
+			{
+				Scalar sqrtDiscrim = Math::Sqrt(discrim);
+				Scalar q = (b >= Scalar{ 0 }) ? (Scalar(-0.5) * (b + sqrtDiscrim)) : (Scalar(-0.5) * (b - sqrtDiscrim));
+
+				t0 = q / a;
+				t1 = c / q;
+			}
+			else
+			{
+				Vector3f dir = Normalize(r.Direction);
+				Vector3f deltap = center - r.Origin;
+				Scalar ddp = Dot(dir, deltap);
+				Scalar deltapdot = Dot(deltap, deltap);
+
+				Vector3f remedyTerm = deltap - ddp * dir;
+				discrim = radius * radius - Dot(remedyTerm, remedyTerm);
+
+				if (discrim >= 0)
+				{
+					Scalar sqrtDiscrim = Math::Sqrt(discrim);
+
+					Scalar q = (ddp >= Scalar{ 0 }) ? (ddp + sqrtDiscrim) : (ddp - sqrtDiscrim);
+
+					t0 = q;
+					t1 = (deltapdot - radius * radius) / q;
+				}
+				else
+				{
+					return false;
+				}
+			}
+
 			return true;
 		}
 
-		FORCEINLINE bool Quadratic(Scalar a, Scalar b, Scalar c, Scalar& t0, Scalar& t1) noexcept
+		FORCEINLINE bool RayPlaneIntersection(const Ray& r, const Vector3f& normal, const Vector3f& p, Scalar& t) noexcept
 		{
-			return false;
+			Scalar denominator = Dot(normal, r.Direction);
+
+			if (denominator <= ScalarTraits<Scalar>::Epsilon())
+				return false;
+
+			Scalar numerator = Dot((p - r.Origin), normal);
+
+			t = numerator / denominator;
+
+			return true;
 		}
+
 	}
 }
