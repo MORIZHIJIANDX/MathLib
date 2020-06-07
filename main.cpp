@@ -5,6 +5,8 @@
 #include "src/shapes/Triangle.h"
 #include "src/shapes/Sphere.h"
 
+#include "src/shapes/Plane.h"
+
 #include "Image.h"
 
 #include <iostream>
@@ -153,9 +155,17 @@ int main()
 	std::shared_ptr<Image> tempImage = std::make_shared<Image>(imageWidth, imageHeight, Dash::DASH_FORMAT::R32G32B32_FLOAT);
 	tempImage->ClearImage(DMath::Vector3f{0.5f, 0.5f, 0.5f});
 
-	DMath::Transform trans{ DMath::Vector3f{1.0f, 1.0f, 1.0f},  DMath::Quaternion{DMath::Identity{}},  DMath::Vector3f{0.0f, 0.0f, 5.0f} };
-	std::shared_ptr<Dash::Sphere> sphere = std::make_shared<Dash::Sphere>(trans, trans, 1.0f);
+	//DMath::Transform trans{ DMath::Vector3f{1.0f, 1.0f, 1.0f},  DMath::Quaternion{DMath::Identity{}},  DMath::Vector3f{0.0f, 0.0f, 5.0f} };
+	//std::shared_ptr<Dash::Sphere> sphere = std::make_shared<Dash::Sphere>(trans, trans, 1.0f);
 
+	int planeSize = 10;
+
+	DMath::Transform trans{ DMath::Vector3f{1.0f, 1.0f, 1.0f},  DMath::Quaternion{DMath::Identity{}},  DMath::Vector3f{0.0f, -2.0f, 0.0f} };
+	std::shared_ptr<Dash::Plane> plane = std::make_shared<Dash::Plane>(trans, DMath::Inverse(trans), DMath::Vector3f{ 0, 1, 0 }, DMath::Vector3f{ -planeSize, 0, planeSize },
+		DMath::Vector3f{ planeSize, 0, planeSize }, DMath::Vector3f{ -planeSize, 0, -planeSize });
+
+
+	//ÉÏÏÂµßµ¹£¿£¿£¿
 	for (std::size_t i = 0; i < imageHeight; i++)
 	{
 		for (std::size_t j = 0; j < imageWidth; j++)
@@ -165,7 +175,7 @@ int main()
 
 			DMath::Ray r{camPos, DMath::Normalize(leftBottomCorner + u * horizon + v * vertical - camPos)};
 
-			tempImage->SetPixel(GetRayColor(r, sphere), j, i);
+			tempImage->SetPixel(GetRayColor(r, plane), j, i);
 		}
 	}
 

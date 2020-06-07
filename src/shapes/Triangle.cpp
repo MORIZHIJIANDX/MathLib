@@ -93,7 +93,7 @@ namespace Dash
 
 
 		triangleMesh->Vertices.reserve((std::size_t)(triangleMesh->VertexStride) * 3);
-		triangleMesh->Indices.reserve((std::size_t)(GetDashFormatSize(triangleMesh->IndexType)) * 3);
+		triangleMesh->Indices.reserve(GetDashFormatSize(triangleMesh->IndexType) * 3);
 
 		std::memcpy(triangleMesh->Vertices.data(), mMesh->Vertices.data() + mMesh->VertexStride * 3 * mFaceIndex, mMesh->VertexStride * 3);
 

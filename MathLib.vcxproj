@@ -82,6 +82,8 @@
   <ItemGroup>
     <ClInclude Include="Image.h" />
     <ClInclude Include="src\consolid\consolid.h" />
+    <ClInclude Include="src\graphic\Camera.h" />
+    <ClInclude Include="src\graphic\Viewport.h" />
     <ClInclude Include="src\math\AABB2.h" />
     <ClInclude Include="src\math\Algebra.h" />
     <ClInclude Include="src\math\BitMask.h" />
@@ -114,6 +116,7 @@
   <ItemGroup>
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\graphic\Camera.cpp" />
     <ClCompile Include="src\shapes\Plane.cpp" />
     <ClCompile Include="src\shapes\Shape.cpp" />
     <ClCompile Include="src\shapes\Sphere.cpp" />

@@ -174,7 +174,14 @@ namespace Dash
 		template <typename Scalar>
 		void DecomposeAffineMatrix4x4(ScalarArray<Scalar, 3>& scale, ScalarQuaternion<Scalar>& rotation, ScalarArray<Scalar, 3>& translation, const ScalarMatrix<Scalar, 4, 4>& a) noexcept;
 
+		template <typename Scalar>
+		ScalarMatrix<Scalar, 4, 4> Frustum(Scalar left, Scalar right, Scalar bottom, Scalar top, Scalar zNear, Scalar zFar) noexcept;
 
+		template <typename Scalar>
+		ScalarMatrix<Scalar, 4, 4> Frustum(Scalar fov, Scalar aspect, Scalar zNear, Scalar zFar) noexcept;
+
+		template <typename Scalar>
+		ScalarMatrix<Scalar, 4, 4> Orthographic(Scalar left, Scalar right, Scalar bottom, Scalar top, Scalar zNear, Scalar zFar) noexcept;
 
 
 		//Member Function 
@@ -833,6 +840,42 @@ namespace Dash
 				a[1][0] * inverseScale.y, a[1][1] * inverseScale.y, a[1][2] * inverseScale.y,
 				a[2][0] * inverseScale.z, a[2][1] * inverseScale.z, a[2][2] * inverseScale.z,
 			});
+		}
+
+		template<typename Scalar>
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4> Frustum(Scalar left, Scalar right, Scalar bottom, Scalar top, Scalar zNear, Scalar zFar) noexcept
+		{
+			Scalar oneOverWidth = Scalar{ 1 } / (right - left);
+			Scalar oneOverHeight = Scalar{ 1 } / (top - bottom);
+			Scalar oneOverDepth = Scalar{ 1 } / (zFar - zNear);
+			return ScalarMatrix<Scalar, 4, 4>{ScalarArray<Scalar, 4>{zNear* Scalar{ 2 } *oneOverWidth, Scalar{}, -(right + left) * oneOverWidth},
+				ScalarArray<Scalar, 4>{Scalar{}, zNear* Scalar{ 2 } *oneOverHeight, -(top + bottom) * oneOverHeight},
+				ScalarArray<Scalar, 4>{Scalar{}, Scalar{}, zFar* oneOverDepth, -zNear * zFar * oneOverDepth},
+				ScalarArray<Scalar, 4>{Scalar{}, Scalar{}, Scalar{ 1 } }};
+		}
+
+		template<typename Scalar>
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4> Frustum(Scalar fov, Scalar aspect, Scalar zNear, Scalar zFar) noexcept
+		{
+			Scalar oneOverDepth = Scalar{ 1 } / (zFar - zNear);
+			Scalar cotHalfFov = Scalar{ 1 } / Tan(Radians(fov) * Scalar { 0.5 });
+			return ScalarMatrix<Scalar, 4, 4>{ ScalarArray<Scalar, 4>{ Scalar{ 1 } / aspect * cotHalfFov, Scalar{}, Scalar{}, Scalar{} },
+				ScalarArray<Scalar, 4>{ Scalar{}, cotHalfFov, Scalar{}, Scalar{} },
+				ScalarArray<Scalar, 4>{ Scalar{}, Scalar{}, zFar* oneOverDepth, -zFar * zNear * oneOverDepth },
+				ScalarArray<Scalar, 4>{ Scalar{}, Scalar{}, Scalar{ 1 }, Scalar{} }};
+		}
+
+		template<typename Scalar>
+		FORCEINLINE ScalarMatrix<Scalar, 4, 4> Orthographic(Scalar left, Scalar right, Scalar bottom, Scalar top, Scalar zNear, Scalar zFar) noexcept
+		{
+			Scalar oneOverWidth = Scalar{ 1 } / right - left;
+			Scalar oneOverHeight = Scalar{ 1 } / top - bottom;
+			Scalar oneOverDepth = Scalar{ 1 } / zFar - zNear;
+
+			return ScalarMatrix<Scalar, 4, 4>{ ScalarArray<Scalar, 4>{ 2 * oneOverWidth, Scalar{}, Scalar{}, -(left + right) * oneOverWidth },
+				ScalarArray<Scalar, 4>{ Scalar{}, 2 * oneOverHeight, Scalar{}, -(bottom + top) * oneOverHeight },
+				ScalarArray<Scalar, 4>{ Scalar{}, Scalar{}, oneOverDepth, -zNear * oneOverDepth },
+				ScalarArray<Scalar, 4>{ Scalar{}, Scalar{}, Scalar{}, Scalar{ 1 } }};
 		}
 
 

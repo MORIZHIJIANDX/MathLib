@@ -35,7 +35,11 @@ namespace Dash
 			void SetPosition(const Vector3f& pos) noexcept;
 
 			Vector3f GetEuler() const noexcept;
+			void SetEuler(Scalar pitch, Scalar yaw, Scalar roll) noexcept;
 			void SetEuler(const Vector3f& euler) noexcept;
+
+			void SetLookAt(const Vector3f& eye, const Vector3f& lookAt, const Vector3f& up) noexcept;
+			void SetLookTo(const Vector3f& eye, const Vector3f& lookTo, const Vector3f& up) noexcept;
 
 			Vector3f GetForwardAxis() const noexcept;
 			Vector3f GetUnitForwardAxis() const noexcept;
@@ -201,6 +205,8 @@ namespace Dash
 			mMat = t.mMat;
 			mInverseMat = t.mInverseMat;
 			mDirty = false;
+
+			return *this;
 		}
 
 		FORCEINLINE Transform& Transform::operator*=(const Transform& t) noexcept
@@ -210,6 +216,8 @@ namespace Dash
 			mDirty = false;
 
 			DecomposeAffineMatrix4x4(mScale, mRotation, mPosition, mMat);
+			
+			return *this;
 		}
 
 		FORCEINLINE Transform Transform::operator*(const Transform& t) noexcept
@@ -274,11 +282,41 @@ namespace Dash
 			return euler;
 		}
 
+		FORCEINLINE void Transform::SetEuler(Scalar pitch, Scalar yaw, Scalar roll) noexcept
+		{
+			mRotation = FromEuler(pitch, yaw, roll);
+
+			MakeDirty();
+		}
+
 		FORCEINLINE void Transform::SetEuler(const Vector3f& euler) noexcept
 		{
 			mRotation = FromEuler(euler);
 
 			MakeDirty();
+		}
+
+		FORCEINLINE void Transform::SetLookAt(const Vector3f& eye, const Vector3f& lookAt, const Vector3f& up) noexcept
+		{
+			SetLookTo(eye, lookAt - eye, up);
+		}
+
+		FORCEINLINE void Transform::SetLookTo(const Vector3f& eye, const Vector3f& lookTo, const Vector3f& up) noexcept
+		{
+			Math::Vector3<Scalar> look = Math::Normalize(lookTo);
+			Math::Vector3<Scalar> right = Math::Normalize(Math::Cross(up, look));
+			Math::Vector3<Scalar> newUp = Math::Cross(look, right);
+
+			mMat.SetRow(0, right);
+			mMat.SetRow(1, newUp);
+			mMat.SetRow(2, look);
+			mMat.SetRow(3, eye);
+
+			mInverseMat = Inverse(mMat);
+
+			DecomposeAffineMatrix4x4(mScale, mRotation, mPosition, mMat);
+
+			mDirty = false;
 		}
 
 		FORCEINLINE Vector3f Transform::GetForwardAxis() const noexcept

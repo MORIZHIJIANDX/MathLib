@@ -378,7 +378,7 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE ScalarQuaternion<Scalar> FromEuler(Scalar yaw, Scalar pitch, Scalar roll) noexcept
+		FORCEINLINE ScalarQuaternion<Scalar> FromEuler(Scalar pitch, Scalar yaw, Scalar roll) noexcept
 		{
 			ScalarArray<Scalar, 4> angles{ pitch, yaw, roll, Scalar(0) };
 			angles *= Scalar(0.5);
@@ -409,7 +409,7 @@ namespace Dash
 		}
 
 		template<typename Scalar>
-		FORCEINLINE void ToEuler(Scalar& yaw, Scalar& pitch, Scalar& roll, const ScalarQuaternion<Scalar>& q) noexcept
+		FORCEINLINE void ToEuler(Scalar& pitch, Scalar& yaw, Scalar& roll, const ScalarQuaternion<Scalar>& q) noexcept
 		{
 			yaw = Atan2(Scalar{ 2 } *(q.w * q.y + q.z * q.x), Scalar{ 1 } -Scalar{ 2 } *(q.x * q.x + q.y * q.y));
 			pitch = ASin(Scalar{ 2 } *(q.w * q.x - q.y * q.z));
