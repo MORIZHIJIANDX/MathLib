@@ -36,7 +36,7 @@ namespace Dash
 
 		if (Math::RayPlaneIntersection(objectRay, mNormal, mTopLeft, tp))
 		{
-			if (tp > r.TMax)
+			if (tp > r.TMax || tp < r.TMin)
 				return false;
 
 			Math::Vector3f point = objectRay(tp);

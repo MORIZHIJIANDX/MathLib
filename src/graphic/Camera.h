@@ -27,6 +27,9 @@ namespace Dash
 
 		Viewport GetViewPort() const;
 
+		std::size_t GetPixelWidth() const;
+		std::size_t GetPixelHeight() const;
+
 		void SetWorldMatrix(const Math::Matrix4x4& mat);
 		void SetProjectionMatrix(const Math::Matrix4x4& mat);
 

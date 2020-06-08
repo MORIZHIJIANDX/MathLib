@@ -23,11 +23,11 @@ namespace Dash
 		Math::Vector3f sphereCenter = GetCenter();
 		if (Math::RaySphereIntersection(r, sphereCenter, mRadius, t0, t1))
 		{
-			if (t1 < t0)
-				Math::Swap(t0, t1);
-
-			if (t0 > r.TMax)
+			if (t0 > r.TMax || t1 < r.TMin)
 				return false;
+
+			if (t0 < r.TMin)
+				t0 = r.TMax;
 
 			if (t != nullptr)
 				*t = t0;

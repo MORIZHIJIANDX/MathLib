@@ -51,10 +51,6 @@ namespace Dash
 			return true;
 		}
 
-		FORCEINLINE Scalar ErrorGamma(int n) {
-			return (n * ScalarTraits<Scalar>::Epsilon()) / (1 - n * ScalarTraits<Scalar>::Epsilon());
-		}
-
 		FORCEINLINE bool RayBoundingBoxIntersection(const Ray& r, const BoundingBox& b, Scalar& t0, Scalar& t1) noexcept
 		{
 			Scalar tMin = 0, tMax = r.TMax;
@@ -66,8 +62,6 @@ namespace Dash
 
 				if (tNear > tFar)
 					Swap(tNear, tFar);
-
-				tFar *= 1 + 2 * ErrorGamma(3);
 
 				tMin = tNear > tMin ? tNear : tMin;
 				tMax = tFar < tMax ? tFar : tMax;
@@ -98,6 +92,9 @@ namespace Dash
 
 				t0 = q / a;
 				t1 = c / q;
+
+				if (t1 < t0)
+					Math::Swap(t0, t1);
 			}
 			else
 			{
@@ -117,6 +114,9 @@ namespace Dash
 
 					t0 = q;
 					t1 = (deltapdot - radius * radius) / q;
+
+					if (t1 < t0)
+						Math::Swap(t0, t1);
 				}
 				else
 				{
@@ -131,7 +131,7 @@ namespace Dash
 		{
 			Scalar denominator = Dot(normal, r.Direction);
 
-			if (denominator <= ScalarTraits<Scalar>::Epsilon())
+			if (Abs(denominator) <= ScalarTraits<Scalar>::Epsilon())
 				return false;
 
 			Scalar numerator = Dot((p - r.Origin), normal);

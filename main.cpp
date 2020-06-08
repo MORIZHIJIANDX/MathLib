@@ -7,6 +7,8 @@
 
 #include "src/shapes/Plane.h"
 
+#include "src/graphic/Camera.h"
+
 #include "Image.h"
 
 #include <iostream>
@@ -141,22 +143,17 @@ int main()
 	const std::size_t imageWidth = 512;
 	const std::size_t imageHeight = static_cast<std::size_t>(imageWidth / aspectRatio);
 
-	const DMath::Scalar viewPortWidth = 2;
-	const DMath::Scalar viewPortHeight = viewPortWidth / aspectRatio;
+	Dash::Viewport vp{0.0f, 0.0f, imageWidth, imageHeight, 0.0f, 1.0f};
 
-	const DMath::Scalar focalLength = 1.0f;
+	Dash::PerspectiveCamera camera{ 90.0f, aspectRatio, 1.0f, 1000.0f, vp };
 
-	const DMath::Vector3f camPos = DMath::Vector3f{ DMath::Zero{} };
-	const DMath::Vector3f horizon = DMath::Vector3f{ viewPortWidth, 0.0f, 0.0f };
-	const DMath::Vector3f vertical = DMath::Vector3f{ 0.0f, viewPortHeight, 0.0f };
-
-	const DMath::Vector3f leftBottomCorner = camPos + DMath::Vector3f{ 0.0f, 0.0f, focalLength } - horizon * 0.5f - vertical * 0.5f;
+	camera.SetLookAt(DMath::Vector3f{0.0f, 0.0f, 0.0f}, DMath::Vector3f{ 0.0f, 0.0f, 1.0f }, DMath::Vector3f{ 0.0f, 1.0f, 0.0f });
 
 	std::shared_ptr<Image> tempImage = std::make_shared<Image>(imageWidth, imageHeight, Dash::DASH_FORMAT::R32G32B32_FLOAT);
 	tempImage->ClearImage(DMath::Vector3f{0.5f, 0.5f, 0.5f});
 
 	//DMath::Transform trans{ DMath::Vector3f{1.0f, 1.0f, 1.0f},  DMath::Quaternion{DMath::Identity{}},  DMath::Vector3f{0.0f, 0.0f, 5.0f} };
-	//std::shared_ptr<Dash::Sphere> sphere = std::make_shared<Dash::Sphere>(trans, trans, 1.0f);
+	//std::shared_ptr<Dash::Sphere> sphere = std::make_shared<Dash::Sphere>(trans, DMath::Inverse(trans), 1.0f);
 
 	int planeSize = 10;
 
@@ -164,8 +161,6 @@ int main()
 	std::shared_ptr<Dash::Plane> plane = std::make_shared<Dash::Plane>(trans, DMath::Inverse(trans), DMath::Vector3f{ 0, 1, 0 }, DMath::Vector3f{ -planeSize, 0, planeSize },
 		DMath::Vector3f{ planeSize, 0, planeSize }, DMath::Vector3f{ -planeSize, 0, -planeSize });
 
-
-	//ÉÏÏÂµßµ¹£¿£¿£¿
 	for (std::size_t i = 0; i < imageHeight; i++)
 	{
 		for (std::size_t j = 0; j < imageWidth; j++)
@@ -173,7 +168,7 @@ int main()
 			DMath::Scalar u = j / (DMath::Scalar)(imageWidth - 1);
 			DMath::Scalar v = i / (DMath::Scalar)(imageHeight - 1);
 
-			DMath::Ray r{camPos, DMath::Normalize(leftBottomCorner + u * horizon + v * vertical - camPos)};
+			DMath::Ray r = camera.GenerateRay(u, v);
 
 			tempImage->SetPixel(GetRayColor(r, plane), j, i);
 		}

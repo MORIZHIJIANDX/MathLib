@@ -528,7 +528,7 @@ namespace Dash
 
 		FORCEINLINE Ray Transform::TransformRay(const Ray& r) const noexcept
 		{
-			return Ray{ TransformPoint(r.Origin), Normalize(TransformVector(r.Direction)), r.TMax, r.Time };
+			return Ray{ TransformPoint(r.Origin), Normalize(TransformVector(r.Direction)), r.TMin, r.TMax};
 		}
 
 		FORCEINLINE void Transform::UpdateMatrix() const

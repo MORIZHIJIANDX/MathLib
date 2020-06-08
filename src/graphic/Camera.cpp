@@ -304,7 +304,7 @@ namespace Dash
 
 		const Math::Vector3f topRightCorner = camPos + forward * mNear - horizon * 0.5f + vertical * 0.5f;
 
-		return Math::Ray{ camPos, Math::Normalize(topRightCorner + u * horizon + v * vertical - camPos) };
+		return Math::Ray{ camPos, Math::Normalize(topRightCorner + u * horizon - v * vertical - camPos), 0.0f, 1000.0f };
 	}
 
 	void PerspectiveCamera::CreateProjectionMatrix() const

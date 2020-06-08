@@ -11,7 +11,7 @@ namespace Dash
 		{
 		public:
 			ScalarRay() noexcept;
-			ScalarRay(const ScalarArray<Scalar, 3>& origin, const ScalarArray<Scalar, 3>& dir, Scalar tmax = ScalarTraits<Scalar>::Infinity(), Scalar time = Scalar{}) noexcept;
+			ScalarRay(const ScalarArray<Scalar, 3>& origin, const ScalarArray<Scalar, 3>& dir, Scalar tmin = ScalarTraits<Scalar>::Epsilon(), Scalar tmax = ScalarTraits<Scalar>::Infinity()) noexcept;
 			
 			ScalarRay(const ScalarRay& r) noexcept;
 
@@ -22,24 +22,24 @@ namespace Dash
 			ScalarArray<Scalar, 3> Origin;
 			Scalar TMax;
 			ScalarArray<Scalar, 3> Direction;
-			Scalar Time;
+			Scalar TMin;
 		};
 
 		template<typename Scalar>
 		FORCEINLINE ScalarRay<Scalar>::ScalarRay() noexcept
 			: Origin(ScalarArray<Scalar, 3>{ Zero{} })
 			, Direction(ScalarArray<Scalar, 3>{ Unit<2>{} })
+			, TMin(ScalarTraits<Scalar>::Epsilon())
 			, TMax(ScalarTraits<Scalar>::Infinity())
-			, Time(Scalar{})
 		{
 		}
 
 		template<typename Scalar>
-		FORCEINLINE ScalarRay<Scalar>::ScalarRay(const ScalarArray<Scalar, 3>& origin, const ScalarArray<Scalar, 3>& dir, Scalar tmax, Scalar time) noexcept
+		FORCEINLINE ScalarRay<Scalar>::ScalarRay(const ScalarArray<Scalar, 3>& origin, const ScalarArray<Scalar, 3>& dir, Scalar tmin, Scalar tmax) noexcept
 			: Origin(origin)
 			, Direction(dir)
+			, TMin(tmin)
 			, TMax(tmax)
-			, Time(time)
 		{
 		}
 
@@ -47,8 +47,8 @@ namespace Dash
 		FORCEINLINE ScalarRay<Scalar>::ScalarRay(const ScalarRay& r) noexcept
 			: Origin(r.Origin)
 			, Direction(r.Direction)
+			, TMin(r.TMin)
 			, TMax(r.TMax)
-			, Time(r.Time)
 		{		
 		}
 
@@ -57,8 +57,8 @@ namespace Dash
 		{
 			Origin = r.Origin;
 			Direction = r.Direction;
+			TMin = r.TMin;
 			TMax = r.TMax;
-			Time = r.Time;
 
 			return *this;
 		}

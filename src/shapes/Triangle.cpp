@@ -26,7 +26,7 @@ namespace Dash
 		Math::Scalar u, v, tp;
 		if (RayTriangleIntersection(r, p0, p1, p2, u, v, tp))
 		{
-			if (tp > r.TMax)
+			if (tp > r.TMax || tp < r.TMin)
 				return false;
 
 			if (t != nullptr)
