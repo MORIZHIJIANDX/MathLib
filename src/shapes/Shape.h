@@ -11,10 +11,10 @@ namespace Dash
 {
 	struct HitInfo
 	{
-		Math::Vector3f Position;
-		Math::Vector3f Normal;
-		Math::Vector3f Tangent;
-		Math::Vector2f TexCoord;
+		Vector3f Position;
+		Vector3f Normal;
+		Vector3f Tangent;
+		Vector2f TexCoord;
 	};
 
 	struct InputLayoutElement
@@ -52,22 +52,22 @@ namespace Dash
 
 	struct TriangleMesh
 	{	
-		void GetVertexPosition(Math::Vector3f& p, std::size_t vertexIndex)
+		void GetVertexPosition(Vector3f& p, std::size_t vertexIndex)
 		{
 			GetVertexProperty("POSITION", vertexIndex, p);
 		}
 
-		void GetVertexNormal(Math::Vector3f& p, std::size_t vertexIndex)
+		void GetVertexNormal(Vector3f& p, std::size_t vertexIndex)
 		{
 			GetVertexProperty("NORMAL", vertexIndex, p);
 		}
 
-		void GetVertexTangent(Math::Vector3f& p, std::size_t vertexIndex)
+		void GetVertexTangent(Vector3f& p, std::size_t vertexIndex)
 		{
 			GetVertexProperty("TANGENT", vertexIndex, p);
 		}
 
-		void GetVertexTexCoord(Math::Vector2f& p, std::size_t vertexIndex)
+		void GetVertexTexCoord(Vector2f& p, std::size_t vertexIndex)
 		{
 			GetVertexProperty("TEXCOORD", vertexIndex, p);
 		}
@@ -101,21 +101,21 @@ namespace Dash
 	class Shape
 	{
 	public:
-		Shape(const Math::Transform& objectToWorld, const Math::Transform& worldToObject) noexcept;
+		Shape(const Transform& objectToWorld, const Transform& worldToObject) noexcept;
 		~Shape() = default;
 
-		virtual bool Intersection(const Math::Ray& r, Math::Scalar* t, HitInfo* hitInfo) const noexcept = 0;
-		virtual bool IntersectionFast(const Math::Ray& r) const noexcept
+		virtual bool Intersection(const Ray& r, Scalar* t, HitInfo* hitInfo) const noexcept = 0;
+		virtual bool IntersectionFast(const Ray& r) const noexcept
 		{
 			return Intersection(r, nullptr, nullptr);
 		}
 
-		virtual Math::BoundingBox ObjectBound() const noexcept = 0;
-		virtual Math::BoundingBox WorldBound() const noexcept;
+		virtual BoundingBox ObjectBound() const noexcept = 0;
+		virtual BoundingBox WorldBound() const noexcept;
 
 		virtual std::shared_ptr<TriangleMesh> ConvertToTriangleMesh() const noexcept  = 0;
 	
-		const Math::Transform& ObjectToWorld;
-		const Math::Transform& WorldToObject;
+		const Transform& ObjectToWorld;
+		const Transform& WorldToObject;
 	};
 }

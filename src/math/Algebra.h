@@ -10,48 +10,79 @@
 
 
 namespace Dash {
-	namespace Math {
+	
 
-		struct Zero
-		{
-			template<typename Scalar> explicit operator Scalar() const noexcept;
-		};
+	struct Zero
+	{
+		template<typename Scalar> explicit operator Scalar() const noexcept;
+	};
 
-		struct Identity
-		{
-			template<typename Scalar> explicit operator Scalar() const noexcept;
-		};
+	struct Identity
+	{
+		template<typename Scalar> explicit operator Scalar() const noexcept;
+	};
 
-		template<std::size_t>
-		struct Unit
-		{
-		};
-
-		Zero operator-(Zero);
-		Zero operator+(Zero, Zero);
-		Identity operator+(Zero, Identity);
-		Identity operator+(Identity, Zero);
-
-		template<typename Element> const Element& operator+(Zero, const Element& e);
-		template<typename Element> const Element& operator+(const Element& e, Zero);
+	template<std::size_t>
+	struct Unit
+	{
+	};
 
 
-		Zero operator-(Zero, Zero);
-		Zero operator-(Identity, Identity);
-		Identity operator-(Identity, Zero);
-
-		template<typename Element>       Element  operator-(Zero, const Element& e);
-		template<typename Element> const Element& operator-(const Element& e, Zero);
 
 
-		Zero operator*(Zero, Zero);
-		Zero operator*(Zero, Identity);
-		Zero operator*(Identity, Zero);
+	// Non-member Operators 
 
-		template<typename Element> Zero operator*(Zero, const Element& e);
-		template<typename Element> Zero operator*(const Element& e, Zero);
+	// --Declaration-- //
+
+	Zero operator-(Zero);
+	Zero operator+(Zero, Zero);
+	Identity operator+(Zero, Identity);
+	Identity operator+(Identity, Zero);
+
+	template<typename Element> const Element& operator+(Zero, const Element& e);
+	template<typename Element> const Element& operator+(const Element& e, Zero);
 
 
+	Zero operator-(Zero, Zero);
+	Zero operator-(Identity, Identity);
+	Identity operator-(Identity, Zero);
+
+	template<typename Element>       Element  operator-(Zero, const Element& e);
+	template<typename Element> const Element& operator-(const Element& e, Zero);
+
+
+	Zero operator*(Zero, Zero);
+	Zero operator*(Zero, Identity);
+	Zero operator*(Identity, Zero);
+
+	template<typename Element> Zero operator*(Zero, const Element& e);
+	template<typename Element> Zero operator*(const Element& e, Zero);
+
+#ifdef USE_OSTREAM
+
+	template<typename CharT, typename Traits>
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Zero);
+
+	template<typename CharT, typename Traits>
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Identity);
+
+	template<typename CharT, typename Traits, std::size_t I>
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Unit<I>);
+
+#endif // USE_OSTREAM
+
+
+
+
+
+
+
+	// Non-member Function
+
+	// --Declaration-- //
+
+	namespace Math
+	{
 		Identity Inverse(Identity);
 
 		Zero Mul(Zero, Zero);
@@ -83,122 +114,159 @@ namespace Dash {
 
 		template<typename Vector, std::size_t I> typename Vector::ScalarType Dot(const Vector& v, Unit<I>);
 		template<typename Vector, std::size_t I> typename Vector::ScalarType Dot(Unit<I>, const Vector& v);
+	}
+
+
+
+
+
+
+
+	// Member Function
+
+	// --Implementation-- //
+
+	template<typename Scalar>
+	FORCEINLINE Zero::operator Scalar() const noexcept
+	{
+		return Scalar{};
+	}
+
+	template<typename Scalar>
+	FORCEINLINE Identity::operator Scalar() const noexcept
+	{
+		return Scalar{ 1 };
+	}
+
+
+
+
+
+	// Non-member Operators
+
+	// --Implementation-- //
+
+	FORCEINLINE Zero operator-(Zero)
+	{
+		return Zero{};
+	}
+
+	FORCEINLINE Zero operator+(Zero, Zero)
+	{
+		return Zero{};
+	}
+
+	FORCEINLINE Identity operator+(Zero, Identity)
+	{
+		return Identity{};
+	}
+
+	FORCEINLINE Identity operator+(Identity, Zero)
+	{
+		return Identity{};
+	}
+
+	template<typename Element>
+	FORCEINLINE const Element& operator+(Zero, const Element& e)
+	{
+		return e;
+	}
+
+	template<typename Element>
+	FORCEINLINE const Element& operator+(const Element& e, Zero)
+	{
+		return e;
+	}
+
+	FORCEINLINE Zero operator-(Zero, Zero)
+	{
+		return Zero{};
+	}
+
+	FORCEINLINE Zero operator-(Identity, Identity)
+	{
+		return Zero{};
+	}
+
+	FORCEINLINE Identity operator-(Identity, Zero)
+	{
+		return Identity{};
+	}
+
+	template<typename Element>
+	FORCEINLINE Element operator-(Zero, const Element& e)
+	{
+		return -e;
+	}
+
+	template<typename Element>
+	FORCEINLINE const Element& operator-(const Element& e, Zero)
+	{
+		return e;
+	}
+
+	FORCEINLINE Zero operator*(Zero, Zero)
+	{
+		return Zero{};
+	}
+
+	FORCEINLINE Zero operator*(Zero, Identity)
+	{
+		return Zero{};
+	}
+
+	FORCEINLINE Zero operator*(Identity, Zero)
+	{
+		return Zero{};
+	}
+
+	template<typename Element>
+	FORCEINLINE Zero operator*(Zero, const Element& e)
+	{
+		return Zero{};
+	}
+
+	template<typename Element>
+	FORCEINLINE Zero operator*(const Element& e, Zero)
+	{
+		return Zero{};
+	}
 
 #ifdef USE_OSTREAM
 
-		template<typename CharT, typename Traits>
-		std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Zero);
+	template<typename CharT, typename Traits>
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Zero)
+	{
+		return os << "Zero";
+	}
 
-		template<typename CharT, typename Traits>
-		std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Identity);
+	template<typename CharT, typename Traits>
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Identity)
+	{
+		return os << "Identity";
+	}
 
-		template<typename CharT, typename Traits, std::size_t I>
-		std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Unit<I>);
+	template<typename CharT, typename Traits, std::size_t I>
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Unit<I>)
+	{
+		return os << "Unit" << I;
+	}
 
 #endif // USE_OSTREAM
 
 
-		//Member Function
-		template<typename Scalar>
-		FORCEINLINE Zero::operator Scalar() const noexcept
-		{
-			return Scalar{};
-		}
-
-		template<typename Scalar>
-		FORCEINLINE Identity::operator Scalar() const noexcept
-		{
-			return Scalar{ 1 };
-		}
 
 
-		//Nomember Function
-		FORCEINLINE Zero operator-(Zero)
-		{
-			return Zero{};
-		}
 
-		FORCEINLINE Zero operator+(Zero, Zero)
-		{
-			return Zero{};
-		}
 
-		FORCEINLINE Identity operator+(Zero, Identity)
-		{
-			return Identity{};
-		}
 
-		FORCEINLINE Identity operator+(Identity, Zero)
-		{
-			return Identity{};
-		}
 
-		template<typename Element>
-		FORCEINLINE const Element& operator+(Zero, const Element& e)
-		{
-			return e;
-		}
+	// Nomember Function
 
-		template<typename Element>
-		FORCEINLINE const Element& operator+(const Element& e, Zero)
-		{
-			return e;
-		}
+	// --Implementation-- //
 
-		FORCEINLINE Zero operator-(Zero, Zero)
-		{
-			return Zero{};
-		}
-
-		FORCEINLINE Zero operator-(Identity, Identity)
-		{
-			return Zero{};
-		}
-
-		FORCEINLINE Identity operator-(Identity, Zero)
-		{
-			return Identity{};
-		}
-
-		template<typename Element>
-		FORCEINLINE Element operator-(Zero, const Element& e)
-		{
-			return -e;
-		}
-
-		template<typename Element>
-		FORCEINLINE const Element& operator-(const Element& e, Zero)
-		{
-			return e;
-		}
-
-		FORCEINLINE Zero operator*(Zero, Zero)
-		{
-			return Zero{};
-		}
-
-		FORCEINLINE Zero operator*(Zero, Identity)
-		{
-			return Zero{};
-		}
-
-		FORCEINLINE Zero operator*(Identity, Zero)
-		{
-			return Zero{};
-		}
-
-		template<typename Element>
-		FORCEINLINE Zero operator*(Zero, const Element& e)
-		{
-			return Zero{};
-		}
-
-		template<typename Element>
-		FORCEINLINE Zero operator*(const Element& e, Zero)
-		{
-			return Zero{};
-		}
-
+	namespace Math
+	{
 		FORCEINLINE Identity Inverse(Identity)
 		{
 			return Identity{};
@@ -299,28 +367,5 @@ namespace Dash {
 
 			return v[I];
 		}
-
-#ifdef USE_OSTREAM
-
-		template<typename CharT, typename Traits>
-		std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Zero)
-		{
-			return os << "Zero";
-		}
-
-		template<typename CharT, typename Traits>
-		std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Identity)
-		{
-			return os << "Identity";
-		}
-
-		template<typename CharT, typename Traits, std::size_t I>
-		std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Unit<I>)
-		{
-			return os << "Unit" << I;
-		}
-
-#endif // USE_OSTREAM
-
 	}
 }

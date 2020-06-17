@@ -13,58 +13,80 @@
 
 namespace Dash
 {
-	namespace Math
+
+	template <typename Scalar>
+	class ScalarQuaternion
 	{
-		template <typename Scalar>
-		class ScalarQuaternion
+	public:
+		typedef Scalar ScalarType;
+
+		ScalarQuaternion() noexcept;
+		ScalarQuaternion(Identity) noexcept;
+		ScalarQuaternion(Scalar x, Scalar y, Scalar z, Scalar w) noexcept;
+
+		template <typename Scalar2> explicit ScalarQuaternion(const Scalar2* v) noexcept;
+		template <typename Scalar2> explicit ScalarQuaternion(const ScalarQuaternion<Scalar2>& a) noexcept;
+		template <typename Scalar2> explicit ScalarQuaternion(const ScalarArray<Scalar2, 4>& a) noexcept;
+		template <typename Scalar2> ScalarQuaternion(const ScalarArray<Scalar2, 3>& axis, Scalar2 angle) noexcept;
+		template <typename Scalar2> ScalarQuaternion(const ScalarArray<Scalar2, 3>& from, const ScalarArray<Scalar2, 3>& to) noexcept;
+
+		operator const Scalar* () const noexcept;
+		operator Scalar* () noexcept;
+
+		template <typename Scalar2> ScalarQuaternion<Scalar>& operator*=(const ScalarQuaternion<Scalar2>& other) noexcept;
+
+		template <typename Scalar2> ScalarArray<typename Promote<Scalar, Scalar2>::RT, 3> operator()(const ScalarArray<Scalar2, 3>& v) const noexcept;
+
+		union
 		{
-		public:
-			typedef Scalar ScalarType;
-
-			ScalarQuaternion() noexcept;
-			ScalarQuaternion(Identity) noexcept;
-			ScalarQuaternion(Scalar x, Scalar y, Scalar z, Scalar w) noexcept;
-
-			template <typename Scalar2> explicit ScalarQuaternion(const Scalar2* v) noexcept;
-			template <typename Scalar2> explicit ScalarQuaternion(const ScalarQuaternion<Scalar2>& a) noexcept;
-			template <typename Scalar2> explicit ScalarQuaternion(const ScalarArray<Scalar2, 4>& a) noexcept;
-			template <typename Scalar2> ScalarQuaternion(const ScalarArray<Scalar2, 3>& axis, Scalar2 angle) noexcept;
-			template <typename Scalar2> ScalarQuaternion(const ScalarArray<Scalar2, 3>& from, const ScalarArray<Scalar2, 3>& to) noexcept;
-
-			operator const Scalar* () const noexcept;
-			operator Scalar* () noexcept;
-
-			template <typename Scalar2> ScalarQuaternion<Scalar>& operator*=(const ScalarQuaternion<Scalar2>& other) noexcept;
-
-			template <typename Scalar2> ScalarArray<typename Promote<Scalar, Scalar2>::RT, 3> operator()(const ScalarArray<Scalar2, 3>& v) const noexcept;
-
-			union
-			{
-				struct { Scalar x, y, z, w; };
-				ScalarArray<Scalar, 3> xyz;
-			};
+			struct { Scalar x, y, z, w; };
+			ScalarArray<Scalar, 3> xyz;
 		};
+	};
+
+
+
+
+
+
+
+	// Non-member Operators 
+
+	// --Declaration-- //
+
 
 #ifdef USE_OSTREAM
 
-		template <typename CharT, typename Traits, typename Scalar>
-		std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const ScalarQuaternion<Scalar>& a);
+	template <typename CharT, typename Traits, typename Scalar>
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const ScalarQuaternion<Scalar>& a);
 
 #endif
 
 #ifdef USE_ISTREAM
 
-		template <typename CharT, typename Traits, typename Scalar>
-		std::basic_istream<CharT, Traits>& operator>>(std::basic_istream<CharT, Traits>& is, ScalarQuaternion<Scalar>& a);
+	template <typename CharT, typename Traits, typename Scalar>
+	std::basic_istream<CharT, Traits>& operator>>(std::basic_istream<CharT, Traits>& is, ScalarQuaternion<Scalar>& a);
 
 #endif
 
-		template <typename Scalar1, typename Scalar2> bool operator==(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept;
-		template <typename Scalar1, typename Scalar2> bool operator!=(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept;
+	template <typename Scalar1, typename Scalar2> bool operator==(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept;
+	template <typename Scalar1, typename Scalar2> bool operator!=(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept;
 
-		template <typename Scalar1, typename Scalar2>
-		ScalarQuaternion<typename Promote<Scalar1, Scalar2>::RT> operator*(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept;
+	template <typename Scalar1, typename Scalar2>
+	ScalarQuaternion<typename Promote<Scalar1, Scalar2>::RT> operator*(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept;
 
+
+
+
+
+
+
+	// Non-member Function
+
+	// --Declaration-- //
+
+	namespace Math
+	{
 		template <typename Scalar1, typename Scalar2>
 		typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept;
 
@@ -106,200 +128,230 @@ namespace Dash
 
 		template <typename Scalar> ScalarQuaternion<Scalar> Slerp(const ScalarQuaternion<Scalar>& a, const ScalarQuaternion<Scalar>& b, Scalar t) noexcept;
 
+		template <typename Scalar>
+		void DecomposeAffineMatrix4x4(ScalarArray<Scalar, 3>& scale, ScalarQuaternion<Scalar>& rotation, ScalarArray<Scalar, 3>& translation, const ScalarMatrix<Scalar, 4, 4>& a) noexcept;
+	}
 
 
-		//Member Function
 
-		template<typename Scalar>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion() noexcept
-			: x()
-			, y()
-			, z()
-			, w()
-		{}
 
-		template<typename Scalar>
-		FORCEINLINE
-			ScalarQuaternion<Scalar>::ScalarQuaternion(Identity) noexcept
-			: x()
-			, y()
-			, z()
-			, w(Scalar{ 1 })
-		{}
 
-		template<typename Scalar>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(Scalar x, Scalar y, Scalar z, Scalar w) noexcept
-			: x(x)
-			, y(y)
-			, z(z)
-			, w(w)
-		{}
 
-		template<typename Scalar>
-		template<typename Scalar2>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const Scalar2* v) noexcept
-			: x(Scalar{ v[0] })
-			, y(Scalar{ v[1] })
-			, z(Scalar{ v[2] })
-			, w(Scalar{ v[3] })
+
+	// Member Function
+
+	// --Implementation-- //
+
+	template<typename Scalar>
+	FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion() noexcept
+		: x()
+		, y()
+		, z()
+		, w()
+	{}
+
+	template<typename Scalar>
+	FORCEINLINE
+		ScalarQuaternion<Scalar>::ScalarQuaternion(Identity) noexcept
+		: x()
+		, y()
+		, z()
+		, w(Scalar{ 1 })
+	{}
+
+	template<typename Scalar>
+	FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(Scalar x, Scalar y, Scalar z, Scalar w) noexcept
+		: x(x)
+		, y(y)
+		, z(z)
+		, w(w)
+	{}
+
+	template<typename Scalar>
+	template<typename Scalar2>
+	FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const Scalar2* v) noexcept
+		: x(Scalar{ v[0] })
+		, y(Scalar{ v[1] })
+		, z(Scalar{ v[2] })
+		, w(Scalar{ v[3] })
+	{
+		ASSERT(v != nullptr);
+	}
+
+	template<typename Scalar>
+	template<typename Scalar2>
+	FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarQuaternion<Scalar2>& a) noexcept
+		: x(Scalar{ a.x })
+		, y(Scalar{ a.y })
+		, z(Scalar{ a.z })
+		, w(Scalar{ a.w })
+	{}
+
+	template<typename Scalar>
+	template<typename Scalar2>
+	FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarArray<Scalar2, 4>& a) noexcept
+		: x(Scalar{ a.x })
+		, y(Scalar{ a.y })
+		, z(Scalar{ a.z })
+		, w(Scalar{ a.w })
+	{
+	}
+
+	template<typename Scalar>
+	template<typename Scalar2>
+	FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarArray<Scalar2, 3>& axis, Scalar2 angle) noexcept
+	{
+		Scalar halfTheta = angle * Scalar(0.5);
+		ScalarArray<Scalar, 3> normalizedAxis = Math::Normalize(axis) * Math::Sin(halfTheta);
+		x = normalizedAxis.x;
+		y = normalizedAxis.y;
+		z = normalizedAxis.z;
+		w = Math::Cos(halfTheta);
+	}
+
+	template<typename Scalar>
+	template<typename Scalar2>
+	FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarArray<Scalar2, 3>& from, const ScalarArray<Scalar2, 3>& to) noexcept
+	{
+		const ScalarArray<Scalar, 3> normStart = Math::Normalize(from);
+		const ScalarArray<Scalar, 3> normEnd = Math::Normalize(to);
+		const Scalar d = Math::Dot(normStart, normEnd);
+
+		if (d > Scalar{ -1 } + ScalarTraits<Scalar>::Epsilon())
 		{
-			ASSERT(v != nullptr);
+			const ScalarArray<Scalar, 3> c = Math::Cross(normStart, normEnd);
+			const Scalar s = Math::Sqrt((Scalar{ 1 } +d) * Scalar { 2 });
+			const Scalar invS = 1.0f / s;
+
+			x = c.x * invS;
+			y = c.y * invS;
+			z = c.z * invS;
+			w = Scalar{ 0.5 } *s;
 		}
-
-		template<typename Scalar>
-		template<typename Scalar2>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarQuaternion<Scalar2>& a) noexcept
-			: x(Scalar{ a.x })
-			, y(Scalar{ a.y })
-			, z(Scalar{ a.z })
-			, w(Scalar{ a.w })
-		{}
-
-		template<typename Scalar>
-		template<typename Scalar2>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarArray<Scalar2, 4>& a) noexcept
-			: x(Scalar{ a.x })
-			, y(Scalar{ a.y })
-			, z(Scalar{ a.z })
-			, w(Scalar{ a.w })
+		else
 		{
-		}
+			ScalarArray<Scalar, 3> axis = Math::Cross(ScalarArray<Scalar, 3>{ Unit<0>{} }, normStart);
 
-		template<typename Scalar>
-		template<typename Scalar2>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarArray<Scalar2, 3>& axis, Scalar2 angle) noexcept
-		{
-			Scalar halfTheta = angle * Scalar(0.5);
-			ScalarArray<Scalar, 3> normalizedAxis = Normalize(axis) * Sin(halfTheta);
+			if (Math::Length(axis) < ScalarTraits<Scalar>::Epsilon())
+			{
+				axis = Math::Cross(ScalarArray<Scalar, 3>{ Unit<1>{} }, normStart);
+			}
+
+			Scalar halfTheta = Math::Radians(Scalar{ 180 }) * Scalar(0.5);
+			ScalarArray<Scalar, 3> normalizedAxis = Math::Normalize(axis) * Math::Sin(halfTheta);
 			x = normalizedAxis.x;
 			y = normalizedAxis.y;
 			z = normalizedAxis.z;
-			w = Cos(halfTheta);
+			w = Math::Cos(halfTheta);
 		}
+	}
 
-		template<typename Scalar>
-		template<typename Scalar2>
-		FORCEINLINE ScalarQuaternion<Scalar>::ScalarQuaternion(const ScalarArray<Scalar2, 3>& from, const ScalarArray<Scalar2, 3>& to) noexcept
-		{
-			const ScalarArray<Scalar, 3> normStart = Normalize(from);
-			const ScalarArray<Scalar, 3> normEnd = Normalize(to);
-			const Scalar d = Dot(normStart, normEnd);
+	template<typename Scalar>
+	FORCEINLINE ScalarQuaternion<Scalar>::operator const Scalar* () const noexcept
+	{
+		return &x;
+	}
 
-			if (d > Scalar{ -1 } + ScalarTraits<Scalar>::Epsilon())
-			{
-				const ScalarArray<Scalar, 3> c = Cross(normStart,normEnd);
-				const Scalar s = Sqrt((Scalar{ 1 } +d) * Scalar { 2 });
-				const Scalar invS = 1.0f / s;
+	template<typename Scalar>
+	FORCEINLINE ScalarQuaternion<Scalar>::operator Scalar* () noexcept
+	{
+		return &x;
+	}
 
-				x = c.x * invS;
-				y = c.y * invS;
-				z = c.z * invS;
-				w = Scalar{ 0.5 } *s;
-			}
-			else
-			{
-				ScalarArray<Scalar, 3> axis = Cross(ScalarArray<Scalar, 3>{ Unit<0>{} }, normStart);
+	template<typename Scalar>
+	template<typename Scalar2>
+	FORCEINLINE ScalarQuaternion<Scalar>& ScalarQuaternion<Scalar>::operator*=(const ScalarQuaternion<Scalar2>& other) noexcept
+	{
+		ScalarQuaternion<Scalar> temp;
+		temp.x = w * other.x + x * other.w + y * other.z - z * other.y;
+		temp.y = w * other.y - x * other.z + y * other.w + z * other.x;
+		temp.z = w * other.z + x * other.y - y * other.x + z * other.w;
+		temp.w = w * other.w - x * other.x - y * other.y - z * other.z;
+		*this = temp;
 
-				if (Length(axis) < ScalarTraits<Scalar>::Epsilon())
-				{
-					axis = Cross(ScalarArray<Scalar, 3>{ Unit<1>{} }, normStart);
-				}
+		return *this;
+	}
 
-				Scalar halfTheta = Math::Radians(Scalar{180}) * Scalar(0.5);
-				ScalarArray<Scalar, 3> normalizedAxis = Normalize(axis) * Sin(halfTheta);
-				x = normalizedAxis.x;
-				y = normalizedAxis.y;
-				z = normalizedAxis.z;
-				w = Cos(halfTheta);
-			}
-		}
+	template<typename Scalar>
+	template<typename Scalar2>
+	FORCEINLINE ScalarArray<typename Promote<Scalar, Scalar2>::RT, 3> ScalarQuaternion<Scalar>::operator()(const ScalarArray<Scalar2, 3>& v) const noexcept
+	{
+		using RT = typename Promote<Scalar, Scalar2>::RT;
 
-		template<typename Scalar>
-		FORCEINLINE ScalarQuaternion<Scalar>::operator const Scalar* () const noexcept
-		{
-			return &x;
-		}
+		ScalarArray<RT, 3> u{ x, y, z };
 
-		template<typename Scalar>
-		FORCEINLINE ScalarQuaternion<Scalar>::operator Scalar* () noexcept
-		{
-			return &x;
-		}
+		ScalarArray<RT, 3> c1 = Math::Cross(u, v);
+		ScalarArray<RT, 3> c2 = Math::Cross(u, c1);
 
-		template<typename Scalar>
-		template<typename Scalar2>
-		FORCEINLINE ScalarQuaternion<Scalar>& ScalarQuaternion<Scalar>::operator*=(const ScalarQuaternion<Scalar2>& other) noexcept
-		{
-			ScalarQuaternion<Scalar> temp;
-			temp.x = w * other.x + x * other.w + y * other.z - z * other.y;
-			temp.y = w * other.y - x * other.z + y * other.w + z * other.x;
-			temp.z = w * other.z + x * other.y - y * other.x + z * other.w;
-			temp.w = w * other.w - x * other.x - y * other.y - z * other.z;
-			*this = temp;
-
-			return *this;
-		}
-
-		template<typename Scalar>
-		template<typename Scalar2>
-		FORCEINLINE ScalarArray<typename Promote<Scalar, Scalar2>::RT, 3> ScalarQuaternion<Scalar>::operator()(const ScalarArray<Scalar2, 3>& v) const noexcept
-		{
-			using RT = typename Promote<Scalar, Scalar2>::RT;
-
-			ScalarArray<RT, 3> u{ x, y, z };
-
-			ScalarArray<RT, 3> c1 = Cross(u, v);
-			ScalarArray<RT, 3> c2 = Cross(u, c1);
-
-			return v + RT{ 2 } *(c1 * w + c2);
-		}
+		return v + RT{ 2 } *(c1 * w + c2);
+	}
 
 
 
 
-		//Nomember Function
+
+
+
+
+	// Non-member Operators 
+
+	// --Implementation-- //
 
 #ifdef USE_OSTREAM
 
-		template<typename CharT, typename Traits, typename Scalar>
-		FORCEINLINE std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const ScalarQuaternion<Scalar>& a)
-		{
-			return os << a.x << ' ' << a.y << ' ' << a.z << ' ' << a.w;
-		}
+	template<typename CharT, typename Traits, typename Scalar>
+	FORCEINLINE std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const ScalarQuaternion<Scalar>& a)
+	{
+		return os << a.x << ' ' << a.y << ' ' << a.z << ' ' << a.w;
+	}
 
 #endif
 
 #ifdef USE_ISTREAM
 
-		template<typename CharT, typename Traits, typename Scalar>
-		FORCEINLINE std::basic_istream<CharT, Traits>& operator>>(std::basic_istream<CharT, Traits>& is, ScalarQuaternion<Scalar>& a)
-		{
-			return is >> a.x >> a.y >> a.z >> a.w;
-		}
+	template<typename CharT, typename Traits, typename Scalar>
+	FORCEINLINE std::basic_istream<CharT, Traits>& operator>>(std::basic_istream<CharT, Traits>& is, ScalarQuaternion<Scalar>& a)
+	{
+		return is >> a.x >> a.y >> a.z >> a.w;
+	}
 
 #endif
 
-		template<typename Scalar1, typename Scalar2>
-		FORCEINLINE bool operator==(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept
-		{
-			return (a.x == b.x) && (a.y == b.y) && (a.z == b.z) && (a.w == b.w);
-		}
+	template<typename Scalar1, typename Scalar2>
+	FORCEINLINE bool operator==(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept
+	{
+		return (a.x == b.x) && (a.y == b.y) && (a.z == b.z) && (a.w == b.w);
+	}
 
-		template<typename Scalar1, typename Scalar2>
-		FORCEINLINE bool operator!=(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept
-		{
-			return (a.x != b.x) || (a.y != b.y) || (a.z != b.z) || (a.w != b.w);
-		}
+	template<typename Scalar1, typename Scalar2>
+	FORCEINLINE bool operator!=(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept
+	{
+		return (a.x != b.x) || (a.y != b.y) || (a.z != b.z) || (a.w != b.w);
+	}
 
-		template<typename Scalar1, typename Scalar2>
-		FORCEINLINE ScalarQuaternion<typename Promote<Scalar1, Scalar2>::RT> operator*(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept
-		{
-			typedef typename Promote<Scalar1, Scalar2>::RT RT;
-			return ScalarQuaternion<RT>(a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
-				a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z,
-				a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x,
-				a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
-		}
+	template<typename Scalar1, typename Scalar2>
+	FORCEINLINE ScalarQuaternion<typename Promote<Scalar1, Scalar2>::RT> operator*(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept
+	{
+		typedef typename Promote<Scalar1, Scalar2>::RT RT;
+		return ScalarQuaternion<RT>(a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+			a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z,
+			a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x,
+			a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
+	}
+
+
+
+
+
+
+
+
+	// Non-member Function
+
+	// --Implementation-- //
+
+	namespace Math
+	{
 
 		template<typename Scalar1, typename Scalar2>
 		FORCEINLINE typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarQuaternion<Scalar1>& a, const ScalarQuaternion<Scalar2>& b) noexcept
@@ -353,7 +405,7 @@ namespace Dash
 
 		template<typename Scalar>
 		FORCEINLINE ScalarQuaternion<Scalar> FromAxisAngle(int axis, Scalar angle) noexcept
-		{ 
+		{
 			ASSERT(0 <= axis && axis < 3);
 			Scalar halfTheta = angle * Scalar{ 0.5 };
 			ScalarQuaternion<Scalar> result(Scalar(), Scalar(), Scalar(), Cos(halfTheta));
@@ -454,7 +506,7 @@ namespace Dash
 		{
 			Scalar sinTheta, cosTheta;
 			SinCos(s.x, sinTheta, cosTheta);
-			
+
 			Scalar sinPhi = Sqrt(1 - s.y * s.y);
 			Scalar cosPhi = s.y;
 
@@ -487,10 +539,10 @@ namespace Dash
 				const Scalar invS = 1.0f / s;
 
 				return ScalarQuaternion<Scalar>{
-					c.x * invS,
-					c.y * invS,
-					c.z * invS,
-					Scalar{ 0.5 } *s
+					c.x* invS,
+						c.y* invS,
+						c.z* invS,
+						Scalar{ 0.5 } *s
 				};
 			}
 			else
@@ -506,7 +558,7 @@ namespace Dash
 				ScalarArray<Scalar, 3> normalizedAxis = Normalize(axis) * Sin(halfTheta);
 
 				return ScalarQuaternion<Scalar>{
-						normalizedAxis.x,
+					normalizedAxis.x,
 						normalizedAxis.y,
 						normalizedAxis.z,
 						Cos(halfTheta)
@@ -591,7 +643,7 @@ namespace Dash
 
 		template<typename Scalar>
 		FORCEINLINE ScalarQuaternion<Scalar> Normalize(const ScalarQuaternion<Scalar>& a) noexcept
-		{ 
+		{
 			Scalar invLength = Scalar(1) / Length(a);
 			return ScalarQuaternion<Scalar>(a.x * invLength, a.y * invLength, a.z * invLength, a.w * invLength);
 		}
@@ -625,6 +677,22 @@ namespace Dash
 			Scalar sinTheta = ASin(theta);
 
 			return ScalarQuaternion<Scalar>((vx * Sin(Scalar(1) - t) * theta + shortQx * Sin(t * theta)) / sinTheta);
+		}
+
+		template<typename Scalar>
+		FORCEINLINE void DecomposeAffineMatrix4x4(ScalarArray<Scalar, 3>& scale, ScalarQuaternion<Scalar>& rotation, ScalarArray<Scalar, 3>& translation, const ScalarMatrix<Scalar, 4, 4>& a) noexcept
+		{
+			translation = ScalarArray<Scalar, 3>{ a[3][0], a[3][1], a[3][2] };
+
+			scale = ScalarArray<Scalar, 3>{ Length(Math::Row(a, 0).xyz), Length(Math::Row(a, 1).xyz), Length(Math::Row(a, 2).xyz) };
+
+			ScalarArray<Scalar, 3> inverseScale{ 1 / scale.x, 1 / scale.y, 1 / scale.z };
+
+			rotation = FromMatrix(ScalarMatrix<Scalar, 3, 3>{
+				a[0][0] * inverseScale.x, a[0][1] * inverseScale.x, a[0][2] * inverseScale.x,
+					a[1][0] * inverseScale.y, a[1][1] * inverseScale.y, a[1][2] * inverseScale.y,
+					a[2][0] * inverseScale.z, a[2][1] * inverseScale.z, a[2][2] * inverseScale.z,
+			});
 		}
 	}
 }

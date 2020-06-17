@@ -6,8 +6,8 @@ namespace Dash
 {
 	struct Viewport
 	{
-		explicit Viewport(Math::Scalar x = 0, Math::Scalar y = 0, Math::Scalar width = 0, Math::Scalar height = 0, 
-			Math::Scalar minDepth = 0, Math::Scalar maxDepth = 1)
+		explicit Viewport(Scalar x = 0, Scalar y = 0, Scalar width = 0, Scalar height = 0, 
+			Scalar minDepth = 0, Scalar maxDepth = 1)
 			: TopLeftX(x)
 			, TopLeftY(y)
 			, Width(width)
@@ -16,11 +16,11 @@ namespace Dash
 			, MaxDepth(maxDepth)
 		{}
 
-		Math::Scalar TopLeftX;
-		Math::Scalar TopLeftY;
-		Math::Scalar Width;
-		Math::Scalar Height;
-		Math::Scalar MinDepth;
-		Math::Scalar MaxDepth;
+		Scalar TopLeftX;
+		Scalar TopLeftY;
+		Scalar Width;
+		Scalar Height;
+		Scalar MinDepth;
+		Scalar MaxDepth;
 	};
 }

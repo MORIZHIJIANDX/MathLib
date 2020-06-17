@@ -2,26 +2,35 @@
 
 namespace Dash
 {
+	template<typename Scalar>
+	class AABB<Scalar, 3>
+	{
+	public:
+		using ScalarType = Scalar;
+
+		constexpr AABB() noexcept;
+		constexpr explicit AABB(const ScalarArray<Scalar, 3>& p) noexcept;
+		constexpr AABB(const ScalarArray<Scalar, 3>& lower, const ScalarArray<Scalar, 3>& upper) noexcept;
+
+		const ScalarArray<Scalar, 3>& operator[](int i) const noexcept;
+		ScalarArray<Scalar, 3>& operator[](int i) noexcept;
+
+		ScalarArray<Scalar, 3> Lower;
+		ScalarArray<Scalar, 3> Upper;
+	};
+
+
+
+
+
+
+
+	// Non-member Function
+
+	// --Declaration-- //
+
 	namespace Math
 	{
-		template<typename Scalar>
-		class AABB<Scalar, 3>
-		{
-		public:
-			using ScalarType = Scalar;
-
-			constexpr AABB() noexcept;
-			constexpr explicit AABB(const ScalarArray<Scalar, 3>& p) noexcept;
-			constexpr AABB(const ScalarArray<Scalar, 3>& lower, const ScalarArray<Scalar, 3>& upper) noexcept;
-
-			const ScalarArray<Scalar, 3>& operator[](int i) const noexcept;
-			ScalarArray<Scalar, 3>& operator[](int i) noexcept;
-
-			ScalarArray<Scalar, 3> Lower;
-			ScalarArray<Scalar, 3> Upper;
-		};
-
-
 		template<typename Scalar> ScalarArray<Scalar, 3> Lerp(const AABB<Scalar, 3>& b, const ScalarArray<Scalar, 3>& t) noexcept;
 		template<typename Scalar> ScalarArray<Scalar, 3> Offset(const AABB<Scalar, 3>& b, const ScalarArray<Scalar, 3>& p) noexcept;
 		template<typename Scalar> void BoundingSphere(const AABB<Scalar, 3>& b, ScalarArray<Scalar, 3>& center, Scalar& radius) noexcept;
@@ -61,59 +70,80 @@ namespace Dash
 
 		template<typename Scalar> Scalar DistanceSquared(const ScalarArray<Scalar, 3>& p,
 			const AABB<Scalar, 3>& b) noexcept;
-
-
-		//Member Function
-
-		template<typename Scalar>
-		FORCEINLINE constexpr AABB<Scalar, 3>::AABB() noexcept
-		{
-			Lower = ScalarArray<Scalar, 3>{ ScalarTraits<Scalar>::Max() , ScalarTraits<Scalar>::Max() , ScalarTraits<Scalar>::Max() };
-			Upper = ScalarArray<Scalar, 3>{ ScalarTraits<Scalar>::Lowest() , ScalarTraits<Scalar>::Lowest() , ScalarTraits<Scalar>::Lowest() };
-		}
-
-		template<typename Scalar>
-		FORCEINLINE constexpr AABB<Scalar, 3>::AABB(const ScalarArray<Scalar, 3>& p) noexcept
-			: Lower(p)
-			, Upper(p)
-		{
-		}
-
-		template<typename Scalar>
-		FORCEINLINE constexpr AABB<Scalar, 3>::AABB(const ScalarArray<Scalar, 3>& lower, const ScalarArray<Scalar, 3>& upper) noexcept
-			: Lower(lower)
-			, Upper(upper)
-		{
-		}
-
-
-		template<typename Scalar>
-		FORCEINLINE const ScalarArray<Scalar, 3>& AABB<Scalar, 3>::operator[](int i) const noexcept
-		{
-			ASSERT(i == 0 || i == 1);
-			return (i == 0) ? &Lower : &Upper;
-		}
-
-		template<typename Scalar>
-		FORCEINLINE ScalarArray<Scalar, 3>& AABB<Scalar, 3>::operator[](int i) noexcept
-		{
-			ASSERT(i == 0 || i == 1);
-			return (i == 0) ? &Lower : &Upper;
-		}
+	}
 
 
 
 
-		//Nomember Function
 
+
+
+
+
+
+
+	// Member Function
+
+	// --Implementation-- //
+
+	template<typename Scalar>
+	FORCEINLINE constexpr AABB<Scalar, 3>::AABB() noexcept
+	{
+		Lower = ScalarArray<Scalar, 3>{ ScalarTraits<Scalar>::Max() , ScalarTraits<Scalar>::Max() , ScalarTraits<Scalar>::Max() };
+		Upper = ScalarArray<Scalar, 3>{ ScalarTraits<Scalar>::Lowest() , ScalarTraits<Scalar>::Lowest() , ScalarTraits<Scalar>::Lowest() };
+	}
+
+	template<typename Scalar>
+	FORCEINLINE constexpr AABB<Scalar, 3>::AABB(const ScalarArray<Scalar, 3>& p) noexcept
+		: Lower(p)
+		, Upper(p)
+	{
+	}
+
+	template<typename Scalar>
+	FORCEINLINE constexpr AABB<Scalar, 3>::AABB(const ScalarArray<Scalar, 3>& lower, const ScalarArray<Scalar, 3>& upper) noexcept
+		: Lower(lower)
+		, Upper(upper)
+	{
+	}
+
+
+	template<typename Scalar>
+	FORCEINLINE const ScalarArray<Scalar, 3>& AABB<Scalar, 3>::operator[](int i) const noexcept
+	{
+		ASSERT(i == 0 || i == 1);
+		return (i == 0) ? &Lower : &Upper;
+	}
+
+	template<typename Scalar>
+	FORCEINLINE ScalarArray<Scalar, 3>& AABB<Scalar, 3>::operator[](int i) noexcept
+	{
+		ASSERT(i == 0 || i == 1);
+		return (i == 0) ? &Lower : &Upper;
+	}
+
+
+
+
+
+
+
+
+
+	// Non-member Function
+
+	// --Implementation-- //
+
+	namespace Math
+	{
 		template<typename Scalar>
 		FORCEINLINE ScalarArray<Scalar, 3> Lerp(const AABB<Scalar, 3>& b, const ScalarArray<Scalar, 3>& t) noexcept
 		{
 			return ScalarArray<Scalar, 3>{
-					Lerp(b.Lower.x, b.Upper.x, t.x),
+				Lerp(b.Lower.x, b.Upper.x, t.x),
 					Lerp(b.Lower.y, b.Upper.y, t.y),
 					Lerp(b.Lower.z, b.Upper.z, t.z)
-					};
+			};
 		}
 
 		template<typename Scalar>

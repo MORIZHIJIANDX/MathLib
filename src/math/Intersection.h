@@ -80,10 +80,10 @@ namespace Dash
 		{
 			Vector3f oc = r.Origin - center;
 			Scalar a = Dot(r.Direction, r.Direction);
-			Scalar b = Math::Scalar{ 2} * Dot(oc, r.Direction);
+			Scalar b = Scalar{ 2} * Dot(oc, r.Direction);
 			Scalar c = Dot(oc, oc) - radius * radius;
 
-			Scalar discrim = b * b - Math::Scalar{ 4 } * a * c;
+			Scalar discrim = b * b - Scalar{ 4 } * a * c;
 
 			if (discrim >= Scalar{ 0 })
 			{

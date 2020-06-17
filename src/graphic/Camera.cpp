@@ -2,13 +2,13 @@
 
 namespace Dash
 {
-	Camera::Camera(Math::Scalar nearZ, Math::Scalar farZ, const Viewport& vp)
+	Camera::Camera(Scalar nearZ, Scalar farZ, const Viewport& vp)
 		: mNear(nearZ)
 		, mFar(farZ)
 		, mViewPort(vp)
-		, mProjectionMatrix(Math::Identity{})
-		, mViewProjectionMatrix(Math::Identity{})
-		, mTransform(Math::Identity{})
+		, mProjectionMatrix(Identity{})
+		, mViewProjectionMatrix(Identity{})
+		, mTransform(Identity{})
 		, mWorldMatrixDirty(true)
 		, mProjectionMatrixDirty(true)
 	{
@@ -19,12 +19,12 @@ namespace Dash
 	{
 	}
 
-	Math::Matrix4x4 Camera::GetViewMatrix() const
+	Matrix4x4 Camera::GetViewMatrix() const
 	{
 		return mTransform.GetInverseMatrix();
 	}
 
-	Math::Matrix4x4 Camera::GetProjectionMatrix() const
+	Matrix4x4 Camera::GetProjectionMatrix() const
 	{
 		if (mProjectionMatrixDirty)
 		{
@@ -34,7 +34,7 @@ namespace Dash
 		return mProjectionMatrix;
 	}
 
-	Math::Matrix4x4 Camera::GetViewProjectionMatrix() const
+	Matrix4x4 Camera::GetViewProjectionMatrix() const
 	{
 		if (mProjectionMatrixDirty)
 		{
@@ -49,37 +49,37 @@ namespace Dash
 		return mViewProjectionMatrix;
 	}
 
-	Math::Vector3f Camera::GetPosition() const
+	Vector3f Camera::GetPosition() const
 	{
 		return mTransform.GetPosition();
 	}
 
-	Math::Quaternion Camera::GetRotation() const
+	Quaternion Camera::GetRotation() const
 	{
 		return mTransform.GetRotation();
 	}
 
-	Math::Vector3f Camera::GetForward() const
+	Vector3f Camera::GetForward() const
 	{
 		return mTransform.GetUnitForwardAxis();
 	}
 
-	Math::Vector3f Camera::GetRight() const
+	Vector3f Camera::GetRight() const
 	{
 		return mTransform.GetUnitRightAxis();
 	}
 
-	Math::Vector3f Camera::GetUp() const
+	Vector3f Camera::GetUp() const
 	{
 		return mTransform.GetUnitUpAxis();
 	}
 
-	Math::Scalar Camera::GetFar() const
+	Scalar Camera::GetFar() const
 	{
 		return mFar;
 	}
 
-	Math::Scalar Camera::GetNear() const
+	Scalar Camera::GetNear() const
 	{
 		return mNear;
 	}
@@ -89,44 +89,44 @@ namespace Dash
 		return mViewPort;
 	}
 
-	void Camera::SetWorldMatrix(const Math::Matrix4x4& mat)
+	void Camera::SetWorldMatrix(const Matrix4x4& mat)
 	{
-		mTransform = Math::Transform{ mat };
+		mTransform = Transform{ mat };
 	
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::SetProjectionMatrix(const Math::Matrix4x4& mat)
+	void Camera::SetProjectionMatrix(const Matrix4x4& mat)
 	{
 		mProjectionMatrix = mat;
 		MakeProjectionMatrixDirty();
 	}
 
-	void Camera::SetPosition(const Math::Vector3f& p)
+	void Camera::SetPosition(const Vector3f& p)
 	{
 		mTransform.SetPosition(p);
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::SetRotation(const Math::Quaternion& q)
+	void Camera::SetRotation(const Quaternion& q)
 	{
 		mTransform.SetRotation(q);
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::SetRotation(Math::Scalar pitch, Math::Scalar yaw, Math::Scalar roll)
+	void Camera::SetRotation(Scalar pitch, Scalar yaw, Scalar roll)
 	{
 		mTransform.SetEuler(pitch, yaw, roll);
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::SetFarClip(Math::Scalar farZ)
+	void Camera::SetFarClip(Scalar farZ)
 	{
 		mFar = farZ;
 		MakeProjectionMatrixDirty();
 	}
 
-	void Camera::SetNearClip(Math::Scalar nearZ)
+	void Camera::SetNearClip(Scalar nearZ)
 	{
 		mNear = nearZ;
 		MakeProjectionMatrixDirty();
@@ -137,70 +137,70 @@ namespace Dash
 		mViewPort = vp;
 	}
 
-	void Camera::SetLookAt(const Math::Vector3f& eye, const Math::Vector3f& lookAt, const Math::Vector3f& up)
+	void Camera::SetLookAt(const Vector3f& eye, const Vector3f& lookAt, const Vector3f& up)
 	{
 		SetLookTo(eye, lookAt - eye, up);
 	}
 
-	void Camera::SetLookTo(const Math::Vector3f& eye, const Math::Vector3f& lookTo, const Math::Vector3f& up)
+	void Camera::SetLookTo(const Vector3f& eye, const Vector3f& lookTo, const Vector3f& up)
 	{
 		mTransform.SetLookTo(eye, lookTo, up);
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::TranslateForward(Math::Scalar speed)
+	void Camera::TranslateForward(Scalar speed)
 	{
 		mTransform.SetPosition(mTransform.GetPosition() + speed * mTransform.GetUnitForwardAxis());
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::TranslateRight(Math::Scalar speed)
+	void Camera::TranslateRight(Scalar speed)
 	{
 		mTransform.SetPosition(mTransform.GetPosition() + speed * mTransform.GetUnitRightAxis());
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::TranslateUp(Math::Scalar speed)
+	void Camera::TranslateUp(Scalar speed)
 	{
 		mTransform.SetPosition(mTransform.GetPosition() + speed * mTransform.GetUnitUpAxis());
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::TranslateBack(Math::Scalar speed)
+	void Camera::TranslateBack(Scalar speed)
 	{
 		mTransform.SetPosition(mTransform.GetPosition() - speed * mTransform.GetUnitForwardAxis());
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::TranslateLeft(Math::Scalar speed)
+	void Camera::TranslateLeft(Scalar speed)
 	{
 		mTransform.SetPosition(mTransform.GetPosition() - speed * mTransform.GetUnitRightAxis());
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::TranslateDown(Math::Scalar speed)
+	void Camera::TranslateDown(Scalar speed)
 	{
 		mTransform.SetPosition(mTransform.GetPosition() - speed * mTransform.GetUnitUpAxis());
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::AddPitch(Math::Scalar angle)
+	void Camera::AddPitch(Scalar angle)
 	{
-		Math::Quaternion rotation = Math::FromAxisAngle(Math::Mul(mTransform.GetRotation(), Math::Vector3f(Math::Unit<0>{})), Math::Radians(angle)) * mTransform.GetRotation();
+		Quaternion rotation = Math::FromAxisAngle(Math::Mul(mTransform.GetRotation(), Vector3f(Unit<0>{})), Math::Radians(angle)) * mTransform.GetRotation();
 		mTransform.SetRotation(rotation);
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::AddYaw(Math::Scalar angle)
+	void Camera::AddYaw(Scalar angle)
 	{
-		Math::Quaternion rotation = Math::FromAxisAngle(Math::Mul(mTransform.GetRotation(), Math::Vector3f(Math::Unit<1>{})), Math::Radians(angle))* mTransform.GetRotation();
+		Quaternion rotation = Math::FromAxisAngle(Math::Mul(mTransform.GetRotation(), Vector3f(Unit<1>{})), Math::Radians(angle))* mTransform.GetRotation();
 		mTransform.SetRotation(rotation);
 		MakeWorldMatrixDirty();
 	}
 
-	void Camera::AddRoll(Math::Scalar angle)
+	void Camera::AddRoll(Scalar angle)
 	{
-		Math::Quaternion rotation = Math::FromAxisAngle(Math::Mul(mTransform.GetRotation(), Math::Vector3f(Math::Unit<2>{})), Math::Radians(angle))* mTransform.GetRotation();
+		Quaternion rotation = Math::FromAxisAngle(Math::Mul(mTransform.GetRotation(), Vector3f(Unit<2>{})), Math::Radians(angle))* mTransform.GetRotation();
 		mTransform.SetRotation(rotation);
 		MakeWorldMatrixDirty();
 	}
@@ -210,7 +210,7 @@ namespace Dash
 
 	//OrthographicCamera
 
-	OrthographicCamera::OrthographicCamera(Math::Scalar minX, Math::Scalar minY, Math::Scalar maxX, Math::Scalar maxY, Math::Scalar nearZ, Math::Scalar farZ, const Viewport& vp)
+	OrthographicCamera::OrthographicCamera(Scalar minX, Scalar minY, Scalar maxX, Scalar maxY, Scalar nearZ, Scalar farZ, const Viewport& vp)
 		: Camera(nearZ, farZ, vp)
 		, mXMin(minX)
 		, mXMax(maxX)
@@ -224,25 +224,25 @@ namespace Dash
 	{
 	}
 
-	void OrthographicCamera::SetMinX(Math::Scalar minX)
+	void OrthographicCamera::SetMinX(Scalar minX)
 	{
 		mXMin = minX;
 		MakeProjectionMatrixDirty();
 	}
 
-	void OrthographicCamera::SetMinY(Math::Scalar minY)
+	void OrthographicCamera::SetMinY(Scalar minY)
 	{
 		mYMin = minY;
 		MakeProjectionMatrixDirty();
 	}
 
-	void OrthographicCamera::SetMaxX(Math::Scalar maxX)
+	void OrthographicCamera::SetMaxX(Scalar maxX)
 	{
 		mXMax = maxX;
 		MakeProjectionMatrixDirty();
 	}
 
-	void OrthographicCamera::SetMaxY(Math::Scalar maxY)
+	void OrthographicCamera::SetMaxY(Scalar maxY)
 	{
 		mYMax = maxY;
 		MakeProjectionMatrixDirty();
@@ -250,14 +250,14 @@ namespace Dash
 
 	void OrthographicCamera::CreateProjectionMatrix() const
 	{
-		Math::Scalar oneOverWidth = Math::Scalar{ 1 } / mXMax - mXMin;
-		Math::Scalar oneOverHeight = Math::Scalar{ 1 }/ mYMax - mYMin;
-		Math::Scalar oneOverDepth = Math::Scalar{ 1 } / mFar - mNear;
+		Scalar oneOverWidth = Scalar{ 1 } / mXMax - mXMin;
+		Scalar oneOverHeight = Scalar{ 1 }/ mYMax - mYMin;
+		Scalar oneOverDepth = Scalar{ 1 } / mFar - mNear;
 
-		mProjectionMatrix.SetRow(0, Math::Vector4f{ 2 * oneOverWidth, Math::Scalar{0}, Math::Scalar{0}, -(mXMax + mXMin) * oneOverWidth });
-		mProjectionMatrix.SetRow(1, Math::Vector4f{ Math::Scalar{0}, 2 * oneOverHeight, Math::Scalar{0}, -(mYMax + mYMin) * oneOverHeight });
-		mProjectionMatrix.SetRow(2, Math::Vector4f{ Math::Scalar{0}, Math::Scalar{0}, oneOverDepth, -mNear * oneOverDepth });
-		mProjectionMatrix.SetRow(3, Math::Vector4f{ Math::Scalar{0}, Math::Scalar{0}, Math::Scalar{0}, Math::Scalar{1} });
+		mProjectionMatrix.SetRow(0, Vector4f{ 2 * oneOverWidth, Scalar{0}, Scalar{0}, -(mXMax + mXMin) * oneOverWidth });
+		mProjectionMatrix.SetRow(1, Vector4f{ Scalar{0}, 2 * oneOverHeight, Scalar{0}, -(mYMax + mYMin) * oneOverHeight });
+		mProjectionMatrix.SetRow(2, Vector4f{ Scalar{0}, Scalar{0}, oneOverDepth, -mNear * oneOverDepth });
+		mProjectionMatrix.SetRow(3, Vector4f{ Scalar{0}, Scalar{0}, Scalar{0}, Scalar{1} });
 	}
 
 
@@ -265,7 +265,7 @@ namespace Dash
 
 	//PerspectiveCamera
 
-	PerspectiveCamera::PerspectiveCamera(Math::Scalar fov, Math::Scalar aspect, Math::Scalar nearZ, Math::Scalar farZ, const Viewport& vp)
+	PerspectiveCamera::PerspectiveCamera(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ, const Viewport& vp)
 		: Camera(nearZ, farZ, vp)
 		, mFov(fov)
 		, mAspect(aspect)
@@ -277,34 +277,34 @@ namespace Dash
 	{
 	}
 
-	void PerspectiveCamera::SetFieldOfView(Math::Scalar fov)
+	void PerspectiveCamera::SetFieldOfView(Scalar fov)
 	{
 		mFov = fov;
 		MakeProjectionMatrixDirty();
 	}
 
-	void PerspectiveCamera::SetAspectRatio(Math::Scalar aspect)
+	void PerspectiveCamera::SetAspectRatio(Scalar aspect)
 	{
 		mAspect = aspect;
 		MakeProjectionMatrixDirty();
 	}
 
-	Math::Ray PerspectiveCamera::GenerateRay(Math::Scalar u, Math::Scalar v) const
+	Ray PerspectiveCamera::GenerateRay(Scalar u, Scalar v) const
 	{
-		Math::Vector3f camPos = GetPosition();
-		Math::Vector3f forward = GetForward();
-		Math::Vector3f right = GetRight();
-		Math::Vector3f up = GetUp();
+		Vector3f camPos = GetPosition();
+		Vector3f forward = GetForward();
+		Vector3f right = GetRight();
+		Vector3f up = GetUp();
 		
-		Math::Scalar nearPlaneHeight = mNear * Math::Tan(Math::Radians(mFov) * Math::Scalar{0.5});
-		Math::Scalar nearPlaneWidth = nearPlaneHeight * mAspect;
+		Scalar nearPlaneHeight = mNear * Math::Tan(Math::Radians(mFov) * Scalar{0.5});
+		Scalar nearPlaneWidth = nearPlaneHeight * mAspect;
 
-		const Math::Vector3f horizon = right * nearPlaneWidth;
-		const Math::Vector3f vertical = up * nearPlaneHeight;
+		const Vector3f horizon = right * nearPlaneWidth;
+		const Vector3f vertical = up * nearPlaneHeight;
 
-		const Math::Vector3f topRightCorner = camPos + forward * mNear - horizon * 0.5f + vertical * 0.5f;
+		const Vector3f topRightCorner = camPos + forward * mNear - horizon * 0.5f + vertical * 0.5f;
 
-		return Math::Ray{ camPos, Math::Normalize(topRightCorner + u * horizon - v * vertical - camPos), 0.0f, 1000.0f };
+		return Ray{ camPos, Math::Normalize(topRightCorner + u * horizon - v * vertical - camPos), 0.0f, 1000.0f };
 	}
 
 	void PerspectiveCamera::CreateProjectionMatrix() const

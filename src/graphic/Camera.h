@@ -8,53 +8,53 @@ namespace Dash
 	class Camera
 	{
 	public:
-		Camera(Math::Scalar nearZ, Math::Scalar farZ, const Viewport& vp = Viewport{});
+		Camera(Scalar nearZ, Scalar farZ, const Viewport& vp = Viewport{});
 		virtual ~Camera();
 
-		Math::Matrix4x4 GetViewMatrix() const;
-		Math::Matrix4x4 GetProjectionMatrix() const;
-		Math::Matrix4x4 GetViewProjectionMatrix() const;
+		Matrix4x4 GetViewMatrix() const;
+		Matrix4x4 GetProjectionMatrix() const;
+		Matrix4x4 GetViewProjectionMatrix() const;
 
-		Math::Vector3f GetPosition() const;
-		Math::Quaternion GetRotation() const;
+		Vector3f GetPosition() const;
+		Quaternion GetRotation() const;
 
-		Math::Vector3f GetForward() const;
-		Math::Vector3f GetRight() const;
-		Math::Vector3f GetUp() const;
+		Vector3f GetForward() const;
+		Vector3f GetRight() const;
+		Vector3f GetUp() const;
 
-		Math::Scalar GetFar() const;
-		Math::Scalar GetNear() const;
+		Scalar GetFar() const;
+		Scalar GetNear() const;
 
 		Viewport GetViewPort() const;
 
 		std::size_t GetPixelWidth() const;
 		std::size_t GetPixelHeight() const;
 
-		void SetWorldMatrix(const Math::Matrix4x4& mat);
-		void SetProjectionMatrix(const Math::Matrix4x4& mat);
+		void SetWorldMatrix(const Matrix4x4& mat);
+		void SetProjectionMatrix(const Matrix4x4& mat);
 
-		void SetPosition(const Math::Vector3f& p);
-		void SetRotation(const Math::Quaternion& q);
-		void SetRotation(Math::Scalar pitch, Math::Scalar yaw, Math::Scalar roll);
+		void SetPosition(const Vector3f& p);
+		void SetRotation(const Quaternion& q);
+		void SetRotation(Scalar pitch, Scalar yaw, Scalar roll);
 
-		void SetFarClip(Math::Scalar farZ);
-		void SetNearClip(Math::Scalar nearZ);
+		void SetFarClip(Scalar farZ);
+		void SetNearClip(Scalar nearZ);
 
 		void SetViewPort(const Viewport& vp);
 
-		void SetLookAt(const Math::Vector3f& eye, const Math::Vector3f& lookAt, const Math::Vector3f& up);
-		void SetLookTo(const Math::Vector3f& eye, const Math::Vector3f& lookTo, const Math::Vector3f& up);
+		void SetLookAt(const Vector3f& eye, const Vector3f& lookAt, const Vector3f& up);
+		void SetLookTo(const Vector3f& eye, const Vector3f& lookTo, const Vector3f& up);
 
-		void TranslateForward(Math::Scalar speed);
-		void TranslateRight(Math::Scalar speed);
-		void TranslateUp(Math::Scalar speed);
-		void TranslateBack(Math::Scalar speed);
-		void TranslateLeft(Math::Scalar speed);
-		void TranslateDown(Math::Scalar speed);
+		void TranslateForward(Scalar speed);
+		void TranslateRight(Scalar speed);
+		void TranslateUp(Scalar speed);
+		void TranslateBack(Scalar speed);
+		void TranslateLeft(Scalar speed);
+		void TranslateDown(Scalar speed);
 
-		void AddPitch(Math::Scalar angle);
-		void AddYaw(Math::Scalar angle);
-		void AddRoll(Math::Scalar angle);
+		void AddPitch(Scalar angle);
+		void AddYaw(Scalar angle);
+		void AddRoll(Scalar angle);
 
 	protected:
 
@@ -75,13 +75,13 @@ namespace Dash
 
 		virtual void CreateProjectionMatrix() const = 0;
 
-		mutable Math::Matrix4x4 mProjectionMatrix;
-		mutable Math::Matrix4x4 mViewProjectionMatrix;
+		mutable Matrix4x4 mProjectionMatrix;
+		mutable Matrix4x4 mViewProjectionMatrix;
 
-		Math::Transform mTransform;
+		Transform mTransform;
 
-		Math::Scalar mNear;
-		Math::Scalar mFar;
+		Scalar mNear;
+		Scalar mFar;
 
 		Viewport mViewPort;
 
@@ -93,49 +93,49 @@ namespace Dash
 	class OrthographicCamera : public Camera
 	{
 	public:
-		OrthographicCamera(Math::Scalar minX, Math::Scalar minY, Math::Scalar maxX, Math::Scalar maxY, Math::Scalar nearZ, Math::Scalar farZ, const Viewport& vp = Viewport{});
+		OrthographicCamera(Scalar minX, Scalar minY, Scalar maxX, Scalar maxY, Scalar nearZ, Scalar farZ, const Viewport& vp = Viewport{});
 		virtual ~OrthographicCamera();
 
-		Math::Scalar GetMinX() const { return mXMin; }
-		Math::Scalar GetMinY() const { return mYMin; }
-		Math::Scalar GetMaxX() const { return mXMax; }
-		Math::Scalar GetMaxY() const { return mYMax; }
+		Scalar GetMinX() const { return mXMin; }
+		Scalar GetMinY() const { return mYMin; }
+		Scalar GetMaxX() const { return mXMax; }
+		Scalar GetMaxY() const { return mYMax; }
 
-		void SetMinX(Math::Scalar minX);
-		void SetMinY(Math::Scalar minY);
-		void SetMaxX(Math::Scalar maxX);
-		void SetMaxY(Math::Scalar maxY);
+		void SetMinX(Scalar minX);
+		void SetMinY(Scalar minY);
+		void SetMaxX(Scalar maxX);
+		void SetMaxY(Scalar maxY);
 
 	protected:
 
 		virtual void CreateProjectionMatrix() const override;
 
-		Math::Scalar mXMin;
-		Math::Scalar mXMax;
-		Math::Scalar mYMin;
-		Math::Scalar mYMax;
+		Scalar mXMin;
+		Scalar mXMax;
+		Scalar mYMin;
+		Scalar mYMax;
 	};
 
 	class PerspectiveCamera : public Camera
 	{
 	public:
-		PerspectiveCamera(Math::Scalar fov, Math::Scalar aspect, Math::Scalar nearZ, Math::Scalar farZ, const Viewport& vp = Viewport{});
+		PerspectiveCamera(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ, const Viewport& vp = Viewport{});
 		virtual ~PerspectiveCamera();
 
-		Math::Scalar GetFieldOfView() const { return mFov; }
-		Math::Scalar GetAspectRatio() const { return mAspect; }
+		Scalar GetFieldOfView() const { return mFov; }
+		Scalar GetAspectRatio() const { return mAspect; }
 
-		void SetFieldOfView(Math::Scalar fov);
-		void SetAspectRatio(Math::Scalar aspect);
+		void SetFieldOfView(Scalar fov);
+		void SetAspectRatio(Scalar aspect);
 
-		Math::Ray GenerateRay(Math::Scalar u, Math::Scalar v) const;
+		Ray GenerateRay(Scalar u, Scalar v) const;
 
 	protected:
 
 		virtual void CreateProjectionMatrix() const override;
 
-		Math::Scalar mFov;
-		Math::Scalar mAspect;
+		Scalar mFov;
+		Scalar mAspect;
 	};
 
 

@@ -3,7 +3,7 @@
 
 namespace Dash
 {
-	Sphere::Sphere(const Math::Transform& objectToWorld, const Math::Transform& worldToObject, Math::Scalar radius,
+	Sphere::Sphere(const Transform& objectToWorld, const Transform& worldToObject, Scalar radius,
 		std::uint16_t level, std::uint16_t slice)
 		: Shape(objectToWorld, worldToObject)
 		, mRadius(radius)
@@ -17,10 +17,10 @@ namespace Dash
 	}
 
 	
-	bool Sphere::Intersection(const Math::Ray& r, Math::Scalar* t, HitInfo* hitInfo) const noexcept
+	bool Sphere::Intersection(const Ray& r, Scalar* t, HitInfo* hitInfo) const noexcept
 	{
-		Math::Scalar t0, t1;
-		Math::Vector3f sphereCenter = GetCenter();
+		Scalar t0, t1;
+		Vector3f sphereCenter = GetCenter();
 		if (Math::RaySphereIntersection(r, sphereCenter, mRadius, t0, t1))
 		{
 			if (t0 > r.TMax || t1 < r.TMin)
@@ -34,19 +34,19 @@ namespace Dash
 
 			if (hitInfo != nullptr)
 			{
-				Math::Vector3f hitPos = r(t0);
+				Vector3f hitPos = r(t0);
 
 				hitInfo->Normal = (hitPos - sphereCenter) / mRadius;
 				hitInfo->Position = sphereCenter + mRadius * hitInfo->Normal;
 
 				//https://computergraphics.stackexchange.com/questions/5498/compute-sphere-tangent-for-normal-mapping
 
-				Math::Vector2f spherical = Math::CartesianToSpherical(hitInfo->Normal);
-				Math::Scalar theta = spherical.x;
-				Math::Scalar phi = spherical.y;
-				hitInfo->Tangent = Math::Vector3f{-Math::Sin(theta), Math::Cos(theta), 0.0f};
+				Vector2f spherical = Math::CartesianToSpherical(hitInfo->Normal);
+				Scalar theta = spherical.x;
+				Scalar phi = spherical.y;
+				hitInfo->Tangent = Vector3f{-Math::Sin(theta), Math::Cos(theta), 0.0f};
 			
-				hitInfo->TexCoord = Math::Vector2f{ (theta * Math::ScalarTraits<Math::Scalar>::InvPi() + Math::Scalar{1}) * Math::Scalar{0.5}, phi * Math::ScalarTraits<Math::Scalar>::InvPi() };
+				hitInfo->TexCoord = Vector2f{ (theta * ScalarTraits<Scalar>::InvPi() + Scalar{1}) * Scalar{0.5}, phi * ScalarTraits<Scalar>::InvPi() };
 			}
 
 			return true;
@@ -55,25 +55,25 @@ namespace Dash
 		return false;
 	}
 
-	Math::Vector3f Sphere::GetCenter() const noexcept
+	Vector3f Sphere::GetCenter() const noexcept
 	{
-		return Math::Vector3f{ ObjectToWorld.GetPosition() };
+		return Vector3f{ ObjectToWorld.GetPosition() };
 	}
 
-	Math::Scalar Sphere::GetRadius() const noexcept
+	Scalar Sphere::GetRadius() const noexcept
 	{
 		return mRadius;
 	}
 
-	Math::BoundingBox Sphere::ObjectBound() const noexcept
+	BoundingBox Sphere::ObjectBound() const noexcept
 	{
-		return Math::BoundingBox{ Math::Vector3f{-mRadius, -mRadius, -mRadius} , Math::Vector3f{mRadius, mRadius, mRadius} };
+		return BoundingBox{ Vector3f{-mRadius, -mRadius, -mRadius} , Vector3f{mRadius, mRadius, mRadius} };
 	}
 
-	Math::BoundingBox Sphere::WorldBound() const noexcept
+	BoundingBox Sphere::WorldBound() const noexcept
 	{
-		return Math::BoundingBox{ GetCenter() + Math::Vector3f{-mRadius, -mRadius, -mRadius} ,
-			GetCenter() + Math::Vector3f{mRadius, mRadius, mRadius} };
+		return BoundingBox{ GetCenter() + Vector3f{-mRadius, -mRadius, -mRadius} ,
+			GetCenter() + Vector3f{mRadius, mRadius, mRadius} };
 	}
 
 	std::shared_ptr<TriangleMesh> Sphere::ConvertToTriangleMesh() const noexcept
@@ -107,20 +107,20 @@ namespace Dash
 		triangleMesh->Vertices.reserve((std::size_t)(triangleMesh->VertexStride) * triangleMesh->NumVertices);
 		triangleMesh->Indices.reserve(GetDashFormatSize(triangleMesh->IndexType) * triangleMesh->NumIndices);
 
-		Math::Scalar theta = 0.0f;
-		Math::Scalar phi = 0.0f;
+		Scalar theta = 0.0f;
+		Scalar phi = 0.0f;
 
-		Math::Scalar phiDelta = Math::ScalarTraits<Math::Scalar>::Pi() / mLevels;
-		Math::Scalar thetaDelta = Math::ScalarTraits<Math::Scalar>::TwoPi() / mSlices;
+		Scalar phiDelta = ScalarTraits<Scalar>::Pi() / mLevels;
+		Scalar thetaDelta = ScalarTraits<Scalar>::TwoPi() / mSlices;
 
 		std::size_t vertexIndex = 0; 
 		std::size_t vertexDataBegin = vertexIndex * triangleMesh->VertexStride;
 
 		//Top point
-		WriteData(Math::Vector3f{ 0.0f, mRadius, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + positionOffset);
-		WriteData(Math::Vector3f{ 0.0f, 1.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + normalOffset);
-		WriteData(Math::Vector3f{ 1.0f, 0.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + tangentOffset);
-		WriteData(Math::Vector2f{ 0.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + texCoordOffset);
+		WriteData(Vector3f{ 0.0f, mRadius, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + positionOffset);
+		WriteData(Vector3f{ 0.0f, 1.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + normalOffset);
+		WriteData(Vector3f{ 1.0f, 0.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + tangentOffset);
+		WriteData(Vector2f{ 0.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + texCoordOffset);
 	
 		++vertexIndex;
 
@@ -131,10 +131,10 @@ namespace Dash
 			for (std::size_t j = 0; j <= mSlices; ++j)
 			{
 				theta = thetaDelta * j;
-				Math::Vector3f normal = Math::SphericalToCartesian(theta, phi);
-				Math::Vector3f position = normal * mRadius;
-				Math::Vector3f tangent{ -Math::Sin(theta), 0.0f, Math::Cos(theta) };
-				Math::Vector2f uv{ theta * Math::ScalarTraits<Math::Scalar>::InvTwoPi(), phi * Math::ScalarTraits<Math::Scalar>::InvPi() };
+				Vector3f normal = Math::SphericalToCartesian(theta, phi);
+				Vector3f position = normal * mRadius;
+				Vector3f tangent{ -Math::Sin(theta), 0.0f, Math::Cos(theta) };
+				Vector2f uv{ theta * ScalarTraits<Scalar>::InvTwoPi(), phi * ScalarTraits<Scalar>::InvPi() };
 
 				vertexDataBegin = vertexIndex * triangleMesh->VertexStride;
 				WriteData(position, triangleMesh->Vertices.data(), vertexDataBegin + positionOffset);
@@ -148,10 +148,10 @@ namespace Dash
 
 		//Bottom point
 		vertexDataBegin = vertexIndex * triangleMesh->VertexStride;
-		WriteData(Math::Vector3f{ 0.0f, -mRadius, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + positionOffset);
-		WriteData(Math::Vector3f{ 0.0f, -1.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + normalOffset);
-		WriteData(Math::Vector3f{ -1.0f, 0.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + tangentOffset);
-		WriteData(Math::Vector2f{ 0.0f, 1.0f }, triangleMesh->Vertices.data(), vertexDataBegin + texCoordOffset);
+		WriteData(Vector3f{ 0.0f, -mRadius, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + positionOffset);
+		WriteData(Vector3f{ 0.0f, -1.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + normalOffset);
+		WriteData(Vector3f{ -1.0f, 0.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + tangentOffset);
+		WriteData(Vector2f{ 0.0f, 1.0f }, triangleMesh->Vertices.data(), vertexDataBegin + texCoordOffset);
 
 
 		vertexIndex = 0;

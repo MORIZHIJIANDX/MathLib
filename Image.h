@@ -22,16 +22,16 @@ public:
 	void SetPixel(const T& value, std::size_t x, std::size_t y);
 
 	template<typename T>
-	void SetPixel(const T& value, Dash::Math::Vector2i index);
+	void SetPixel(const T& value, Dash::Vector2i index);
 
 	template<typename T>
 	T GetPixel(std::size_t x, std::size_t y);
 
 	template<typename T>
-	T GetPixel(Dash::Math::Vector2i index);
+	T GetPixel(Dash::Vector2i index);
 
 	template<typename T>
-	void ClearImage(const T& value = T{ Dash::Math::Zero{} });
+	void ClearImage(const T& value = T{ Dash::Zero{} });
 
 private:
 	std::size_t mWidth;
@@ -51,7 +51,7 @@ FORCEINLINE void Image::SetPixel(const T& value, std::size_t x, std::size_t y)
 }
 
 template<typename T>
-FORCEINLINE void Image::SetPixel(const T& value, Dash::Math::Vector2i index)
+FORCEINLINE void Image::SetPixel(const T& value, Dash::Vector2i index)
 {
 	SetPixel(value, index.x, index.y);
 }
@@ -67,7 +67,7 @@ FORCEINLINE T Image::GetPixel(std::size_t x, std::size_t y)
 }
 
 template<typename T>
-FORCEINLINE T Image::GetPixel(Dash::Math::Vector2i index)
+FORCEINLINE T Image::GetPixel(Dash::Vector2i index)
 {
 	return GetPixel<T>(index.x, index.y);
 }
@@ -86,13 +86,13 @@ FORCEINLINE void Image::ClearImage(const T& value)
 
 //Helper Function
 
-FORCEINLINE void GetImageColor(Dash::Math::Vector3f& color, const Dash::Math::Vector2i& index, std::shared_ptr<Image> image, bool repeat = false)
+FORCEINLINE void GetImageColor(Dash::Vector3f& color, const Dash::Vector2i& index, std::shared_ptr<Image> image, bool repeat = false)
 {
 	switch (image->GetFormat())
 	{
 	case Dash::DASH_FORMAT::R32_FLOAT:
 	{
-		float temp = image->GetPixel<Dash::Math::Scalar>(index);
+		float temp = image->GetPixel<Dash::Scalar>(index);
 		if (repeat)
 		{
 			color.x = color.y = color.z = temp * 255;
@@ -106,7 +106,7 @@ FORCEINLINE void GetImageColor(Dash::Math::Vector3f& color, const Dash::Math::Ve
 	break;
 	case Dash::DASH_FORMAT::R32G32_FLOAT:
 	{
-		Dash::Math::Vector2f temp = image->GetPixel<Dash::Math::Vector2f>(index);
+		Dash::Vector2f temp = image->GetPixel<Dash::Vector2f>(index);
 		if (repeat)
 		{
 			color.x = temp.x * 255;
@@ -123,7 +123,7 @@ FORCEINLINE void GetImageColor(Dash::Math::Vector3f& color, const Dash::Math::Ve
 	break;
 	case Dash::DASH_FORMAT::R32G32B32_FLOAT:
 	{
-		Dash::Math::Vector3f temp = image->GetPixel<Dash::Math::Vector3f>(index);
+		Dash::Vector3f temp = image->GetPixel<Dash::Vector3f>(index);
 
 		color.x = temp.x * 255;
 		color.y = temp.y * 255;
@@ -134,7 +134,7 @@ FORCEINLINE void GetImageColor(Dash::Math::Vector3f& color, const Dash::Math::Ve
 	break;
 	case Dash::DASH_FORMAT::R32G32B32A32_FLOAT:
 	{
-		Dash::Math::Vector4f temp = image->GetPixel<Dash::Math::Vector4f>(index);
+		Dash::Vector4f temp = image->GetPixel<Dash::Vector4f>(index);
 
 		color.x = temp.x * 255;
 		color.y = temp.y * 255;
@@ -145,7 +145,7 @@ FORCEINLINE void GetImageColor(Dash::Math::Vector3f& color, const Dash::Math::Ve
 	break;
 	case Dash::DASH_FORMAT::R8G8B8A8_UINT:
 	{
-		Dash::Math::Vector4<uint8_t> temp = image->GetPixel<Dash::Math::Vector4<uint8_t>>(index.x, image->GetHeight() - 1 - index.y);
+		Dash::Vector4<uint8_t> temp = image->GetPixel<Dash::Vector4<uint8_t>>(index.x, image->GetHeight() - 1 - index.y);
 
 		color.x = temp.z;
 		color.y = temp.y;
@@ -182,9 +182,9 @@ FORCEINLINE void SavePPMImage(std::shared_ptr<Image> image, const std::string& n
 	{
 		for (std::size_t j = 0; j < imageWidth; ++j)
 		{
-			Dash::Math::Vector3f color;
+			Dash::Vector3f color;
 
-			GetImageColor(color, Dash::Math::Vector2i{ j, i }, image);
+			GetImageColor(color, Dash::Vector2i{ j, i }, image);
 
 			std::uint8_t r = static_cast<std::uint8_t>(Dash::Math::Max(0.0f, Dash::Math::Min(maxValue, color.x + 0.5f)));
 			std::uint8_t g = static_cast<std::uint8_t>(Dash::Math::Max(0.0f, Dash::Math::Min(maxValue, color.y + 0.5f)));
@@ -237,7 +237,7 @@ FORCEINLINE std::shared_ptr<Image> LoadPPMImage(const std::string& name)
 		{
 			input.read(reinterpret_cast<char*>(currentPixel), 3);
 
-			Dash::Math::Vector3f color{ currentPixel[0] * invMaxValue, currentPixel[1] * invMaxValue, currentPixel[2] * invMaxValue };
+			Dash::Vector3f color{ currentPixel[0] * invMaxValue, currentPixel[1] * invMaxValue, currentPixel[2] * invMaxValue };
 
 			image->SetPixel(color, j, i);
 		}

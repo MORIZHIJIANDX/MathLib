@@ -5,22 +5,19 @@
 
 namespace Dash
 {
-	namespace Math
+	template<typename Scalar>
+	class BitMask
 	{
-		template<typename Scalar>
-		class BitMask
-		{
-		public:
-			BitMask();
-			explicit BitMask(uint32_t bits);
-			explicit BitMask(Zero);
-			template<uint32_t I> BitMask(Unit<I>);
+	public:
+		BitMask();
+		explicit BitMask(uint32_t bits);
+		explicit BitMask(Zero);
+		template<uint32_t I> BitMask(Unit<I>);
 
-			operator uint32_t() const;
-			bool operator[](int i) const;
+		operator uint32_t() const;
+		bool operator[](int i) const;
 
-		private:
-			uint32_t mBits;
-		};
-	}
+	private:
+		uint32_t mBits;
+	};
 }
