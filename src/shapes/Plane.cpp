@@ -122,6 +122,11 @@ namespace Dash
 
 	std::shared_ptr<TriangleMesh> Plane::ConvertToTriangleMesh() const noexcept
 	{
+		return CreateTessellatedTriangleMesh(1, 1);
+	}
+
+	std::shared_ptr<TriangleMesh> Plane::CreateTessellatedTriangleMesh(uint16_t levels, uint16_t slices) const noexcept
+	{
 		Vector3f topLeft = mTopLeft;
 		Vector3f topRight = topLeft + mTangent * mWidth;
 
@@ -130,8 +135,8 @@ namespace Dash
 
 		std::shared_ptr<TriangleMesh> triangleMesh = std::make_shared<TriangleMesh>();
 		triangleMesh->IndexType = DASH_FORMAT::R16_UINT;
-		triangleMesh->NumVertices = 4;
-		triangleMesh->NumIndices = 6;
+		triangleMesh->NumVertices = (static_cast<size_t>(levels) + 1) * (static_cast<size_t>(slices) + 1);
+		triangleMesh->NumIndices = static_cast<size_t>(levels) * static_cast<size_t>(slices) * 2;
 		triangleMesh->MeshParts.emplace_back(0, triangleMesh->NumVertices, 0, triangleMesh->NumIndices, 0);
 
 		triangleMesh->InputElements.emplace_back("POSITION", 0, Dash::DASH_FORMAT::R32G32B32_FLOAT, 0);
@@ -148,52 +153,57 @@ namespace Dash
 			triangleMesh->VertexStride += GetDashFormatSize(triangleMesh->InputElements[i].Format);
 		}
 
-		std::size_t positionOffset = triangleMesh->InputElementMap["POSITION"];
-		std::size_t normalOffset = triangleMesh->InputElementMap["NORMAL"];
-		std::size_t tangentOffset = triangleMesh->InputElementMap["TANGENT"];
-		std::size_t texCoordOffset = triangleMesh->InputElementMap["TEXCOORD"];
+		size_t positionOffset = triangleMesh->InputElementMap["POSITION"];
+		size_t normalOffset = triangleMesh->InputElementMap["NORMAL"];
+		size_t tangentOffset = triangleMesh->InputElementMap["TANGENT"];
+		size_t texCoordOffset = triangleMesh->InputElementMap["TEXCOORD"];
 
-		triangleMesh->Vertices.reserve((std::size_t)(triangleMesh->VertexStride) * triangleMesh->NumVertices);
-		triangleMesh->Indices.reserve((std::size_t)(GetDashFormatSize(triangleMesh->IndexType)) * triangleMesh->NumIndices);
+		triangleMesh->Vertices.reserve((size_t)(triangleMesh->VertexStride) * triangleMesh->NumVertices);
+		triangleMesh->Indices.reserve((size_t)(GetDashFormatSize(triangleMesh->IndexType)) * triangleMesh->NumIndices);
 
-		std::size_t vertexIndex = 0;
-		std::size_t vertexDataBegin = vertexIndex * triangleMesh->VertexStride;
+		//Write Vertex Attribute
+		size_t vertexIndex = 0;
+		size_t vertexDataBegin = vertexIndex * triangleMesh->VertexStride;
 
-		//Top left
-		WriteData(topLeft, triangleMesh->Vertices.data(), vertexDataBegin + positionOffset);
-		WriteData(mNormal, triangleMesh->Vertices.data(), vertexDataBegin + normalOffset);
-		WriteData(mTangent, triangleMesh->Vertices.data(), vertexDataBegin + tangentOffset);
-		WriteData(Vector2f{0, 0}, triangleMesh->Vertices.data(), vertexDataBegin + texCoordOffset);
+		for (uint16_t j = 0; j < (levels + uint16_t{ 1 }); j++)
+		{
+			for (uint16_t i = 0; i < (slices + uint16_t{ 1 }); i++)
+			{
+				Vector2f uv{ i / static_cast<Scalar>(slices) , j / static_cast<Scalar>(levels) };
+				Vector3f position = topLeft + mTangent * mWidth * uv.x + mBinormal * mHeight * uv.y;
+				WriteData(position, triangleMesh->Vertices.data(), vertexDataBegin + positionOffset);
+				WriteData(mNormal, triangleMesh->Vertices.data(), vertexDataBegin + normalOffset);
+				WriteData(mTangent, triangleMesh->Vertices.data(), vertexDataBegin + tangentOffset);
+				WriteData(uv, triangleMesh->Vertices.data(), vertexDataBegin + texCoordOffset);
 
-		++vertexIndex;
+				++vertexIndex;
+				vertexDataBegin = vertexIndex * triangleMesh->VertexStride;
+			}
+		}
 
-		//Top right
-		vertexDataBegin = vertexIndex * triangleMesh->VertexStride;
-		WriteData(topRight, triangleMesh->Vertices.data(), vertexDataBegin + positionOffset);
-		WriteData(mNormal, triangleMesh->Vertices.data(), vertexDataBegin + normalOffset);
-		WriteData(mTangent, triangleMesh->Vertices.data(), vertexDataBegin + tangentOffset);
-		WriteData(Vector2f{ 1, 0 }, triangleMesh->Vertices.data(), vertexDataBegin + texCoordOffset);
 
-		++vertexIndex;
-		
-		//bottom left
-		vertexDataBegin = vertexIndex * triangleMesh->VertexStride;
-		WriteData(bottomLeft, triangleMesh->Vertices.data(), vertexDataBegin + positionOffset);
-		WriteData(mNormal, triangleMesh->Vertices.data(), vertexDataBegin + normalOffset);
-		WriteData(mTangent, triangleMesh->Vertices.data(), vertexDataBegin + tangentOffset);
-		WriteData(Vector2f{ 0, 1 }, triangleMesh->Vertices.data(), vertexDataBegin + texCoordOffset);
+		vertexIndex = 0;
 
-		++vertexIndex;
+		//Write Index
+		for (uint16_t j = 0; j < levels; j++)
+		{
+			for (uint16_t i = 0; i < slices; i++)
+			{
+				uint16_t index0 = j * (slices + 1) + i;
+				uint16_t index1 = j * (slices + 1) + i + 1;
+				uint16_t index2 = (j + 1) * (slices + 1) + i;
+				WriteData(index0, triangleMesh->Indices.data(), vertexIndex++);
+				WriteData(index1, triangleMesh->Indices.data(), vertexIndex++);
+				WriteData(index2, triangleMesh->Indices.data(), vertexIndex++);
 
-		//bottom right
-		vertexDataBegin = vertexIndex * triangleMesh->VertexStride;
-		WriteData(bottomRight, triangleMesh->Vertices.data(), vertexDataBegin + positionOffset);
-		WriteData(mNormal, triangleMesh->Vertices.data(), vertexDataBegin + normalOffset);
-		WriteData(mTangent, triangleMesh->Vertices.data(), vertexDataBegin + tangentOffset);
-		WriteData(Vector2f{ 1, 1 }, triangleMesh->Vertices.data(), vertexDataBegin + texCoordOffset);
-
-		uint16_t indices[6] = { 0, 1, 2, 1, 3, 2 };
-		std::memcpy(triangleMesh->Indices.data(), indices, sizeof(indices));
+				index0 = j * (slices + 1) + i + 1;
+				index1 = (j + 1) * (slices + 1) + i + 1;
+				index2 = (j + 1) * (slices + 1) + i;
+				WriteData(index0, triangleMesh->Indices.data(), vertexIndex++);
+				WriteData(index1, triangleMesh->Indices.data(), vertexIndex++);
+				WriteData(index2, triangleMesh->Indices.data(), vertexIndex++);
+			}
+		}
 
 		return triangleMesh;
 	}

@@ -4,18 +4,15 @@
 namespace Dash
 {
 	Sphere::Sphere(const Transform& objectToWorld, const Transform& worldToObject, Scalar radius,
-		std::uint16_t level, std::uint16_t slice)
+		uint16_t level, uint16_t slice)
 		: Shape(objectToWorld, worldToObject)
 		, mRadius(radius)
-		, mLevels(level)
-		, mSlices(slice)
 	{
 	}
 
 	Sphere::~Sphere()
 	{
 	}
-
 	
 	bool Sphere::Intersection(const Ray& r, Scalar* t, HitInfo* hitInfo) const noexcept
 	{
@@ -78,10 +75,15 @@ namespace Dash
 
 	std::shared_ptr<TriangleMesh> Sphere::ConvertToTriangleMesh() const noexcept
 	{
+		return CreateTessellatedTriangleMesh(16, 16);
+	}
+
+	std::shared_ptr<TriangleMesh> Sphere::CreateTessellatedTriangleMesh(uint16_t levels, uint16_t slices) const noexcept
+	{
 		std::shared_ptr<TriangleMesh> triangleMesh = std::make_shared<TriangleMesh>();
 		triangleMesh->IndexType = DASH_FORMAT::R16_UINT;
-		triangleMesh->NumVertices = std::uint16_t{ 2 } +(mLevels - std::uint16_t{ 1 }) * (mSlices + std::uint16_t{ 1 });
-		triangleMesh->NumIndices = std::uint16_t{ 6 } *(mLevels - std::uint16_t{ 1 }) * mSlices;
+		triangleMesh->NumVertices = size_t{ 2 } + (levels - size_t{ 1 }) * (slices + size_t{ 1 });
+		triangleMesh->NumIndices = size_t{ 6 } * (levels - size_t{ 1 }) * slices;
 		triangleMesh->MeshParts.emplace_back(0, triangleMesh->NumVertices, 0, triangleMesh->NumIndices, 0);
 
 
@@ -110,10 +112,10 @@ namespace Dash
 		Scalar theta = 0.0f;
 		Scalar phi = 0.0f;
 
-		Scalar phiDelta = ScalarTraits<Scalar>::Pi() / mLevels;
-		Scalar thetaDelta = ScalarTraits<Scalar>::TwoPi() / mSlices;
+		Scalar phiDelta = ScalarTraits<Scalar>::Pi() / levels;
+		Scalar thetaDelta = ScalarTraits<Scalar>::TwoPi() / slices;
 
-		std::size_t vertexIndex = 0; 
+		std::size_t vertexIndex = 0;
 		std::size_t vertexDataBegin = vertexIndex * triangleMesh->VertexStride;
 
 		//Top point
@@ -121,14 +123,14 @@ namespace Dash
 		WriteData(Vector3f{ 0.0f, 1.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + normalOffset);
 		WriteData(Vector3f{ 1.0f, 0.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + tangentOffset);
 		WriteData(Vector2f{ 0.0f, 0.0f }, triangleMesh->Vertices.data(), vertexDataBegin + texCoordOffset);
-	
+
 		++vertexIndex;
 
-		for (std::size_t i = 1; i < mLevels; ++i)
+		for (std::size_t i = 1; i < levels; ++i)
 		{
 			phi = phiDelta * i;
 
-			for (std::size_t j = 0; j <= mSlices; ++j)
+			for (std::size_t j = 0; j <= slices; ++j)
 			{
 				theta = thetaDelta * j;
 				Vector3f normal = Math::SphericalToCartesian(theta, phi);
@@ -154,54 +156,55 @@ namespace Dash
 		WriteData(Vector2f{ 0.0f, 1.0f }, triangleMesh->Vertices.data(), vertexDataBegin + texCoordOffset);
 
 
+		//Write Index
+
 		vertexIndex = 0;
 
-		if (mLevels > 1)
+		if (levels > 1)
 		{
-			for (std::uint16_t j = 1; j < mSlices; ++j)
+			for (uint16_t j = 1; j < slices; ++j)
 			{
-				std::uint16_t index0 = 0;
-				std::uint16_t index1 = j % (mSlices + 1) + 1;
-				std::uint16_t index2 = j;
+				uint16_t index0 = 0;
+				uint16_t index1 = j % (slices + 1) + 1;
+				uint16_t index2 = j;
 				WriteData(index0, triangleMesh->Indices.data(), vertexIndex++);
 				WriteData(index1, triangleMesh->Indices.data(), vertexIndex++);
 				WriteData(index2, triangleMesh->Indices.data(), vertexIndex++);
 			}
 		}
 
-		for (std::uint16_t i = 1; i < mLevels - 1; ++i)
+		for (uint16_t i = 1; i < levels - 1; ++i)
 		{
-			for (std::uint16_t j = 1; j <= mSlices; ++j)
+			for (uint16_t j = 1; j <= slices; ++j)
 			{
-				std::uint16_t index0 = (i - 1) * (mSlices + 1) + j;
-				std::uint16_t index1 = (i - 1) * (mSlices + 1) + j % (mSlices + 1) + 1;
-				std::uint16_t index2 = i * (mSlices + 1) + j % (mSlices + 1) + 1;
+				uint16_t index0 = (i - 1) * (slices + 1) + j;
+				uint16_t index1 = (i - 1) * (slices + 1) + j % (slices + 1) + 1;
+				uint16_t index2 = i * (slices + 1) + j % (slices + 1) + 1;
 				WriteData(index0, triangleMesh->Indices.data(), vertexIndex++);
 				WriteData(index1, triangleMesh->Indices.data(), vertexIndex++);
 				WriteData(index2, triangleMesh->Indices.data(), vertexIndex++);
 
-				index0 = i * (mSlices + 1) + j % (mSlices + 1) + 1;
-				index1 = i * (mSlices + 1) + j ;
-				index2 = (i - 1) * (mSlices + 1) + j ;
+				index0 = i * (slices + 1) + j % (slices + 1) + 1;
+				index1 = i * (slices + 1) + j;
+				index2 = (i - 1) * (slices + 1) + j;
 				WriteData(index0, triangleMesh->Indices.data(), vertexIndex++);
 				WriteData(index1, triangleMesh->Indices.data(), vertexIndex++);
 				WriteData(index2, triangleMesh->Indices.data(), vertexIndex++);
 			}
 		}
 
-		if (mLevels > 1)
+		if (levels > 1)
 		{
-			for (std::uint16_t j = 1; j <= mSlices; ++j)
+			for (uint16_t j = 1; j <= slices; ++j)
 			{
-				std::uint16_t index0 = (mLevels - 2) * (mSlices + 1) + j;
-				std::uint16_t index1 = (mLevels - 2) * (mSlices + 1) + j % (mSlices + 1) + 1;
-				std::uint16_t index2 = (mLevels - 1) * (mSlices + 1) + 1;
+				uint16_t index0 = (levels - 2) * (slices + 1) + j;
+				uint16_t index1 = (levels - 2) * (slices + 1) + j % (slices + 1) + 1;
+				uint16_t index2 = (levels - 1) * (slices + 1) + 1;
 				WriteData(index0, triangleMesh->Indices.data(), vertexIndex++);
 				WriteData(index1, triangleMesh->Indices.data(), vertexIndex++);
 				WriteData(index2, triangleMesh->Indices.data(), vertexIndex++);
 			}
 		}
-
 
 		return triangleMesh;
 	}

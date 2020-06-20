@@ -21,9 +21,9 @@ namespace Dash
 
 		virtual std::shared_ptr<TriangleMesh> ConvertToTriangleMesh() const noexcept override;
 
+		std::shared_ptr<TriangleMesh> CreateTessellatedTriangleMesh(uint16_t levels, uint16_t slices) const noexcept;
+
 	private:
 		Scalar mRadius;
-		std::uint16_t mLevels;
-		std::uint16_t mSlices;
 	};
 }
