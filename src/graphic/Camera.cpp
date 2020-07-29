@@ -89,6 +89,16 @@ namespace Dash
 		return mViewPort;
 	}
 
+	std::size_t Camera::GetPixelWidth() const
+	{
+		return mViewPort.Width;
+	}
+
+	std::size_t Camera::GetPixelHeight() const
+	{
+		return mViewPort.Height;
+	}
+
 	void Camera::SetWorldMatrix(const Matrix4x4& mat)
 	{
 		mTransform = Transform{ mat };

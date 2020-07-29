@@ -11,7 +11,10 @@
 
 #include "Image.h"
 
+#include "src/graphic/Window.h"
+
 #include <iostream>
+#include <chrono>
 
 namespace DMath = Dash::Math;
 
@@ -137,46 +140,65 @@ Dash::Vector3f GetRayColor(const Dash::Ray& r, std::shared_ptr<Dash::Shape> shap
 	return DMath::Lerp(Dash::Vector3f{1.0f, 1.0f, 1.0f}, Dash::Vector3f{ 0.5f, 0.7f, 1.0f }, lerpVal);
 }
 
-int main()
+//int main()
+//{
+//	const Dash::Scalar aspectRatio = 16.0f / 9.0f;
+//	const std::size_t imageWidth = 512;
+//	const std::size_t imageHeight = static_cast<std::size_t>(imageWidth / aspectRatio);
+//
+//	Dash::Viewport vp{0.0f, 0.0f, imageWidth, imageHeight, 0.0f, 1.0f};
+//
+//	Dash::PerspectiveCamera camera{ 90.0f, aspectRatio, 1.0f, 1000.0f, vp };
+//
+//	camera.SetLookAt(Dash::Vector3f{0.0f, 0.0f, 0.0f}, Dash::Vector3f{ 0.0f, 0.0f, 1.0f }, Dash::Vector3f{ 0.0f, 1.0f, 0.0f });
+//
+//	std::shared_ptr<Image> tempImage = std::make_shared<Image>(imageWidth, imageHeight, Dash::DASH_FORMAT::R32G32B32_FLOAT);
+//	tempImage->ClearImage(Dash::Vector3f{0.5f, 0.5f, 0.5f});
+//
+//	//DMath::Transform trans{ DMath::Vector3f{1.0f, 1.0f, 1.0f},  DMath::Quaternion{DMath::Identity{}},  DMath::Vector3f{0.0f, 0.0f, 5.0f} };
+//	//std::shared_ptr<Dash::Sphere> sphere = std::make_shared<Dash::Sphere>(trans, DMath::Inverse(trans), 1.0f);
+//
+//	int planeSize = 10;
+//
+//	Dash::Transform trans{ Dash::Vector3f{1.0f, 1.0f, 1.0f},  Dash::Quaternion{Dash::Identity{}},  Dash::Vector3f{0.0f, -2.0f, 0.0f} };
+//	std::shared_ptr<Dash::Plane> plane = std::make_shared<Dash::Plane>(trans, Dash::Math::Inverse(trans), Dash::Vector3f{ 0, 1, 0 }, Dash::Vector3f{ -planeSize, 0, planeSize },
+//		Dash::Vector3f{ planeSize, 0, planeSize }, Dash::Vector3f{ -planeSize, 0, -planeSize });
+//
+//	for (std::size_t i = 0; i < imageHeight; i++)
+//	{
+//		for (std::size_t j = 0; j < imageWidth; j++)
+//		{
+//			Dash::Scalar u = j / (Dash::Scalar)(imageWidth - 1);
+//			Dash::Scalar v = i / (Dash::Scalar)(imageHeight - 1);
+//
+//			Dash::Ray r = camera.GenerateRay(u, v);
+//
+//			tempImage->SetPixel(GetRayColor(r, plane), j, i);
+//		}
+//	}
+//
+//	SavePPMImage(tempImage, "render_target.ppm");
+//
+//	std::cout << "Program End" << std::endl;
+//
+//	std::cin.get();
+//}
+
+//int main()
+//{
+//
+//}
+
+int CALLBACK WinMain(HINSTANCE hInstance,
+	HINSTANCE hPrevInstance,
+	LPSTR lpCmdLine,
+	int nCmdShow)
 {
-	const Dash::Scalar aspectRatio = 16.0f / 9.0f;
-	const std::size_t imageWidth = 512;
-	const std::size_t imageHeight = static_cast<std::size_t>(imageWidth / aspectRatio);
+	Dash::Window window{ hInstance, "TestWindow", "RenderProject" };
+	window.ProcessMessage();
 
-	Dash::Viewport vp{0.0f, 0.0f, imageWidth, imageHeight, 0.0f, 1.0f};
+	using namespace std::chrono_literals;
 
-	Dash::PerspectiveCamera camera{ 90.0f, aspectRatio, 1.0f, 1000.0f, vp };
-
-	camera.SetLookAt(Dash::Vector3f{0.0f, 0.0f, 0.0f}, Dash::Vector3f{ 0.0f, 0.0f, 1.0f }, Dash::Vector3f{ 0.0f, 1.0f, 0.0f });
-
-	std::shared_ptr<Image> tempImage = std::make_shared<Image>(imageWidth, imageHeight, Dash::DASH_FORMAT::R32G32B32_FLOAT);
-	tempImage->ClearImage(Dash::Vector3f{0.5f, 0.5f, 0.5f});
-
-	//DMath::Transform trans{ DMath::Vector3f{1.0f, 1.0f, 1.0f},  DMath::Quaternion{DMath::Identity{}},  DMath::Vector3f{0.0f, 0.0f, 5.0f} };
-	//std::shared_ptr<Dash::Sphere> sphere = std::make_shared<Dash::Sphere>(trans, DMath::Inverse(trans), 1.0f);
-
-	int planeSize = 10;
-
-	Dash::Transform trans{ Dash::Vector3f{1.0f, 1.0f, 1.0f},  Dash::Quaternion{Dash::Identity{}},  Dash::Vector3f{0.0f, -2.0f, 0.0f} };
-	std::shared_ptr<Dash::Plane> plane = std::make_shared<Dash::Plane>(trans, Dash::Math::Inverse(trans), Dash::Vector3f{ 0, 1, 0 }, Dash::Vector3f{ -planeSize, 0, planeSize },
-		Dash::Vector3f{ planeSize, 0, planeSize }, Dash::Vector3f{ -planeSize, 0, -planeSize });
-
-	for (std::size_t i = 0; i < imageHeight; i++)
-	{
-		for (std::size_t j = 0; j < imageWidth; j++)
-		{
-			Dash::Scalar u = j / (Dash::Scalar)(imageWidth - 1);
-			Dash::Scalar v = i / (Dash::Scalar)(imageHeight - 1);
-
-			Dash::Ray r = camera.GenerateRay(u, v);
-
-			tempImage->SetPixel(GetRayColor(r, plane), j, i);
-		}
-	}
-
-	SavePPMImage(tempImage, "render_target.ppm");
-
-	std::cout << "Program End" << std::endl;
-
-	std::cin.get();
+	//std::this_thread::sleep_for(0.5s);
+	window.CloseWindow();
 }
