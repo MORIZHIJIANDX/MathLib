@@ -69,8 +69,8 @@ namespace Dash
 			, mShift(shift)
 			, mX(x)
 			, mY(y)
-			, m_RelX(0)
-			, m_RelY(0)
+			, mRelX(0)
+			, mRelY(0)
 		{}
 
 		bool mLeftButton;    // Is the left mouse button down?
@@ -81,20 +81,19 @@ namespace Dash
 
 		int mX;              // The X-position of the cursor relative to the upper-left corner of the client area.
 		int mY;              // The Y-position of the cursor relative to the upper-left corner of the client area.
-		int m_RelX;			// How far the mouse moved since the last event.
-		int m_RelY;			// How far the mouse moved since the last event.
+		int mRelX;			// How far the mouse moved since the last event.
+		int mRelY;			// How far the mouse moved since the last event.
 	};
 
 	using MouseMotionEvent = MulticastDelegate<void(MouseMotionEventArgs&)>;
 	using MouseMotionEventDelegate = Delegate<void(MouseMotionEventArgs&)>;
 
 
-	enum class MouseButton
+	enum class MouseButton : unsigned int
 	{
-		None = 0,
-		Left = 1,
-		Right = 2,
-		Middel = 3
+		Left = 0x00,
+		Right = 0x01,
+		Middle = 0x02
 	};
 
 	enum class ButtonState

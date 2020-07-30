@@ -11,6 +11,7 @@
 #if defined(__SSE__) || (_M_IX86_FP >= 1) || defined(_M_X64)
 #   define USE_SSE 1
 #endif
+#include <Windows.h>
 
 #define USE_IEEE_754 1
 #define USE_ROUNDING_CONTROL 0

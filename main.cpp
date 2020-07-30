@@ -16,6 +16,8 @@
 #include <iostream>
 #include <chrono>
 
+#include "src/utility/Keyboard.h"
+
 namespace DMath = Dash::Math;
 
 template<typename T, std::size_t N>
@@ -201,4 +203,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 	//std::this_thread::sleep_for(0.5s);
 	window.CloseWindow();
+
+
+	Dash::Keyboard::Get().IsKeyPressed(KeyCode::A);
 }

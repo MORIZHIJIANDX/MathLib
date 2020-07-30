@@ -9,10 +9,10 @@ namespace Dash
 {
 	class Keyboard
 	{
+		friend class Window;
 	public:
-		Keyboard();
-		~Keyboard();
-	
+		static Keyboard& Get();
+
 		bool IsKeyPressed(KeyCode key) const;
 
 		std::optional<char> ReadChar();
@@ -20,6 +20,9 @@ namespace Dash
 		void FlushCharBuffer();
 
 	private:
+		Keyboard() {};
+		~Keyboard() {};
+
 		void OnKeyPressed(KeyCode key);
 		void OnKeyReleased(KeyCode key);
 		void OnChar(char character);

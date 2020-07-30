@@ -3,6 +3,7 @@
 #include <functional>
 #include "../utility/ThreadSafeQueue.h"
 #include "../consolid/consolid.h"
+#include "../utility/Keyboard.h"
 
 namespace Dash
 {
@@ -145,7 +146,8 @@ namespace Dash
 			return 0;
 			// clear keystate when window loses focus to prevent input getting "stuck"
 		case WM_KILLFOCUS:
-			kbd.ClearState();
+			//kbd.ClearState();
+			MessageQueue.Push(std::bind(&Keyboard::ClearStates, &Keyboard::Get()));
 			break;
 		case WM_ACTIVATE:
 			// confine/free cursor on window to foreground/background if cursor disabled

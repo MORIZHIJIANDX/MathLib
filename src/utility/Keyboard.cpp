@@ -2,12 +2,10 @@
 
 namespace Dash
 {
-	Keyboard::Keyboard()
+	Keyboard& Keyboard::Get()
 	{
-	}
-
-	Keyboard::~Keyboard()
-	{
+		static Keyboard instance;
+		return instance;
 	}
 
 	bool Keyboard::IsKeyPressed(KeyCode key) const
