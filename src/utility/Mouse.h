@@ -8,6 +8,7 @@ namespace Dash
 {
 	class Mouse
 	{
+		friend class Window;
 	public:
 		static Mouse& Get();
 		
@@ -16,7 +17,7 @@ namespace Dash
 		Vector2i GetMousePos() const;
 
 	private:
-		Mouse() {};
+		Mouse() : mMouseWheelAccumulate(0), mIsInWindow(false) {};
 		~Mouse() {};
 
 		void OnMouseButtonPressed(const MouseButtonEventArgs& e);

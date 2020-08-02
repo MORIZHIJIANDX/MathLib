@@ -35,13 +35,14 @@ namespace Dash
 	public:
 		using base = EventArgs;
 
-		KeyEventArgs(KeyCode key, unsigned int c, KeyState state, bool control, bool shift, bool alt)
+		KeyEventArgs(KeyCode key, unsigned int c, KeyState state, bool control, bool shift, bool alt, bool repeat)
 			: mKey(key)
 			, mChar(c)
 			, mState(state)
 			, mControl(control)
 			, mShift(shift)
 			, mAlt(alt)
+			, mRepeat(repeat)
 		{}
 
 		KeyCode         mKey;    // The Key Code that was pressed or released.
@@ -50,6 +51,7 @@ namespace Dash
 		bool            mControl;// Is the Control modifier pressed
 		bool            mShift;  // Is the Shift modifier pressed
 		bool            mAlt;    // Is the Alt modifier pressed
+		bool			mRepeat;
 	};
 
 	using KeyboardEvent = MulticastDelegate<void(KeyEventArgs&)>;
@@ -93,7 +95,8 @@ namespace Dash
 	{
 		Left = 0x00,
 		Right = 0x01,
-		Middle = 0x02
+		Middle = 0x02,
+		None = 0x03,
 	};
 
 	enum class ButtonState
@@ -141,7 +144,7 @@ namespace Dash
 		using base = EventArgs;
 
 		MouseWheelEventArgs(float wheelDelta, bool leftButton, bool middleButton, bool rightButton, bool control, bool shift, int x, int y)
-			: m_WheelDelta(wheelDelta)
+			: mWheelDelta(wheelDelta)
 			, mLeftButton(leftButton)
 			, mMiddleButton(middleButton)
 			, mRightButton(rightButton)
@@ -151,7 +154,7 @@ namespace Dash
 			, mY(y)
 		{}
 
-		float m_WheelDelta;   // How much the mouse wheel has moved. A positive value indicates that the wheel was moved to the right. A negative value indicates the wheel was moved to the left.
+		float mWheelDelta;   // How much the mouse wheel has moved. A positive value indicates that the wheel was moved to the right. A negative value indicates the wheel was moved to the left.
 		bool mLeftButton;    // Is the left mouse button down?
 		bool mMiddleButton;  // Is the middle mouse button down?
 		bool mRightButton;   // Is the right mouse button down?

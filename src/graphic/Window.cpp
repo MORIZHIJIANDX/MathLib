@@ -4,30 +4,39 @@
 #include "../utility/ThreadSafeQueue.h"
 #include "../consolid/consolid.h"
 #include "../utility/Keyboard.h"
+#include "../utility/Mouse.h"
 
 namespace Dash
 {
 	using MessageFunc = std::function<void()>;
 	ThreadSafeQueue<MessageFunc> MessageQueue;
 
-	Window::Window(HINSTANCE inst, const std::string& name, const std::string title, size_t width, size_t height)
+	Window::Window(const std::string& name, const std::string title, size_t width, size_t height)
 		: mWindowTitle(title)
 		, mWindowWidth(width)
 		, mWindowHeight(height)
 		, mRequestQuit(false)
 	{
-		Window::WindowClassRegister::Get(name, inst);
+		Window::WindowClassRegister::Get(name, ::GetModuleHandle(NULL));
 		
+		RECT winRect;
+		winRect.left = 100;
+		winRect.top = 100;
+		winRect.right = winRect.left + width;
+		winRect.bottom = winRect.top + height;
+
+		::AdjustWindowRect(&winRect, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE);
+
 		mWindowHandle = CreateWindowEx(
-			WS_EX_OVERLAPPEDWINDOW, 
+			WS_EX_OVERLAPPEDWINDOW,
 			GetWindowName().c_str(),
 			title.c_str(),
 			WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
-			0, 0,
-			static_cast<int>(width), static_cast<int>(height),
+			CW_USEDEFAULT, CW_USEDEFAULT,
+			static_cast<int>(winRect.right - winRect.left), static_cast<int>(winRect.bottom - winRect.top),
 			nullptr,
 			nullptr,
-			inst,
+			Window::WindowClassRegister::Get()->GetWindowInstance(),
 			this);
 
 		ShowWindow();
@@ -35,7 +44,6 @@ namespace Dash
 
 	Window::~Window()
 	{
-		mRequestQuit = true;
 		::DestroyWindow(mWindowHandle);
 	}
 
@@ -86,14 +94,14 @@ namespace Dash
 		{
 			while (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 			{
-				::TranslateMessage(&msg);
-				::DispatchMessageA(&msg);
-
-				if (msg.message == WM_QUIT || mRequestQuit == true)
+				if ((msg.message == WM_QUIT) || (mRequestQuit == true))
 				{
 					mRequestQuit = false;
 					return msg.wParam;
 				}
+
+				::TranslateMessage(&msg);
+				::DispatchMessageA(&msg);
 			}
 
 			std::this_thread::yield();
@@ -107,6 +115,38 @@ namespace Dash
 		{
 			func();
 		}
+	}
+
+	// Convert the message ID into a MouseButton ID
+	static MouseButton DecodeMouseButton(UINT messageID)
+	{
+		MouseButton mouseButton = MouseButton::None;
+		switch (messageID)
+		{
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONUP:
+		case WM_LBUTTONDBLCLK:
+		{
+			mouseButton = MouseButton::Left;
+			break;
+		}
+		case WM_RBUTTONDOWN:
+		case WM_RBUTTONUP:
+		case WM_RBUTTONDBLCLK:
+		{
+			mouseButton = MouseButton::Right;
+			break;
+		}
+		case WM_MBUTTONDOWN:
+		case WM_MBUTTONUP:
+		case WM_MBUTTONDBLCLK:
+		{
+			mouseButton = MouseButton::Middle;
+			break;
+		}
+		}
+
+		return mouseButton;
 	}
 
 	LRESULT Window::WinProcFunc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -142,71 +182,81 @@ namespace Dash
 			// we don't want the DefProc to handle this message because
 			// we want our destructor to destroy the window, so return 0 instead of break
 		case WM_CLOSE:
-			PostQuitMessage(0);
+			::PostQuitMessage(0);
 			return 0;
 			// clear keystate when window loses focus to prevent input getting "stuck"
 		case WM_KILLFOCUS:
-			//kbd.ClearState();
 			MessageQueue.Push(std::bind(&Keyboard::ClearStates, &Keyboard::Get()));
-			break;
-		case WM_ACTIVATE:
-			// confine/free cursor on window to foreground/background if cursor disabled
-			if (!cursorEnabled)
-			{
-				if (wParam & WA_ACTIVE)
-				{
-					ConfineCursor();
-					HideCursor();
-				}
-				else
-				{
-					FreeCursor();
-					ShowCursor();
-				}
-			}
 			break;
 
 			/*********** KEYBOARD MESSAGES ***********/
 		case WM_KEYDOWN:
 			// syskey commands need to be handled to track ALT key (VK_MENU) and F10
 		case WM_SYSKEYDOWN:
-			if (!(lParam & 0x40000000) || kbd.AutorepeatIsEnabled()) // filter autorepeat
+		{	
+			MSG charMsg;
+
+			// Get the Unicode character (UTF-16)
+			unsigned int c = 0;
+			// For printable characters, the next message will be WM_CHAR.
+			// This message contains the character code we need to send the KeyPressed event.
+			// Inspired by the SDL 1.2 implementation.
+			if (PeekMessage(&charMsg, hWnd, 0, 0, PM_NOREMOVE) && charMsg.message == WM_CHAR)
 			{
-				kbd.OnKeyPressed(static_cast<unsigned char>(wParam));
+				GetMessage(&charMsg, hWnd, 0, 0);
+				c = static_cast<unsigned int>(charMsg.wParam);
 			}
+
+			bool repeat = lParam & 0x40000000;
+
+			bool shift = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+			bool control = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+			bool alt = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
+
+			KeyCode key = (KeyCode)wParam;
+			unsigned int scanCode = (lParam & 0x00FF0000) >> 16;
+			KeyEventArgs keyEventArgs(key, c, KeyState::Pressed, control, shift, alt, repeat);
+			MessageQueue.Push(std::bind(&Keyboard::OnKeyPressed, &Keyboard::Get(), keyEventArgs));
 			break;
+		}
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
-			kbd.OnKeyReleased(static_cast<unsigned char>(wParam));
+		{
+			bool shift = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+			bool control = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+			bool alt = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
+
+			KeyCode key = (KeyCode)wParam;
+
+			KeyEventArgs keyEventArgs(key, 0, KeyState::Released, control, shift, alt, false);
+			MessageQueue.Push(std::bind(&Keyboard::OnKeyReleased, &Keyboard::Get(), keyEventArgs));
 			break;
-		case WM_CHAR:
-			kbd.OnChar(static_cast<unsigned char>(wParam));
-			break;
+		}
 			/*********** END KEYBOARD MESSAGES ***********/
 
 			/************* MOUSE MESSAGES ****************/
 		case WM_MOUSEMOVE:
 		{
-			const POINTS pt = MAKEPOINTS(lParam);
-			// cursorless exclusive gets first dibs
-			if (!cursorEnabled)
-			{
-				if (!mouse.IsInWindow())
-				{
-					SetCapture(hWnd);
-					mouse.OnMouseEnter();
-					HideCursor();
-				}
-				break;
-			}
+			bool lButton = (wParam & MK_LBUTTON) != 0;
+			bool rButton = (wParam & MK_RBUTTON) != 0;
+			bool mButton = (wParam & MK_MBUTTON) != 0;
+			bool shift = (wParam & MK_SHIFT) != 0;
+			bool control = (wParam & MK_CONTROL) != 0;
+
+			int x = ((int)(short)LOWORD(lParam));
+			int y = ((int)(short)HIWORD(lParam));
+
+			MouseMotionEventArgs mouseMotionEventArgs(lButton, mButton, rButton, control, shift, x, y);
+
 			// in client region -> log move, and log enter + capture mouse (if not previously in window)
-			if (pt.x >= 0 && pt.x < width && pt.y >= 0 && pt.y < height)
+			if (x >= 0 && x < mWindowWidth && y >= 0 && y < mWindowHeight)
 			{
-				mouse.OnMouseMove(pt.x, pt.y);
-				if (!mouse.IsInWindow())
+				MessageQueue.Push(std::bind(&Mouse::OnMouseMove, &Mouse::Get(), mouseMotionEventArgs));
+
+				if (!Mouse::Get().IsInWindow())
 				{
 					SetCapture(hWnd);
-					mouse.OnMouseEnter();
+					MessageQueue.Push(std::bind(&Mouse::OnMouseEnter, &Mouse::Get(), mouseMotionEventArgs));
 				}
 			}
 			// not in client -> log move / maintain capture if button down
@@ -214,109 +264,76 @@ namespace Dash
 			{
 				if (wParam & (MK_LBUTTON | MK_RBUTTON))
 				{
-					mouse.OnMouseMove(pt.x, pt.y);
+					MessageQueue.Push(std::bind(&Mouse::OnMouseMove, &Mouse::Get(), mouseMotionEventArgs));
 				}
 				// button up -> release capture / log event for leaving
 				else
 				{
 					ReleaseCapture();
-					mouse.OnMouseLeave();
+					MessageQueue.Push(std::bind(&Mouse::OnMouseLeave, &Mouse::Get(), mouseMotionEventArgs));
 				}
 			}
 			break;
 		}
 		case WM_LBUTTONDOWN:
-		{
-			SetForegroundWindow(hWnd);
-			if (!cursorEnabled)
-			{
-				ConfineCursor();
-				HideCursor();
-			}
-			const POINTS pt = MAKEPOINTS(lParam);
-			mouse.OnLeftPressed(pt.x, pt.y);
-			break;
-		}
 		case WM_RBUTTONDOWN:
+		case WM_MBUTTONDOWN:
 		{
-			const POINTS pt = MAKEPOINTS(lParam);
-			mouse.OnRightPressed(pt.x, pt.y);
+			bool lButton = (wParam & MK_LBUTTON) != 0;
+			bool rButton = (wParam & MK_RBUTTON) != 0;
+			bool mButton = (wParam & MK_MBUTTON) != 0;
+			bool shift = (wParam & MK_SHIFT) != 0;
+			bool control = (wParam & MK_CONTROL) != 0;
+
+			int x = ((int)(short)LOWORD(lParam));
+			int y = ((int)(short)HIWORD(lParam));
+
+			MouseButtonEventArgs mouseButtonEventArgs(DecodeMouseButton(msg), ButtonState::Pressed, lButton, mButton, rButton, control, shift, x, y);
+			MessageQueue.Push(std::bind(&Mouse::OnMouseButtonPressed, &Mouse::Get(), mouseButtonEventArgs));
 			break;
 		}
 		case WM_LBUTTONUP:
-		{
-			const POINTS pt = MAKEPOINTS(lParam);
-			mouse.OnLeftReleased(pt.x, pt.y);
-			// release mouse if outside of window
-			if (pt.x < 0 || pt.x >= width || pt.y < 0 || pt.y >= height)
-			{
-				ReleaseCapture();
-				mouse.OnMouseLeave();
-			}
-			break;
-		}
 		case WM_RBUTTONUP:
+		case WM_MBUTTONUP:
 		{
-			const POINTS pt = MAKEPOINTS(lParam);
-			mouse.OnRightReleased(pt.x, pt.y);
-			// release mouse if outside of window
-			if (pt.x < 0 || pt.x >= width || pt.y < 0 || pt.y >= height)
-			{
-				ReleaseCapture();
-				mouse.OnMouseLeave();
-			}
+			bool lButton = (wParam & MK_LBUTTON) != 0;
+			bool rButton = (wParam & MK_RBUTTON) != 0;
+			bool mButton = (wParam & MK_MBUTTON) != 0;
+			bool shift = (wParam & MK_SHIFT) != 0;
+			bool control = (wParam & MK_CONTROL) != 0;
+
+			int x = ((int)(short)LOWORD(lParam));
+			int y = ((int)(short)HIWORD(lParam));
+
+			MouseButtonEventArgs mouseButtonEventArgs(DecodeMouseButton(msg), ButtonState::Released, lButton, mButton, rButton, control, shift, x, y);
+			MessageQueue.Push(std::bind(&Mouse::OnMouseButtonReleased, &Mouse::Get(), mouseButtonEventArgs));
 			break;
 		}
 		case WM_MOUSEWHEEL:
 		{
-			const POINTS pt = MAKEPOINTS(lParam);
-			const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
-			mouse.OnWheelDelta(pt.x, pt.y, delta);
+			const int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+			short keyStates = (short)LOWORD(wParam);
+
+			bool lButton = (keyStates & MK_LBUTTON) != 0;
+			bool rButton = (keyStates & MK_RBUTTON) != 0;
+			bool mButton = (keyStates & MK_MBUTTON) != 0;
+			bool shift = (keyStates & MK_SHIFT) != 0;
+			bool control = (keyStates & MK_CONTROL) != 0;
+
+			int x = ((int)(short)LOWORD(lParam));
+			int y = ((int)(short)HIWORD(lParam));
+
+			// Convert the screen coordinates to client coordinates.
+			POINT clientToScreenPoint;
+			clientToScreenPoint.x = x;
+			clientToScreenPoint.y = y;
+			::ScreenToClient(hWnd, &clientToScreenPoint);
+
+			MouseWheelEventArgs mouseWheelEventArgs(zDelta, lButton, mButton, rButton, control, shift, (int)clientToScreenPoint.x, (int)clientToScreenPoint.y);
+			MessageQueue.Push(std::bind(&Mouse::OnMouseWheel, &Mouse::Get(), mouseWheelEventArgs));
 			break;
 		}
 		/************** END MOUSE MESSAGES **************/
-
-		/************** RAW MOUSE MESSAGES **************/
-		case WM_INPUT:
-		{
-			if (!mouse.RawEnabled())
-			{
-				break;
-			}
-			UINT size;
-			// first get the size of the input data
-			if (GetRawInputData(
-				reinterpret_cast<HRAWINPUT>(lParam),
-				RID_INPUT,
-				nullptr,
-				&size,
-				sizeof(RAWINPUTHEADER)) == -1)
-			{
-				// bail msg processing if error
-				break;
-			}
-			rawBuffer.resize(size);
-			// read in the input data
-			if (GetRawInputData(
-				reinterpret_cast<HRAWINPUT>(lParam),
-				RID_INPUT,
-				rawBuffer.data(),
-				&size,
-				sizeof(RAWINPUTHEADER)) != size)
-			{
-				// bail msg processing if error
-				break;
-			}
-			// process the raw input data
-			auto& ri = reinterpret_cast<const RAWINPUT&>(*rawBuffer.data());
-			if (ri.header.dwType == RIM_TYPEMOUSE &&
-				(ri.data.mouse.lLastX != 0 || ri.data.mouse.lLastY != 0))
-			{
-				mouse.OnRawDelta(ri.data.mouse.lLastX, ri.data.mouse.lLastY);
-			}
-			break;
-		}
-		/************** END RAW MOUSE MESSAGES **************/
 		}
 
 		return DefWindowProc(hWnd, msg, wParam, lParam);

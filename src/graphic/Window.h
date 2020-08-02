@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 #include <thread>
-#include <Windows.h>
+#include "../consolid/DashWinAPI.h"
 #include "../design_patterns/Singleton.h"
 
 namespace Dash
@@ -11,9 +11,7 @@ namespace Dash
 	class Window
 	{
 	public:
-		//friend class WindowClassRegister;
-
-		Window(HINSTANCE inst, const std::string& name, const std::string title, size_t width = 1080, size_t height = 720);
+		Window(const std::string& name, const std::string title, size_t width = 1080, size_t height = 720);
 		virtual ~Window();
 
 		const std::string& GetWindowName() const noexcept { return WindowClassRegister::Get()->GetWindowClassName(); }
@@ -38,7 +36,7 @@ namespace Dash
 
 		static LRESULT CALLBACK WinProcFunc(HWND, UINT, WPARAM, LPARAM);
 		static LRESULT CALLBACK HandleMsgThunk(HWND, UINT, WPARAM, LPARAM);
-		LRESULT CALLBACK HandleMsg(HWND, UINT, WPARAM, LPARAM) noexcept;
+		LRESULT HandleMsg(HWND, UINT, WPARAM, LPARAM) noexcept;
 
 		class WindowClassRegister : public Singleton<WindowClassRegister>
 		{

@@ -82,6 +82,7 @@
   <ItemGroup>
     <ClInclude Include="Image.h" />
     <ClInclude Include="src\consolid\consolid.h" />
+    <ClInclude Include="src\consolid\DashWinAPI.h" />
     <ClInclude Include="src\design_patterns\Delegate.h" />
     <ClInclude Include="src\design_patterns\DelegateBase.h" />
     <ClInclude Include="src\design_patterns\MulticastDelegate.h" />

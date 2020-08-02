@@ -5,13 +5,15 @@
 #include <cinttypes>
 #include <cstring>
 
+#include "DashWinAPI.h"
+
 #include "../utility/Assert.h"
 #include "../utility/LogManager.h"
+
 
 #if defined(__SSE__) || (_M_IX86_FP >= 1) || defined(_M_X64)
 #   define USE_SSE 1
 #endif
-#include <Windows.h>
 
 #define USE_IEEE_754 1
 #define USE_ROUNDING_CONTROL 0
@@ -67,7 +69,7 @@ typedef struct tagTHREADNAME_INFO
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-void SetThreadName(std::thread& thread, const char* threadName)
+static void SetThreadName(std::thread& thread, const char* threadName)
 {
 	THREADNAME_INFO info;
 	info.dwType = 0x1000;

@@ -17,6 +17,7 @@
 #include <chrono>
 
 #include "src/utility/Keyboard.h"
+#include "src/graphic/Application.h"
 
 namespace DMath = Dash::Math;
 
@@ -196,14 +197,17 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
-	Dash::Window window{ hInstance, "TestWindow", "RenderProject" };
-	window.ProcessMessage();
+	//Dash::Window window{ hInstance, "TestWindow", "RenderProject" };
+	//window.ProcessMessage();
 
-	using namespace std::chrono_literals;
+	//using namespace std::chrono_literals;
 
-	//std::this_thread::sleep_for(0.5s);
-	window.CloseWindow();
+	//window.CloseWindow();
 
 
-	Dash::Keyboard::Get().IsKeyPressed(KeyCode::A);
+	//Dash::Keyboard::Get().IsKeyPressed(KeyCode::A);
+
+	Dash::Application app;
+
+	app.Run();
 }

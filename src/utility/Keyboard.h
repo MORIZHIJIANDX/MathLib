@@ -17,15 +17,23 @@ namespace Dash
 
 		std::optional<char> ReadChar();
 
-		void FlushCharBuffer();
+		void EnableAutoRepeat();
+		void DisableAutoRepeat();
+		bool IsAutoRepeatEnabled() const;
+
+	public:
+		KeyboardEvent KeyPressed;
+		KeyboardEvent KeyReleased;
 
 	private:
 		Keyboard() {};
 		~Keyboard() {};
 
-		void OnKeyPressed(KeyCode key);
-		void OnKeyReleased(KeyCode key);
+		void OnKeyPressed(KeyEventArgs& e);
+		void OnKeyReleased(KeyEventArgs& e);
 		void OnChar(char character);
+
+		void FlushCharBuffer();
 
 		template<typename T>
 		static void TrimBuffer(std::queue<T>& buffer);
@@ -35,5 +43,6 @@ namespace Dash
 	private:
 		std::bitset<256> mKeyStates;
 		std::queue<char> mCharBuffer;
+		bool mAutoRepeat = false;
 	};
 }

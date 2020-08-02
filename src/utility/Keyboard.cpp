@@ -24,14 +24,26 @@ namespace Dash
 		return {};
 	}
 
-	void Keyboard::OnKeyPressed(KeyCode key)
+	void Keyboard::OnKeyPressed(KeyEventArgs& e)
 	{
-		mKeyStates[static_cast<unsigned int>(key)] = true;
+		if (!e.mRepeat || IsAutoRepeatEnabled())
+		{
+			mKeyStates[static_cast<unsigned int>(e.mKey)] = true;
+		}
+		
+		if (e.mChar != 0)
+		{
+			OnChar(e.mChar);
+		}
+
+		KeyPressed(e);
 	}
 
-	void Keyboard::OnKeyReleased(KeyCode key)
+	void Keyboard::OnKeyReleased(KeyEventArgs& e)
 	{
-		mKeyStates[static_cast<unsigned int>(key)] = false;
+		mKeyStates[static_cast<unsigned int>(e.mKey)] = false;
+
+		KeyReleased(e);
 	}
 
 
@@ -60,4 +72,20 @@ namespace Dash
 	{
 		mCharBuffer = std::queue<char>();
 	}
+
+	void Keyboard::EnableAutoRepeat()
+	{
+		mAutoRepeat = true;
+	}
+
+	void Keyboard::DisableAutoRepeat()
+	{
+		mAutoRepeat = false;
+	}
+
+	bool Keyboard::IsAutoRepeatEnabled() const
+	{
+		return mAutoRepeat;
+	}
+
 }

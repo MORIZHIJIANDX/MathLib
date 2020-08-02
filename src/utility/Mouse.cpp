@@ -51,7 +51,7 @@ namespace Dash
 
 	void Mouse::OnMouseWheel(const MouseWheelEventArgs& e)
 	{
-		mMouseWheelAccumulate += e.m_WheelDelta;
+		mMouseWheelAccumulate += e.mWheelDelta;
 
 		if (mMouseWheelAccumulate >= WHEEL_DELTA)
 		{

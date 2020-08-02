@@ -1,13 +1,14 @@
 #include "Application.h"
 #include "../consolid/consolid.h"
 #include "../utility/HighResolutionTimer.h"
+#include "../utility/Keyboard.h"
 
 namespace Dash
 {
 	#define RENDER_WINDOW_CLASS_NAME "RenderWindowClass"
 
 	Application::Application()
-		: mWindow(::GetModuleHandle(nullptr), RENDER_WINDOW_CLASS_NAME, "Test")
+		: mWindow(RENDER_WINDOW_CLASS_NAME, "Test")
 		, mIsRunning(false)
 	{
 		
@@ -63,6 +64,8 @@ namespace Dash
 
 			double deltaTime = timer.DeltaSeconds();
 			double elapsedTime = timer.ElapsedSeconds();
+
+			mWindow.ProcessMessage();
 
 			OnUpdate(UpdateEventArgs{ deltaTime, elapsedTime, frameCount });
 			OnRender(RenderEventArgs{ deltaTime, elapsedTime, frameCount });

@@ -159,6 +159,9 @@
     <ClInclude Include="src\utility\Events.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\consolid\DashWinAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
