@@ -111,7 +111,7 @@ namespace Dash
 		using base = EventArgs;
 
 		MouseButtonEventArgs(MouseButton buttonID, ButtonState state, bool leftButton, bool middleButton, bool rightButton, bool control, bool shift, int x, int y)
-			: m_Button(buttonID)
+			: mButton(buttonID)
 			, mState(state)
 			, mLeftButton(leftButton)
 			, mMiddleButton(middleButton)
@@ -122,7 +122,7 @@ namespace Dash
 			, mY(y)
 		{}
 
-		MouseButton m_Button; // The mouse button that was pressed or released.
+		MouseButton mButton; // The mouse button that was pressed or released.
 		ButtonState mState;  // Was the button pressed or released?
 		bool mLeftButton;    // Is the left mouse button down?
 		bool mMiddleButton;  // Is the middle mouse button down?

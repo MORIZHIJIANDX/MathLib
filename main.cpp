@@ -18,6 +18,8 @@
 
 #include "src/utility/Keyboard.h"
 #include "src/graphic/Application.h"
+#include "src/utility/LogManager.h"
+#include "src/utility/LogStream.h"
 
 namespace DMath = Dash::Math;
 
@@ -207,7 +209,14 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 	//Dash::Keyboard::Get().IsKeyPressed(KeyCode::A);
 
+	Dash::LogManager::Get()->Init();
+	Dash::LogManager::Get()->RegisterLogStream(std::make_shared<Dash::LogStreamConsole>());
+
+	LOG_INFO << "Application Run";
+
 	Dash::Application app;
 
 	app.Run();
+
+	Dash::LogManager::Get()->Shutdown();
 }
