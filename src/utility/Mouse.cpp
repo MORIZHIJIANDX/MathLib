@@ -1,5 +1,8 @@
 #include "Mouse.h"
 
+#include "../utility/LogManager.h"
+#include "../utility/LogStream.h"
+
 namespace Dash
 {
 	Mouse& Mouse::Get()
@@ -23,7 +26,7 @@ namespace Dash
 		return mMousePos;
 	}
 
-	void Mouse::OnMouseButtonPressed(const MouseButtonEventArgs& e)
+	void Mouse::OnMouseButtonPressed(MouseButtonEventArgs& e)
 	{
 		mMouseButtonState[static_cast<unsigned int>(MouseButton::Left)] = e.mLeftButton;
 		mMouseButtonState[static_cast<unsigned int>(MouseButton::Middle)] = e.mMiddleButton;
@@ -31,9 +34,13 @@ namespace Dash
 
 		mMousePos.x = e.mX;
 		mMousePos.y = e.mY;
+
+		MouseButtonPressed(e);
+
+		LOG_INFO << "Button : " << static_cast<unsigned int>(e.mButton) << " , State : " << static_cast<unsigned int>(e.mState);
 	}
 
-	void Mouse::OnMouseButtonReleased(const MouseButtonEventArgs& e)
+	void Mouse::OnMouseButtonReleased(MouseButtonEventArgs& e)
 	{
 		mMouseButtonState[static_cast<unsigned int>(MouseButton::Left)] = e.mLeftButton;
 		mMouseButtonState[static_cast<unsigned int>(MouseButton::Middle)] = e.mMiddleButton;
@@ -41,15 +48,19 @@ namespace Dash
 
 		mMousePos.x = e.mX;
 		mMousePos.y = e.mY;
+
+		MouseButtonReleased(e);
 	}
 
-	void Mouse::OnMouseMove(const MouseMotionEventArgs& e)
+	void Mouse::OnMouseMove(MouseMotionEventArgs& e)
 	{
 		mMousePos.x = e.mX;
 		mMousePos.y = e.mY;
+
+		MouseMoved(e);
 	}
 
-	void Mouse::OnMouseWheel(const MouseWheelEventArgs& e)
+	void Mouse::OnMouseWheel(MouseWheelEventArgs& e)
 	{
 		mMouseWheelAccumulate += e.mWheelDelta;
 
@@ -65,21 +76,23 @@ namespace Dash
 		}
 	}
 
-	void Mouse::OnMouseLeave(const MouseMotionEventArgs& e)
+	void Mouse::OnMouseLeave(MouseMotionEventArgs& e)
 	{
 		mIsInWindow = false;
 	}
 
-	void Mouse::OnMouseEnter(const MouseMotionEventArgs& e)
+	void Mouse::OnMouseEnter(MouseMotionEventArgs& e)
 	{
 		mIsInWindow = true;
 	}
 
 	void Mouse::OnMouseWheelDown()
 	{
+		LOG_INFO << "Mouse Wheel Down";
 	}
 
 	void Mouse::OnMouseWheelUp()
 	{
+		LOG_INFO << "Mouse Wheel Up";
 	}
 }

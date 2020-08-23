@@ -49,7 +49,7 @@ namespace Dash
 	};
 }
 
-#define LOG_INFO (Dash::LogManager::Get()->operator()(Core::LogLevel::Info)) << "[File]: " << __FILE__ << "  [Line]: " << __LINE__ << "  [Function]: " << __FUNCTION__ << "  [Info]: "
-#define LOG_WARNING (Dash::LogManager::Get()->operator()(Core::LogLevel::Warning)) << "[File]: " << __FILE__ << "  [Line]: " << __LINE__ << "  [Function]: " << __FUNCTION__ << "  [Warning]: "
-#define LOG_ERROR (Dash::LogManager::Get()->operator()(Core::LogLevel::Error)) << "[File]: " << __FILE__ << "  [Line]: " << __LINE__ << "  [Function]: " << __FUNCTION__ << "  [Error]: "
+#define LOG_INFO (Dash::LogManager::Get()->operator()(Dash::LogLevel::Info)) << "[File]: " << __FILE__ << "  [Line]: " << __LINE__ << "  [Function]: " << __FUNCTION__ << "  [Info]: "
+#define LOG_WARNING (Dash::LogManager::Get()->operator()(Dash::LogLevel::Warning)) << "[File]: " << __FILE__ << "  [Line]: " << __LINE__ << "  [Function]: " << __FUNCTION__ << "  [Warning]: "
+#define LOG_ERROR (Dash::LogManager::Get()->operator()(Dash::LogLevel::Error)) << "[File]: " << __FILE__ << "  [Line]: " << __LINE__ << "  [Function]: " << __FUNCTION__ << "  [Error]: "
 

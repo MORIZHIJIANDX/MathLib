@@ -15,19 +15,25 @@ namespace Dash
 		bool IsMouseButtonPressed(MouseButton button) const;
 		bool IsInWindow() const;
 		Vector2i GetMousePos() const;
+	
+	public:
 
+		MouseButtonEvent MouseButtonPressed;
+		MouseButtonEvent MouseButtonReleased;
+		MouseMotionEvent MouseMoved;
+		
 	private:
 		Mouse() : mMouseWheelAccumulate(0), mIsInWindow(false) {};
 		~Mouse() {};
 
-		void OnMouseButtonPressed(const MouseButtonEventArgs& e);
-		void OnMouseButtonReleased(const MouseButtonEventArgs& e);
+		void OnMouseButtonPressed(MouseButtonEventArgs& e);
+		void OnMouseButtonReleased(MouseButtonEventArgs& e);
 
-		void OnMouseMove(const MouseMotionEventArgs& e);
-		void OnMouseWheel(const MouseWheelEventArgs& e);
+		void OnMouseMove(MouseMotionEventArgs& e);
+		void OnMouseWheel(MouseWheelEventArgs& e);
 		
-		void OnMouseLeave(const MouseMotionEventArgs& e);
-		void OnMouseEnter(const MouseMotionEventArgs& e);
+		void OnMouseLeave(MouseMotionEventArgs& e);
+		void OnMouseEnter(MouseMotionEventArgs& e);
 
 		void OnMouseWheelDown();
 		void OnMouseWheelUp();
