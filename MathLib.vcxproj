@@ -88,6 +88,7 @@
     <ClInclude Include="src\design_patterns\MulticastDelegate.h" />
     <ClInclude Include="src\design_patterns\Singleton.h" />
     <ClInclude Include="src\graphic\Application.h" />
+    <ClInclude Include="src\graphic\ApplicationDX12.h" />
     <ClInclude Include="src\graphic\Camera.h" />
     <ClInclude Include="src\graphic\Viewport.h" />
     <ClInclude Include="src\graphic\Window.h" />
@@ -134,6 +135,7 @@
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\graphic\Application.cpp" />
+    <ClCompile Include="src\graphic\ApplicationDX12.cpp" />
     <ClCompile Include="src\graphic\Camera.cpp" />
     <ClCompile Include="src\graphic\Window.cpp" />
     <ClCompile Include="src\shapes\Plane.cpp" />

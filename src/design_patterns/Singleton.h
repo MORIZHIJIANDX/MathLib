@@ -15,8 +15,8 @@ namespace Dash
 	protected:
 		Singleton<T>() = default;
 
-		static std::unique_ptr<T> m_Instance;
-		static std::once_flag m_Once;
+		static std::unique_ptr<T> mInstance;
+		static std::once_flag mOnce;
 
 	public:
 		virtual ~Singleton<T>() = default;
@@ -24,14 +24,14 @@ namespace Dash
 		template<typename... Args>
 		static T* Get(Args&& ...args)
 		{
-			std::call_once(m_Once, [&]() {
-				m_Instance.reset(new T(std::forward<Args>(args)...));
+			std::call_once(mOnce, [&]() {
+				mInstance.reset(new T(std::forward<Args>(args)...));
 			});
-			return m_Instance.get();
+			return mInstance.get();
 		}
 	};
 
-	template<typename T> std::unique_ptr<T> Singleton<T>::m_Instance;
-	template<typename T> std::once_flag Singleton<T>::m_Once;
+	template<typename T> std::unique_ptr<T> Singleton<T>::mInstance;
+	template<typename T> std::once_flag Singleton<T>::mOnce;
 
 }

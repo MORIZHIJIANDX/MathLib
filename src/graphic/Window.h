@@ -25,12 +25,14 @@ namespace Dash
 
 		void SetTitle(const std::string& title) noexcept;
 		virtual void SetFullScreen(bool fullScreen) noexcept;
-		
+
 		bool IsFullScreen() const noexcept;
 
 		int WindowsMessageLoop() noexcept;
 
 		void ProcessMessage() noexcept;
+
+		HWND GetWindowHandle() noexcept { return mWindowHandle; }
 
 	private:
 
