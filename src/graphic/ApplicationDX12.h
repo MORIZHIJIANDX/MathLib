@@ -24,7 +24,7 @@ namespace Dash
 	{
 	public:
 		ApplicationDX12();
-		~ApplicationDX12();
+		virtual ~ApplicationDX12();
 
 		void OnRender(const RenderEventArgs& e) override;
 		void OnUpdate(const UpdateEventArgs& e) override;
@@ -45,11 +45,23 @@ namespace Dash
 		Microsoft::WRL::ComPtr<ID3D12Resource> mBackBuffers[BackBufferFrameCount];
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> mD3DRootSignature;
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> mD3DPipelineState;
+
 		Microsoft::WRL::ComPtr<ID3D12Resource> mVertexBuffer;
-		Microsoft::WRL::ComPtr<ID3D12Fence> mD3DFence;
+		D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
 
 		D3D12_VIEWPORT mD3DViewport;
 		D3D12_RECT mD3DScissorRect;
+
+		Microsoft::WRL::ComPtr<ID3D12Fence> mD3DFence;
+		UINT64 mFenceValue;
+		HANDLE mFanceEvent = nullptr;
+
+		UINT64 mCurrentFrameIndex;
+		UINT64 mTotalFrame;
+
+		UINT64 mDescriptorHeapIncrementSize;
+
+		UINT mDXGIFactoryFlag;
 	};
 
 }
