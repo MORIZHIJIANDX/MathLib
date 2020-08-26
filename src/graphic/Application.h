@@ -17,7 +17,7 @@ namespace Dash
 		virtual void OnRender(const RenderEventArgs& e);
 		virtual void OnUpdate(const UpdateEventArgs& e);
 
-	private:
+	protected:
 		void UpdateThread();
 
 		Window mWindow;

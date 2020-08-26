@@ -56,6 +56,46 @@ namespace Dash
 		mDXGIFactory->EnumAdapters1(adapterList[0].Index, &mDXGIAdapter);
 		D3D12CreateDevice(mDXGIAdapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&mD3DDevice));
 
+		D3D12_COMMAND_QUEUE_DESC commandQueueDesc;
+		commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT;
+		mD3DDevice->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&mD3DCommandQueue));
+
+		DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
+		swapChainDesc.BufferCount = ApplicationDX12::BackBufferFrameCount;
+		swapChainDesc.Width = mWindow.GetWindowWidth();
+		swapChainDesc.Height = mWindow.GetWindowHeight();
+		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		swapChainDesc.SampleDesc.Count = 1;
+
+		mDXGIFactory->CreateSwapChainForHwnd(mD3DCommandQueue.Get(), mWindow.GetWindowHandle(), &swapChainDesc, nullptr, nullptr, &mDXGISwapChain);
+
+		ASSERT(SUCCEEDED(mDXGISwapChain.As(&mDXGISwapChain3)));
+
+		mCurrentBackBufferIndex = mDXGISwapChain3->GetCurrentBackBufferIndex();
+
+		D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc;
+		rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		rtvDescriptorHeapDesc.NumDescriptors = ApplicationDX12::BackBufferFrameCount;
+		rtvDescriptorHeapDesc.NodeMask = 0;
+		rtvDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+		mD3DDevice->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(&mBackBufferDescriptorHeap));
+
+		mDescriptorHeapIncrementSize = mD3DDevice->GetDescriptorHandleIncrementSize(rtvDescriptorHeapDesc.Type);
+
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle(mBackBufferDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+
+		for (size_t i = 0; i < rtvDescriptorHeapDesc.NumDescriptors; i++)
+		{
+			mDXGISwapChain->GetBuffer(i, IID_PPV_ARGS(&mBackBuffers[i]));
+			mD3DDevice->CreateRenderTargetView(mBackBuffers[i].Get(), nullptr, rtvHandle);
+			rtvHandle.ptr = SIZE_T((INT64)rtvHandle.ptr + (INT64)mDescriptorHeapIncrementSize);
+		}
+
+		mD3DDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mD3DCommandAllocator));
+
 
 	}
 

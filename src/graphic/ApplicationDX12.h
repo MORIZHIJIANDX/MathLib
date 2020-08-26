@@ -37,7 +37,8 @@ namespace Dash
 		Microsoft::WRL::ComPtr<IDXGIFactory5> mDXGIFactory;
 		Microsoft::WRL::ComPtr<IDXGIAdapter1> mDXGIAdapter;
 		Microsoft::WRL::ComPtr<ID3D12Device> mD3DDevice;
-		Microsoft::WRL::ComPtr<IDXGISwapChain> mDXGISwapChain;
+		Microsoft::WRL::ComPtr<IDXGISwapChain1> mDXGISwapChain;
+		Microsoft::WRL::ComPtr<IDXGISwapChain3> mDXGISwapChain3;
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> mD3DCommandQueue;
 		Microsoft::WRL::ComPtr<ID3D12CommandList> mD3DCommandList;
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mD3DCommandAllocator;
@@ -56,7 +57,7 @@ namespace Dash
 		UINT64 mFenceValue;
 		HANDLE mFanceEvent = nullptr;
 
-		UINT64 mCurrentFrameIndex;
+		UINT64 mCurrentBackBufferIndex;
 		UINT64 mTotalFrame;
 
 		UINT64 mDescriptorHeapIncrementSize;
