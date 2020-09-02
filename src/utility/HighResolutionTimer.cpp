@@ -3,36 +3,39 @@
 namespace Dash
 {
 	HighResolutionTimer::HighResolutionTimer()
-		: mElapsedTimeTime(0), mDeltaTime(0)
+		: mElapsedTime(0), mDeltaTime(0)
 	{
 		mStart = std::chrono::steady_clock::now();
 	}
 
 	void HighResolutionTimer::Update()
 	{
-		double currCount = (std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - mStart)).count();
-		mDeltaTime = currCount - mElapsedTimeTime;
-		mElapsedTimeTime = currCount;
+		//double currCount = (std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - mStart)).count();
+		double currCount = (std::chrono::duration<double>(std::chrono::steady_clock::now() - mStart)).count();
+		mDeltaTime = currCount - mElapsedTime;
+		mElapsedTime = currCount;
 	}
 
 	double HighResolutionTimer::ElapsedSeconds() const
 	{
-		return mElapsedTimeTime * 0.000001;
+		//return mElapsedTime * 0.000001;
+		return mElapsedTime;
 	}
 
 	double HighResolutionTimer::ElapsedMilliSeconds() const
 	{
-		return mElapsedTimeTime * 0.001;
+		return mElapsedTime * 0.001;
 	}
 
 	double HighResolutionTimer::ElapsedMicroSeconds() const
 	{
-		return mElapsedTimeTime;
+		return mElapsedTime;
 	}
 
 	double HighResolutionTimer::DeltaSeconds() const
 	{
-		return mDeltaTime * 0.000001;
+		//return mDeltaTime * 0.000001;
+		return mDeltaTime;
 	}
 
 	double HighResolutionTimer::DeltaMilliSeconds() const

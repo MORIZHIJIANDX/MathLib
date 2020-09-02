@@ -21,6 +21,11 @@
 #include "src/utility/LogManager.h"
 #include "src/utility/LogStream.h"
 
+#include "src/graphic/ApplicationDX12.h"
+
+#include "src/graphic/App.h"
+#include "src/graphic/Sample.h"
+
 namespace DMath = Dash::Math;
 
 template<typename T, std::size_t N>
@@ -209,14 +214,17 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 	//Dash::Keyboard::Get().IsKeyPressed(KeyCode::A);
 
-	Dash::LogManager::Get()->Init();
-	Dash::LogManager::Get()->RegisterLogStream(std::make_shared<Dash::LogStreamConsole>());
+	//Dash::LogManager::Get()->Init();
+	//Dash::LogManager::Get()->RegisterLogStream(std::make_shared<Dash::LogStreamConsole>());
 
-	LOG_INFO << "Application Run";
+	//LOG_INFO << "Application Run";
 
-	Dash::Application app;
+	//Dash::ApplicationDX12 app;
+	//app.Run();
 
-	app.Run();
+	DXSample sample(1280, 720, L"D3D12 Hello Window");
+	return Win32Application::Run(&sample, hInstance, nCmdShow);
 
-	Dash::LogManager::Get()->Shutdown();
+
+	//Dash::LogManager::Get()->Shutdown();
 }

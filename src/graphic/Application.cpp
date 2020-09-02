@@ -3,6 +3,8 @@
 #include "../utility/HighResolutionTimer.h"
 #include "../utility/Keyboard.h"
 
+#include "../utility/Exception.h"
+
 namespace Dash
 {
 	#define RENDER_WINDOW_CLASS_NAME "RenderWindowClass"
@@ -24,19 +26,23 @@ namespace Dash
 
 		mIsRunning = true;
 
-		std::thread updateThread = std::thread{&Application::UpdateThread, this};
-		SetThreadName(updateThread, "UpdateThread");
+		UpdateThread();
 
-		int returnCode = mWindow.WindowsMessageLoop();
+		//std::thread updateThread = std::thread{&Application::UpdateThread, this};
+		//SetThreadName(updateThread, "UpdateThread");
 
-		mIsRunning = false;
+		//int returnCode = mWindow.WindowsMessageLoop();
 
-		if (updateThread.joinable())
-		{
-			updateThread.join();
-		}
+		//mIsRunning = false;
 
-		return returnCode;
+		//if (updateThread.joinable())
+		//{
+		//	updateThread.join();
+		//}
+
+		//return returnCode;
+
+		return 0;
 	}
 
 	void Application::Stop()
@@ -54,25 +60,34 @@ namespace Dash
 
 	void Application::UpdateThread()
 	{
-		HighResolutionTimer timer;
-
-		size_t frameCount = 0;
-
-		while (mIsRunning)
+		try
 		{
-			timer.Update();
+			HighResolutionTimer timer;
 
-			double deltaTime = timer.DeltaSeconds();
-			double elapsedTime = timer.ElapsedSeconds();
+			size_t frameCount = 0;
 
-			mWindow.ProcessMessage();
+			while (mIsRunning)
+			{
+				timer.Update();
 
-			OnUpdate(UpdateEventArgs{ deltaTime, elapsedTime, frameCount });
-			OnRender(RenderEventArgs{ deltaTime, elapsedTime, frameCount });
+				double deltaTime = timer.DeltaSeconds();
+				double elapsedTime = timer.ElapsedSeconds();
 
-			++frameCount;
-			
-			std::this_thread::yield();
+				mWindow.WindowsMessageLoop();
+
+				mWindow.ProcessMessage();
+
+				OnUpdate(UpdateEventArgs{ deltaTime, elapsedTime, frameCount });
+				OnRender(RenderEventArgs{ deltaTime, elapsedTime, frameCount });
+
+				++frameCount;
+
+				//std::this_thread::yield();
+			}
+		}
+		catch (const HrException& e)
+		{
+			MessageBoxA(NULL, HrToString(e.Error()).c_str(), "Error", MB_ICONERROR);
 		}
 	}
 }

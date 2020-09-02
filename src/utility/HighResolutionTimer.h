@@ -26,6 +26,6 @@ namespace Dash
 
 	private:
 		std::chrono::steady_clock::time_point mStart;
-		double mElapsedTimeTime, mDeltaTime;
+		double mElapsedTime, mDeltaTime;
 	};
 }

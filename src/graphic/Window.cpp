@@ -25,17 +25,30 @@ namespace Dash
 		winRect.right = winRect.left + width;
 		winRect.bottom = winRect.top + height;
 
-		::AdjustWindowRect(&winRect, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE);
+		::AdjustWindowRect(&winRect, WS_OVERLAPPEDWINDOW, FALSE);
 
-		mWindowHandle = CreateWindowEx(
-			WS_EX_OVERLAPPEDWINDOW,
+		//mWindowHandle = CreateWindowEx(
+		//	WS_EX_OVERLAPPEDWINDOW,
+		//	GetWindowName().c_str(),
+		//	title.c_str(),
+		//	WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
+		//	CW_USEDEFAULT, CW_USEDEFAULT,
+		//	static_cast<int>(winRect.right - winRect.left), static_cast<int>(winRect.bottom - winRect.top),
+		//	nullptr,
+		//	nullptr,
+		//	Window::WindowClassRegister::Get()->GetWindowInstance(),
+		//	this);
+
+		mWindowHandle = CreateWindow(
 			GetWindowName().c_str(),
 			title.c_str(),
-			WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
-			CW_USEDEFAULT, CW_USEDEFAULT,
-			static_cast<int>(winRect.right - winRect.left), static_cast<int>(winRect.bottom - winRect.top),
-			nullptr,
-			nullptr,
+			WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT,
+			CW_USEDEFAULT,
+			static_cast<int>(winRect.right - winRect.left), 
+			static_cast<int>(winRect.bottom - winRect.top),
+			nullptr,        // We have no parent window.
+			nullptr,        // We aren't using menus.
 			Window::WindowClassRegister::Get()->GetWindowInstance(),
 			this);
 
@@ -90,21 +103,33 @@ namespace Dash
 	{
 		MSG msg = {};
 
-		while (true)
-		{
-			while (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-			{
-				if ((msg.message == WM_QUIT) || (mRequestQuit == true))
-				{
-					mRequestQuit = false;
-					return msg.wParam;
-				}
+		//while (true)
+		//{
+		//	while (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		//	{
+		//		if ((msg.message == WM_QUIT) || (mRequestQuit == true))
+		//		{
+		//			mRequestQuit = false;
+		//			return msg.wParam;
+		//		}
 
-				::TranslateMessage(&msg);
-				::DispatchMessageA(&msg);
+		//		::TranslateMessage(&msg);
+		//		::DispatchMessageA(&msg);
+		//	}
+
+		//	std::this_thread::yield();
+		//}
+
+		while (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		{
+			if ((msg.message == WM_QUIT) || (mRequestQuit == true))
+			{
+				mRequestQuit = false;
+				return msg.wParam;
 			}
 
-			std::this_thread::yield();
+			::TranslateMessage(&msg);
+			::DispatchMessageA(&msg);
 		}
 	}
 
@@ -363,14 +388,15 @@ namespace Dash
 		ZeroMemory(&winClass, sizeof(WNDCLASSEX));
 		
 		winClass.cbSize = sizeof(winClass);
-		winClass.style = CS_OWNDC;
+		winClass.style = CS_HREDRAW | CS_VREDRAW;
 		winClass.lpfnWndProc = Window::WinProcFunc;
 		winClass.cbClsExtra = 0;
 		winClass.cbWndExtra = 0;
 		winClass.hInstance = mWindowInstance;
 		winClass.hIcon = nullptr;
 		winClass.hCursor = nullptr;
-		winClass.hbrBackground = nullptr;
+		//winClass.hbrBackground = nullptr;
+		winClass.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
 		winClass.lpszMenuName = nullptr;
 		winClass.lpszClassName = mWindowClassName.c_str();
 		winClass.hIconSm = nullptr;

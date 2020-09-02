@@ -14,7 +14,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{47D90E3A-8B69-46A2-9E8B-CDAEA8D83BCF}</ProjectGuid>
     <RootNamespace>MathLib</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -54,6 +54,8 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>d3d12.dll;D3d12SDKLayers.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -87,9 +89,12 @@
     <ClInclude Include="src\design_patterns\DelegateBase.h" />
     <ClInclude Include="src\design_patterns\MulticastDelegate.h" />
     <ClInclude Include="src\design_patterns\Singleton.h" />
+    <ClInclude Include="src\graphic\App.h" />
     <ClInclude Include="src\graphic\Application.h" />
     <ClInclude Include="src\graphic\ApplicationDX12.h" />
     <ClInclude Include="src\graphic\Camera.h" />
+    <ClInclude Include="src\graphic\d3dx12.h" />
+    <ClInclude Include="src\graphic\Sample.h" />
     <ClInclude Include="src\graphic\Viewport.h" />
     <ClInclude Include="src\graphic\Window.h" />
     <ClInclude Include="src\math\AABB2.h" />
@@ -122,6 +127,7 @@
     <ClInclude Include="src\shapes\Triangle.h" />
     <ClInclude Include="src\utility\Assert.h" />
     <ClInclude Include="src\utility\Events.h" />
+    <ClInclude Include="src\utility\Exception.h" />
     <ClInclude Include="src\utility\HighResolutionTimer.h" />
     <ClInclude Include="src\utility\Keyboard.h" />
     <ClInclude Include="src\utility\KeyCodes.h" />
@@ -134,9 +140,11 @@
   <ItemGroup>
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\graphic\App.cpp" />
     <ClCompile Include="src\graphic\Application.cpp" />
     <ClCompile Include="src\graphic\ApplicationDX12.cpp" />
     <ClCompile Include="src\graphic\Camera.cpp" />
+    <ClCompile Include="src\graphic\Sample.cpp" />
     <ClCompile Include="src\graphic\Window.cpp" />
     <ClCompile Include="src\shapes\Plane.cpp" />
     <ClCompile Include="src\shapes\Shape.cpp" />
@@ -148,6 +156,14 @@
     <ClCompile Include="src\utility\LogManager.cpp" />
     <ClCompile Include="src\utility\LogStream.cpp" />
     <ClCompile Include="src\utility\Mouse.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS</EntryPointName>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
