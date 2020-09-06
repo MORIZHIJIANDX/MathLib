@@ -9,6 +9,11 @@
 
 #include <string>
 
+#pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3d12.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+
 using Microsoft::WRL::ComPtr;
 
 class DXSample
@@ -27,8 +32,8 @@ public:
     virtual void OnKeyUp(UINT8 /*key*/) {}
 
     // Accessors.
-    UINT GetWidth() const { return m_width; }
-    UINT GetHeight() const { return m_height; }
+    UINT GetWidth() const { return mWidth; }
+    UINT GetHeight() const { return mHeight; }
     const WCHAR* GetTitle() const { return m_title.c_str(); }
 
     void ParseCommandLineArgs(_In_reads_(argc) WCHAR* argv[], int argc);
@@ -44,8 +49,8 @@ protected:
     void SetCustomWindowText(LPCWSTR text);
 
     // Viewport dimensions.
-    UINT m_width;
-    UINT m_height;
+    UINT mWidth;
+    UINT mHeight;
     float m_aspectRatio;
 
     // Adapter info.
@@ -67,62 +72,32 @@ private:
     void LoadPipeline();
     void LoadAssets();
 
-//public:
+public:
     static const UINT BackBufferFrameCount = 2;
-//
-//private:
-//
-    Microsoft::WRL::ComPtr<IDXGIFactory4> mDXGIFactory;
-    Microsoft::WRL::ComPtr<IDXGIAdapter1> mDXGIAdapter;
-    Microsoft::WRL::ComPtr<ID3D12Device> mD3DDevice;
-    Microsoft::WRL::ComPtr<IDXGISwapChain1> mDXGISwapChain;
-    Microsoft::WRL::ComPtr<IDXGISwapChain3> mDXGISwapChain3;
-    Microsoft::WRL::ComPtr<ID3D12CommandQueue> mD3DCommandQueue;
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mD3DCommandList;
-    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mD3DCommandAllocator;
-    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mBackBufferDescriptorHeap;
-    Microsoft::WRL::ComPtr<ID3D12Resource> mBackBuffers[BackBufferFrameCount];
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> mD3DRootSignature;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> mD3DPipelineState;
 
-    Microsoft::WRL::ComPtr<ID3D12Resource> mVertexBuffer;
+private:
+    ComPtr<IDXGIFactory4> mDXGIFatory;
+    ComPtr<IDXGISwapChain3> mSwapChain;
+
+    ComPtr<ID3D12Device> mD3DDevice;
+    ComPtr<ID3D12CommandQueue> mD3DCommandQueue;
+    ComPtr<ID3D12DescriptorHeap> mDescriptorHeap;
+    ComPtr<ID3D12Resource> mBackBuffers[BackBufferFrameCount];
+    ComPtr<ID3D12RootSignature> mRootSignature;
+    ComPtr<ID3D12PipelineState> mPipelineState;
+    ComPtr<ID3D12Resource> mVertexBuffer;
     D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
 
-    D3D12_VIEWPORT mD3DViewport;
-    D3D12_RECT mD3DScissorRect;
+    ComPtr<ID3D12CommandAllocator> mCommandAllocator;
+    ComPtr<ID3D12GraphicsCommandList> mCommandList;
+    ComPtr<ID3D12Fence> mFence;
 
-    Microsoft::WRL::ComPtr<ID3D12Fence> mD3DFence;
-    UINT64 mFenceValue;
-    HANDLE mFanceEvent = nullptr;
+    UINT mBackBufferIndex;
+    UINT mDescriptorHandleIncrementSize;
+    UINT mFenceValue;
 
-    UINT64 mCurrentBackBufferIndex;
-    UINT64 mTotalFrame;
+    HANDLE mFenceEvent;
 
-    UINT64 mDescriptorHeapIncrementSize;
-
-    UINT mDXGIFactoryFlag;
-
-    D3D12_VIEWPORT mViewPort;
-    D3D12_RECT mScissorRect;
-
-    static const UINT FrameCount = 2;
-
-    // Pipeline objects.
-    ComPtr<IDXGISwapChain3> m_swapChain;
-    ComPtr<ID3D12Device> m_device;
-    ComPtr<ID3D12Resource> m_renderTargets[FrameCount];
-    ComPtr<ID3D12CommandAllocator> m_commandAllocator;
-    ComPtr<ID3D12CommandQueue> m_commandQueue;
-    ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
-    ComPtr<ID3D12PipelineState> m_pipelineState;
-    ComPtr<ID3D12GraphicsCommandList> m_commandList;
-    UINT m_rtvDescriptorSize;
-
-    // Synchronization objects.
-    UINT m_frameIndex;
-    HANDLE m_fenceEvent;
-    ComPtr<ID3D12Fence> m_fence;
-    UINT64 m_fenceValue;
-
-
+    D3D12_VIEWPORT mViewport;
+    RECT mScissorRect;
 };

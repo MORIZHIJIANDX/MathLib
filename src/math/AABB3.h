@@ -161,7 +161,7 @@ namespace Dash
 		FORCEINLINE void BoundingSphere(const AABB<Scalar, 3>& b, ScalarArray<Scalar, 3>& center, Scalar& radius) noexcept
 		{
 			center = (b.Lower + b.Upper) / Scalar{ 2 };
-			radius = Inside(center, *this) ? Distance(center, b.Upper) : Scalar{};
+			radius = Inside(center, b) ? Distance(center, b.Upper) : Scalar{};
 		}
 
 		template<typename Scalar>
