@@ -98,6 +98,7 @@ namespace Dash
 
         mBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
 	}
+
 	void ApplicationDX12::LoadPipeline()
 	{
         UINT dxgiFactoryFlag = 0;

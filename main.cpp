@@ -9,7 +9,7 @@
 
 #include "src/graphic/Camera.h"
 
-#include "Image.h"
+//#include "Image.h"
 
 #include "src/graphic/Window.h"
 

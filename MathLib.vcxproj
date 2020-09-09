@@ -84,7 +84,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Image.h" />
+    <ClInclude Include="src\utility\Image.h" />
     <ClInclude Include="src\consolid\consolid.h" />
     <ClInclude Include="src\consolid\DashWinAPI.h" />
     <ClInclude Include="src\design_patterns\Delegate.h" />
@@ -131,6 +131,7 @@
     <ClInclude Include="src\utility\Events.h" />
     <ClInclude Include="src\utility\Exception.h" />
     <ClInclude Include="src\utility\HighResolutionTimer.h" />
+    <ClInclude Include="src\utility\ImageHelper.h" />
     <ClInclude Include="src\utility\Keyboard.h" />
     <ClInclude Include="src\utility\KeyCodes.h" />
     <ClInclude Include="src\utility\LogEnums.h" />
@@ -140,7 +141,7 @@
     <ClInclude Include="src\utility\ThreadSafeQueue.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="src\utility\Image.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\graphic\App.cpp" />
     <ClCompile Include="src\graphic\Application.cpp" />
