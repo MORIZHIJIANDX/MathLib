@@ -8,7 +8,7 @@ namespace Dash
 	class Application
 	{
 	public:
-		Application();
+		Application(size_t windowWidth, size_t windowHeight);
 		virtual ~Application();
 
 		virtual int Run();

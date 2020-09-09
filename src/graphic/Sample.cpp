@@ -165,9 +165,9 @@ void DXSample::LoadAssets()
 
         Vertex triangle[] =
         {
-            { {0.0f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f} },
-            { {0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f, 1.0f} },
-            { {-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f} },
+            { { 0.0f, 0.25f , 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+            { { 0.25f, -0.25f , 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+            { { -0.25f, -0.25f , 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
         };
 
         const UINT vertexBufferSize = sizeof(triangle);
@@ -215,6 +215,9 @@ void DXSample::LoadAssets()
         mScissorRect.top = 0.0f;
         mScissorRect.bottom = mHeight;
     }
+
+
+    WaitForPreviousFrame();
 }
 
 void DXSample::PopulateCommandList()
@@ -223,8 +226,8 @@ void DXSample::PopulateCommandList()
     ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPipelineState.Get()));
 
     mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
-    mCommandList->RSSetViewports(0, &mViewport);
-    mCommandList->RSSetScissorRects(0, &mScissorRect);
+    mCommandList->RSSetViewports(1, &mViewport);
+    mCommandList->RSSetScissorRects(1, &mScissorRect);
 
     mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(mBackBuffers[mBackBufferIndex].Get(),
         D3D12_RESOURCE_STATE_PRESENT,
@@ -236,6 +239,7 @@ void DXSample::PopulateCommandList()
 
     const float clearColor[] = {0.5f, 0.5f, 0.5f, 1.0f};
     mCommandList->ClearRenderTargetView(descriptorHandle, clearColor, 0, nullptr);
+
     mCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     mCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
     mCommandList->DrawInstanced(3, 1, 0, 0);

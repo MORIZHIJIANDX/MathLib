@@ -219,11 +219,11 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 	//LOG_INFO << "Application Run";
 
-	//Dash::ApplicationDX12 app;
-	//app.Run();
+	Dash::ApplicationDX12 app;
+	app.Run();
 
-	DXSample sample(1280, 720, L"D3D12 Hello Window");
-	return Win32Application::Run(&sample, hInstance, nCmdShow);
+	//DXSample sample(1280, 720, L"D3D12 Hello Window");
+	//return Win32Application::Run(&sample, hInstance, nCmdShow);
 
 
 	//Dash::LogManager::Get()->Shutdown();

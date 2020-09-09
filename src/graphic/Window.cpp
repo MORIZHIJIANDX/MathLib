@@ -22,22 +22,10 @@ namespace Dash
 		RECT winRect;
 		winRect.left = 100;
 		winRect.top = 100;
-		winRect.right = winRect.left + width;
-		winRect.bottom = winRect.top + height;
+		winRect.right = winRect.left + (UINT)width;
+		winRect.bottom = winRect.top + (UINT)height;
 
 		::AdjustWindowRect(&winRect, WS_OVERLAPPEDWINDOW, FALSE);
-
-		//mWindowHandle = CreateWindowEx(
-		//	WS_EX_OVERLAPPEDWINDOW,
-		//	GetWindowName().c_str(),
-		//	title.c_str(),
-		//	WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
-		//	CW_USEDEFAULT, CW_USEDEFAULT,
-		//	static_cast<int>(winRect.right - winRect.left), static_cast<int>(winRect.bottom - winRect.top),
-		//	nullptr,
-		//	nullptr,
-		//	Window::WindowClassRegister::Get()->GetWindowInstance(),
-		//	this);
 
 		mWindowHandle = CreateWindow(
 			GetWindowName().c_str(),
@@ -47,8 +35,8 @@ namespace Dash
 			CW_USEDEFAULT,
 			static_cast<int>(winRect.right - winRect.left), 
 			static_cast<int>(winRect.bottom - winRect.top),
-			nullptr,        // We have no parent window.
-			nullptr,        // We aren't using menus.
+			nullptr,      
+			nullptr,       
 			Window::WindowClassRegister::Get()->GetWindowInstance(),
 			this);
 
@@ -103,33 +91,21 @@ namespace Dash
 	{
 		MSG msg = {};
 
-		//while (true)
-		//{
-		//	while (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-		//	{
-		//		if ((msg.message == WM_QUIT) || (mRequestQuit == true))
-		//		{
-		//			mRequestQuit = false;
-		//			return msg.wParam;
-		//		}
-
-		//		::TranslateMessage(&msg);
-		//		::DispatchMessageA(&msg);
-		//	}
-
-		//	std::this_thread::yield();
-		//}
-
-		while (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		while (true)
 		{
-			if ((msg.message == WM_QUIT) || (mRequestQuit == true))
+			while (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 			{
-				mRequestQuit = false;
-				return msg.wParam;
+				if ((msg.message == WM_QUIT) || (mRequestQuit == true))
+				{
+					mRequestQuit = false;
+					return (int)msg.wParam;
+				}
+
+				::TranslateMessage(&msg);
+				::DispatchMessageA(&msg);
 			}
 
-			::TranslateMessage(&msg);
-			::DispatchMessageA(&msg);
+			std::this_thread::yield();
 		}
 	}
 
@@ -354,7 +330,7 @@ namespace Dash
 			clientToScreenPoint.y = y;
 			::ScreenToClient(hWnd, &clientToScreenPoint);
 
-			MouseWheelEventArgs mouseWheelEventArgs(zDelta, lButton, mButton, rButton, control, shift, (int)clientToScreenPoint.x, (int)clientToScreenPoint.y);
+			MouseWheelEventArgs mouseWheelEventArgs((float)zDelta, lButton, mButton, rButton, control, shift, (int)clientToScreenPoint.x, (int)clientToScreenPoint.y);
 			MessageQueue.Push(std::bind(&Mouse::OnMouseWheel, &Mouse::Get(), mouseWheelEventArgs));
 			break;
 		}

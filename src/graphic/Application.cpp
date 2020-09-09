@@ -9,8 +9,8 @@ namespace Dash
 {
 	#define RENDER_WINDOW_CLASS_NAME "RenderWindowClass"
 
-	Application::Application()
-		: mWindow(RENDER_WINDOW_CLASS_NAME, "Test")
+	Application::Application(size_t windowWidth, size_t windowHeight )
+		: mWindow(RENDER_WINDOW_CLASS_NAME, "Test", windowWidth, windowHeight)
 		, mIsRunning(false)
 	{
 		
@@ -26,23 +26,19 @@ namespace Dash
 
 		mIsRunning = true;
 
-		UpdateThread();
+		std::thread updateThread = std::thread{ &Application::UpdateThread, this };
+		SetThreadName(updateThread, "UpdateThread");
 
-		//std::thread updateThread = std::thread{&Application::UpdateThread, this};
-		//SetThreadName(updateThread, "UpdateThread");
+		int returnCode = mWindow.WindowsMessageLoop();
 
-		//int returnCode = mWindow.WindowsMessageLoop();
+		mIsRunning = false;
 
-		//mIsRunning = false;
+		if (updateThread.joinable())
+		{
+			updateThread.join();
+		}
 
-		//if (updateThread.joinable())
-		//{
-		//	updateThread.join();
-		//}
-
-		//return returnCode;
-
-		return 0;
+		return returnCode;
 	}
 
 	void Application::Stop()
@@ -73,8 +69,6 @@ namespace Dash
 				double deltaTime = timer.DeltaSeconds();
 				double elapsedTime = timer.ElapsedSeconds();
 
-				mWindow.WindowsMessageLoop();
-
 				mWindow.ProcessMessage();
 
 				OnUpdate(UpdateEventArgs{ deltaTime, elapsedTime, frameCount });
@@ -82,7 +76,7 @@ namespace Dash
 
 				++frameCount;
 
-				//std::this_thread::yield();
+				std::this_thread::yield();
 			}
 		}
 		catch (const HrException& e)
