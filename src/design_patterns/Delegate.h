@@ -20,14 +20,14 @@
 
 namespace Dash
 {
-	template <typename T> class Delegate;
-	template <typename T> class MulticastDelegate;
+	template <typename T> class TDelegate;
+	template <typename T> class TMulticastDelegate;
 
 	template<typename RET, typename ...PARAMS>
-	class Delegate<RET(PARAMS...)> final : private DelegateBase<RET(PARAMS...)> {
+	class TDelegate<RET(PARAMS...)> final : private TDelegateBase<RET(PARAMS...)> {
 	public:
 
-		Delegate() = default;
+		TDelegate() = default;
 
 		bool IsNull() const { return mInvocation.mStub == nullptr; }
 		bool operator ==(void* ptr) const {
@@ -37,48 +37,48 @@ namespace Dash
 			return (ptr != nullptr) || (!this->IsNull());
 		} //operator !=
 
-		Delegate(const Delegate& another) { another.mInvocation.Clone(mInvocation); }
+		TDelegate(const TDelegate& another) { another.mInvocation.Clone(mInvocation); }
 
 		template <typename LAMBDA>
-		Delegate(const LAMBDA& lambda) {
+		TDelegate(const LAMBDA& lambda) {
 			Assign((void*)(&lambda), LambdaStub<LAMBDA>);
-		} //Delegate
+		} //TDelegate
 
-		Delegate& operator =(const Delegate& another) {
+		TDelegate& operator =(const TDelegate& another) {
 			another.mInvocation.Clone(mInvocation);
 			return *this;
 		} //operator =
 
 		template <typename LAMBDA> // template instantiation is not needed, will be deduced (inferred):
-		Delegate& operator =(const LAMBDA& instance) {
+		TDelegate& operator =(const LAMBDA& instance) {
 			Assign((void*)(&instance), LambdaStub<LAMBDA>);
 			return *this;
 		} //operator =
 
-		bool operator == (const Delegate& another) const { return mInvocation == another.mInvocation; }
-		bool operator != (const Delegate& another) const { return mInvocation != another.mInvocation; }
+		bool operator == (const TDelegate& another) const { return mInvocation == another.mInvocation; }
+		bool operator != (const TDelegate& another) const { return mInvocation != another.mInvocation; }
 
-		bool operator ==(const MulticastDelegate<RET(PARAMS...)>& another) const { return another == (*this); }
-		bool operator !=(const MulticastDelegate<RET(PARAMS...)>& another) const { return another != (*this); }
+		bool operator ==(const TMulticastDelegate<RET(PARAMS...)>& another) const { return another == (*this); }
+		bool operator !=(const TMulticastDelegate<RET(PARAMS...)>& another) const { return another != (*this); }
 
 		template <class T, RET(T::* TMethod)(PARAMS...)>
-		static Delegate Create(T* instance) {
-			return Delegate(instance, MethodStub<T, TMethod>);
+		static TDelegate Create(T* instance) {
+			return TDelegate(instance, MethodStub<T, TMethod>);
 		} //Create
 
 		template <class T, RET(T::* TMethod)(PARAMS...) const>
-		static Delegate Create(T const* instance) {
-			return Delegate(const_cast<T*>(instance), ConstMethodStub<T, TMethod>);
+		static TDelegate Create(T const* instance) {
+			return TDelegate(const_cast<T*>(instance), ConstMethodStub<T, TMethod>);
 		} //Create
 
 		template <RET(*TMethod)(PARAMS...)>
-		static Delegate Create() {
-			return Delegate(nullptr, FunctionStub<TMethod>);
+		static TDelegate Create() {
+			return TDelegate(nullptr, FunctionStub<TMethod>);
 		} //Create
 
 		template <typename LAMBDA>
-		static Delegate Create(const LAMBDA& instance) {
-			return Delegate((void*)(&instance), LambdaStub<LAMBDA>);
+		static TDelegate Create(const LAMBDA& instance) {
+			return TDelegate((void*)(&instance), LambdaStub<LAMBDA>);
 		} //Create
 
 		RET operator()(PARAMS... arg) const {
@@ -87,12 +87,12 @@ namespace Dash
 
 	private:
 
-		Delegate(void* anObject, typename DelegateBase<RET(PARAMS...)>::stub_type aStub) {
+		TDelegate(void* anObject, typename TDelegateBase<RET(PARAMS...)>::stub_type aStub) {
 			mInvocation.mObject = anObject;
 			mInvocation.mStub = aStub;
-		} //Delegate
+		} //TDelegate
 
-		void Assign(void* anObject, typename DelegateBase<RET(PARAMS...)>::stub_type aStub) {
+		void Assign(void* anObject, typename TDelegateBase<RET(PARAMS...)>::stub_type aStub) {
 			this->mInvocation.mObject = anObject;
 			this->mInvocation.mStub = aStub;
 		} //Assign
@@ -120,9 +120,9 @@ namespace Dash
 			return (p->operator())(arg...);
 		} //LambdaStub
 
-		friend class MulticastDelegate<RET(PARAMS...)>;
-		typename DelegateBase<RET(PARAMS...)>::InvocationElement mInvocation;
+		friend class TMulticastDelegate<RET(PARAMS...)>;
+		typename TDelegateBase<RET(PARAMS...)>::InvocationElement mInvocation;
 
-	}; //class Delegate
+	}; //class TDelegate
 
 } /* namespace Core */

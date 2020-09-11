@@ -20,10 +20,10 @@
 namespace Dash
 {
 	template<typename T>
-	class DelegateBase;
+	class TDelegateBase;
 
 	template<typename RET, typename ...PARAMS>
-	class DelegateBase<RET(PARAMS...)> {
+	class TDelegateBase<RET(PARAMS...)> {
 
 	protected:
 
@@ -46,6 +46,6 @@ namespace Dash
 			stub_type mStub = nullptr;
 		}; //InvocationElement
 
-	}; //class DelegateBase
+	}; //class TDelegateBase
 
 } /* namespace Core */

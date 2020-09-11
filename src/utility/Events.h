@@ -8,34 +8,34 @@
 
 namespace Graphics
 {
-	class Camera;
+	class FCamera;
 	class GraphicsCommandBuffer;
 }
 
 namespace Dash
 {
-	class EventArgs
+	class FEventArgs
 	{
 	public:
-		EventArgs()
+		FEventArgs()
 		{}
 	};
 
-	using Event = MulticastDelegate<void(EventArgs&)>;
-	using EventDelegate = Delegate<void(EventArgs&)>;
+	using FEvent = TMulticastDelegate<void(FEventArgs&)>;
+	using FEventDelegate = TDelegate<void(FEventArgs&)>;
 
-	enum class KeyState
+	enum class EKeyState
 	{
 		Released = 0,
 		Pressed = 1
 	};
 
-	class KeyEventArgs : public EventArgs
+	class FKeyEventArgs : public FEventArgs
 	{
 	public:
-		using base = EventArgs;
+		using base = FEventArgs;
 
-		KeyEventArgs(KeyCode key, unsigned int c, KeyState state, bool control, bool shift, bool alt, bool repeat)
+		FKeyEventArgs(EKeyCode key, unsigned int c, EKeyState state, bool control, bool shift, bool alt, bool repeat)
 			: mKey(key)
 			, mChar(c)
 			, mState(state)
@@ -45,25 +45,25 @@ namespace Dash
 			, mRepeat(repeat)
 		{}
 
-		KeyCode         mKey;    // The Key Code that was pressed or released.
+		EKeyCode         mKey;    // The Key Code that was pressed or released.
 		unsigned int    mChar;   // The 32-bit character code that was pressed. This value will be 0 if it is a non-printable character.
-		KeyState        mState;  // Was the key pressed or released?
+		EKeyState        mState;  // Was the key pressed or released?
 		bool            mControl;// Is the Control modifier pressed
 		bool            mShift;  // Is the Shift modifier pressed
 		bool            mAlt;    // Is the Alt modifier pressed
 		bool			mRepeat;
 	};
 
-	using KeyboardEvent = MulticastDelegate<void(KeyEventArgs&)>;
-	using KeyboardEventDelegate = Delegate<void(KeyEventArgs&)>;
+	using FKeyboardEvent = TMulticastDelegate<void(FKeyEventArgs&)>;
+	using FKeyboardEventDelegate = TDelegate<void(FKeyEventArgs&)>;
 
 
-	class MouseMotionEventArgs : public EventArgs
+	class FMouseMotionEventArgs : public FEventArgs
 	{
 	public:
-		using base = EventArgs;
+		using base = FEventArgs;
 
-		MouseMotionEventArgs(bool leftButton, bool middleButton, bool rightButton, bool control, bool shift, int x, int y)
+		FMouseMotionEventArgs(bool leftButton, bool middleButton, bool rightButton, bool control, bool shift, int x, int y)
 			: mLeftButton(leftButton)
 			, mMiddleButton(middleButton)
 			, mRightButton(rightButton)
@@ -87,11 +87,11 @@ namespace Dash
 		int mRelY;			// How far the mouse moved since the last event.
 	};
 
-	using MouseMotionEvent = MulticastDelegate<void(MouseMotionEventArgs&)>;
-	using MouseMotionEventDelegate = Delegate<void(MouseMotionEventArgs&)>;
+	using FMouseMotionEvent = TMulticastDelegate<void(FMouseMotionEventArgs&)>;
+	using FMouseMotionEventDelegate = TDelegate<void(FMouseMotionEventArgs&)>;
 
 
-	enum class MouseButton : unsigned int
+	enum class EMouseButton : unsigned int
 	{
 		Left = 0x00,
 		Right = 0x01,
@@ -99,18 +99,18 @@ namespace Dash
 		None = 0x03,
 	};
 
-	enum class ButtonState
+	enum class EButtonState
 	{
 		Released = 0,
 		Pressed = 1
 	};
 
-	class MouseButtonEventArgs : public EventArgs
+	class FMouseButtonEventArgs : public FEventArgs
 	{
 	public:
-		using base = EventArgs;
+		using base = FEventArgs;
 
-		MouseButtonEventArgs(MouseButton buttonID, ButtonState state, bool leftButton, bool middleButton, bool rightButton, bool control, bool shift, int x, int y)
+		FMouseButtonEventArgs(EMouseButton buttonID, EButtonState state, bool leftButton, bool middleButton, bool rightButton, bool control, bool shift, int x, int y)
 			: mButton(buttonID)
 			, mState(state)
 			, mLeftButton(leftButton)
@@ -122,8 +122,8 @@ namespace Dash
 			, mY(y)
 		{}
 
-		MouseButton mButton; // The mouse button that was pressed or released.
-		ButtonState mState;  // Was the button pressed or released?
+		EMouseButton mButton; // The mouse button that was pressed or released.
+		EButtonState mState;  // Was the button pressed or released?
 		bool mLeftButton;    // Is the left mouse button down?
 		bool mMiddleButton;  // Is the middle mouse button down?
 		bool mRightButton;   // Is the right mouse button down?
@@ -134,16 +134,16 @@ namespace Dash
 		int mY;              // The Y-position of the cursor relative to the upper-left corner of the client area.
 	};
 
-	using MouseButtonEvent = MulticastDelegate<void(MouseButtonEventArgs&)>;
-	using MouseButtonEventDelegate = Delegate<void(MouseButtonEventArgs&)>;
+	using FMouseButtonEvent = TMulticastDelegate<void(FMouseButtonEventArgs&)>;
+	using FMouseButtonEventDelegate = TDelegate<void(FMouseButtonEventArgs&)>;
 
 
-	class MouseWheelEventArgs : public EventArgs
+	class FMouseWheelEventArgs : public FEventArgs
 	{
 	public:
-		using base = EventArgs;
+		using base = FEventArgs;
 
-		MouseWheelEventArgs(float wheelDelta, bool leftButton, bool middleButton, bool rightButton, bool control, bool shift, int x, int y)
+		FMouseWheelEventArgs(float wheelDelta, bool leftButton, bool middleButton, bool rightButton, bool control, bool shift, int x, int y)
 			: mWheelDelta(wheelDelta)
 			, mLeftButton(leftButton)
 			, mMiddleButton(middleButton)
@@ -166,16 +166,16 @@ namespace Dash
 
 	};
 
-	using MouseWheelEvent = MulticastDelegate<void(MouseWheelEventArgs&)>;
-	using MouseWheelEventDelegate = Delegate<void(MouseWheelEventArgs&)>;
+	using FMouseWheelEvent = TMulticastDelegate<void(FMouseWheelEventArgs&)>;
+	using FMouseWheelEventDelegate = TDelegate<void(FMouseWheelEventArgs&)>;
 
 
-	class ResizeEventArgs : public EventArgs
+	class FResizeEventArgs : public FEventArgs
 	{
 	public:
-		using base = EventArgs;
+		using base = FEventArgs;
 
-		ResizeEventArgs(int width, int height)
+		FResizeEventArgs(int width, int height)
 			: mWidth(width)
 			, mHeight(height)
 		{}
@@ -187,15 +187,15 @@ namespace Dash
 
 	};
 
-	using ResizeEvent = MulticastDelegate<void(ResizeEventArgs&)>;
-	using ResizeEventDelegate = Delegate<void(ResizeEventArgs&)>;
+	using FResizeEvent = TMulticastDelegate<void(FResizeEventArgs&)>;
+	using FResizeEventDelegate = TDelegate<void(FResizeEventArgs&)>;
 
 
-	class UpdateEventArgs : public EventArgs
+	class FUpdateEventArgs : public FEventArgs
 	{
 	public:
-		using base = EventArgs;
-		UpdateEventArgs(double fDeltaTime, double fTotalTime, uint64_t frameCounter)
+		using base = FEventArgs;
+		FUpdateEventArgs(double fDeltaTime, double fTotalTime, uint64_t frameCounter)
 			: mElapsedTime(fDeltaTime)
 			, mTotalTime(fTotalTime)
 			, mFrameCounter(frameCounter)
@@ -206,17 +206,17 @@ namespace Dash
 		uint64_t mFrameCounter;
 	};
 
-	using UpdateEvent = MulticastDelegate<void(UpdateEventArgs&)>;
-	using UpdateEventDelegate = Delegate<void(UpdateEventArgs&)>;
+	using FUpdateEvent = TMulticastDelegate<void(FUpdateEventArgs&)>;
+	using FUpdateEventDelegate = TDelegate<void(FUpdateEventArgs&)>;
 
 
-	class RenderEventArgs : public EventArgs
+	class FRenderEventArgs : public FEventArgs
 	{
 	public:
-		using base = EventArgs;
-		RenderEventArgs(double fDeltaTime, double fTotalTime,
+		using base = FEventArgs;
+		FRenderEventArgs(double fDeltaTime, double fTotalTime,
 			uint64_t frameCounter,
-			std::shared_ptr<Graphics::Camera> camera = nullptr,
+			std::shared_ptr<Graphics::FCamera> camera = nullptr,
 			std::shared_ptr<Graphics::GraphicsCommandBuffer> graphicsCommandBuffer = nullptr)
 			: mElapsedTime(fDeltaTime)
 			, mTotalTime(fTotalTime)
@@ -229,19 +229,19 @@ namespace Dash
 		double mTotalTime;
 		uint64_t mFrameCounter;
 
-		std::shared_ptr<Graphics::Camera> mCamera;
+		std::shared_ptr<Graphics::FCamera> mCamera;
 		std::shared_ptr<Graphics::GraphicsCommandBuffer> mGraphicsCommandBuffer;
 	};
 
-	using RenderEvent = MulticastDelegate<void(RenderEventArgs&)>;
-	using RenderEventDelegate = Delegate<void(RenderEventArgs&)>;
+	using FRenderEvent = TMulticastDelegate<void(FRenderEventArgs&)>;
+	using FRenderEventDelegate = TDelegate<void(FRenderEventArgs&)>;
 
 
-	class UserEventArgs : public EventArgs
+	class FUserEventArgs : public FEventArgs
 	{
 	public:
-		using base = EventArgs;
-		UserEventArgs(int code, void* data1, void* data2)
+		using base = FEventArgs;
+		FUserEventArgs(int code, void* data1, void* data2)
 			: mCode(code)
 			, mData1(data1)
 			, mData2(data2)
@@ -252,16 +252,16 @@ namespace Dash
 		void* mData2;
 	};
 
-	using UserEvent = MulticastDelegate<void(UserEventArgs&)>;
-	using UserEventDelegate = Delegate<void(UserEventArgs&)>;
+	using FUserEvent = TMulticastDelegate<void(FUserEventArgs&)>;
+	using FUserEventDelegate = TDelegate<void(FUserEventArgs&)>;
 
 
-	class RuntimeErrorEventArgs : public EventArgs
+	class FRuntimeErrorEventArgs : public FEventArgs
 	{
 	public:
-		using base = EventArgs;
+		using base = FEventArgs;
 
-		RuntimeErrorEventArgs(const std::wstring& errorString, const std::wstring& compilerError)
+		FRuntimeErrorEventArgs(const std::wstring& errorString, const std::wstring& compilerError)
 			: mErrorString(errorString)
 			, mCompilerError(compilerError)
 		{}
@@ -270,16 +270,16 @@ namespace Dash
 		std::wstring mCompilerError;
 	};
 
-	using RuntimeErrorEvent = MulticastDelegate<void(RuntimeErrorEventArgs&)>;
-	using RuntimeErrorEventDelegate = Delegate<void(RuntimeErrorEventArgs&)>;
+	using FRuntimeErrorEvent = TMulticastDelegate<void(FRuntimeErrorEventArgs&)>;
+	using FRuntimeErrorEventDelegate = TDelegate<void(FRuntimeErrorEventArgs&)>;
 
 
-	class ProgressEventArgs : public EventArgs
+	class FProgressEventArgs : public FEventArgs
 	{
 	public:
-		using base = EventArgs;
+		using base = FEventArgs;
 
-		ProgressEventArgs(const std::wstring& fileName, float progress, bool cancel = false)
+		FProgressEventArgs(const std::wstring& fileName, float progress, bool cancel = false)
 			: mFileName(fileName)
 			, mProgress(progress)
 			, mCancel(cancel)
@@ -293,11 +293,11 @@ namespace Dash
 		bool mCancel;
 	};
 
-	using ProgressEvent = MulticastDelegate<void(ProgressEventArgs&)>;
-	using ProgressEventDelegate = Delegate<void(ProgressEventArgs&)>;
+	using FProgressEvent = TMulticastDelegate<void(FProgressEventArgs&)>;
+	using FProgressEventDelegate = TDelegate<void(FProgressEventArgs&)>;
 
 
-	enum class FileAction
+	enum class EFileAction
 	{
 		Unknown,        // An unknown action triggered this event. (Should not happen, but I guess its possible)
 		Added,          // A file was added to a directory.
@@ -307,21 +307,21 @@ namespace Dash
 		RenameNew,      // The file was renamed and this event stores the new name.
 	};
 
-	class FileChangeEventArgs : EventArgs
+	class FFileChangeEventArgs : FEventArgs
 	{
 	public:
-		using base = EventArgs;
+		using base = FEventArgs;
 
-		FileChangeEventArgs(FileAction action, const std::wstring& path)
+		FFileChangeEventArgs(EFileAction action, const std::wstring& path)
 			: mAction(action)
 			, mPath(path)
 		{}
 
-		FileAction mAction; // The action that triggered this event.
+		EFileAction mAction; // The action that triggered this event.
 						   // The file or directory path that was modified.
 		std::wstring mPath;
 	};
 
-	using FileChangeEvent = MulticastDelegate<void(FileChangeEventArgs&)>;
-	using FileChangeEventDelegate = Delegate<void(FileChangeEventArgs&)>;
+	using FFileChangeEvent = TMulticastDelegate<void(FFileChangeEventArgs&)>;
+	using FFileChangeEventDelegate = TDelegate<void(FFileChangeEventArgs&)>;
 }

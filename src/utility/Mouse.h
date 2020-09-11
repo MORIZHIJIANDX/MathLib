@@ -6,41 +6,41 @@
 
 namespace Dash
 {
-	class Mouse
+	class FMouse
 	{
-		friend class Window;
+		friend class FWindow;
 	public:
-		static Mouse& Get();
+		static FMouse& Get();
 		
-		bool IsMouseButtonPressed(MouseButton button) const;
+		bool IsMouseButtonPressed(EMouseButton button) const;
 		bool IsInWindow() const;
-		Vector2i GetMousePos() const;
+		FVector2i GetMousePos() const;
 	
 	public:
 
-		MouseButtonEvent MouseButtonPressed;
-		MouseButtonEvent MouseButtonReleased;
-		MouseMotionEvent MouseMoved;
+		FMouseButtonEvent MouseButtonPressed;
+		FMouseButtonEvent MouseButtonReleased;
+		FMouseMotionEvent MouseMoved;
 		
 	private:
-		Mouse() : mMouseWheelAccumulate(0), mIsInWindow(false) {};
-		~Mouse() {};
+		FMouse() : mMouseWheelAccumulate(0), mIsInWindow(false) {};
+		~FMouse() {};
 
-		void OnMouseButtonPressed(MouseButtonEventArgs& e);
-		void OnMouseButtonReleased(MouseButtonEventArgs& e);
+		void OnMouseButtonPressed(FMouseButtonEventArgs& e);
+		void OnMouseButtonReleased(FMouseButtonEventArgs& e);
 
-		void OnMouseMove(MouseMotionEventArgs& e);
-		void OnMouseWheel(MouseWheelEventArgs& e);
+		void OnMouseMove(FMouseMotionEventArgs& e);
+		void OnMouseWheel(FMouseWheelEventArgs& e);
 		
-		void OnMouseLeave(MouseMotionEventArgs& e);
-		void OnMouseEnter(MouseMotionEventArgs& e);
+		void OnMouseLeave(FMouseMotionEventArgs& e);
+		void OnMouseEnter(FMouseMotionEventArgs& e);
 
 		void OnMouseWheelDown();
 		void OnMouseWheelUp();
 
 	private:
 		bool mIsInWindow;
-		Vector2i mMousePos;
+		FVector2i mMousePos;
 		float mMouseWheelAccumulate;
 		std::bitset<3> mMouseButtonState;
 	};

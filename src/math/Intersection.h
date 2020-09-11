@@ -4,45 +4,45 @@
 
 namespace Dash
 {
-	namespace Math
+	namespace FMath
 	{
-		bool RayTriangleIntersection(const Ray& r, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2, Scalar& u, Scalar& v, Scalar& t) noexcept;
-		bool RayTriangleIntersection(const Ray& r, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2) noexcept;
+		bool RayTriangleIntersection(const FRay& r, const FVector3f& v0, const FVector3f& v1, const FVector3f& v2, Scalar& u, Scalar& v, Scalar& t) noexcept;
+		bool RayTriangleIntersection(const FRay& r, const FVector3f& v0, const FVector3f& v1, const FVector3f& v2) noexcept;
 
-		bool RayBoundingBoxIntersection(const Ray& r, const BoundingBox& b, Scalar& t0, Scalar& t1) noexcept;
+		bool RayBoundingBoxIntersection(const FRay& r, const FBoundingBox& b, Scalar& t0, Scalar& t1) noexcept;
 
-		bool RaySphereIntersection(const Ray& r, const Vector3f& center, Scalar radius, Scalar& t0, Scalar& t1) noexcept;
+		bool RaySphereIntersection(const FRay& r, const FVector3f& center, Scalar radius, Scalar& t0, Scalar& t1) noexcept;
 
-		bool RayPlaneIntersection(const Ray& r, const Vector3f& normal, const Vector3f& p, Scalar& t) noexcept;
+		bool RayPlaneIntersection(const FRay& r, const FVector3f& normal, const FVector3f& p, Scalar& t) noexcept;
 
 
 
 	
-		FORCEINLINE bool RayTriangleIntersection(const Ray& r, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2) noexcept
+		FORCEINLINE bool RayTriangleIntersection(const FRay& r, const FVector3f& v0, const FVector3f& v1, const FVector3f& v2) noexcept
 		{
 			Scalar u, v, t;
 			return RayTriangleIntersection(r, v0, v1, v2, u, v, t);
 		}
 
-		FORCEINLINE bool RayTriangleIntersection(const Ray& r, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2,
+		FORCEINLINE bool RayTriangleIntersection(const FRay& r, const FVector3f& v0, const FVector3f& v1, const FVector3f& v2,
 			Scalar& u, Scalar& v, Scalar& t) noexcept
 		{
-			Vector3f v0v1 = v1 - v0;
-			Vector3f v0v2 = v2 - v0;
-			Vector3f pvec = Cross(r.Direction, v0v2);
+			FVector3f v0v1 = v1 - v0;
+			FVector3f v0v2 = v2 - v0;
+			FVector3f pvec = Cross(r.Direction, v0v2);
 			Scalar det = Dot(v0v1, pvec);
 
-			//Ray triangle parallel
-			if (Abs(det) < ScalarTraits<Scalar>::Epsilon())
+			//FRay triangle parallel
+			if (Abs(det) < TScalarTraits<Scalar>::Epsilon())
 				return false;
 
 			Scalar invDet = Scalar{ 1 } / det;
 
-			Vector3f tvec = r.Origin - v0;
+			FVector3f tvec = r.Origin - v0;
 			u = Dot(tvec, pvec) * invDet;
 			if (u < 0 || u > 1) return false;
 
-			Vector3f qvec = Cross(tvec, v0v1);
+			FVector3f qvec = Cross(tvec, v0v1);
 			v = Dot(r.Direction, qvec) * invDet;
 			if (v < 0 || v > 1) return false;
 
@@ -51,7 +51,7 @@ namespace Dash
 			return true;
 		}
 
-		FORCEINLINE bool RayBoundingBoxIntersection(const Ray& r, const BoundingBox& b, Scalar& t0, Scalar& t1) noexcept
+		FORCEINLINE bool RayBoundingBoxIntersection(const FRay& r, const FBoundingBox& b, Scalar& t0, Scalar& t1) noexcept
 		{
 			Scalar tMin = 0, tMax = r.TMax;
 			for (std::size_t i = 0; i < 3; i++)
@@ -76,9 +76,9 @@ namespace Dash
 			return true;
 		}
 
-		FORCEINLINE bool RaySphereIntersection(const Ray& r, const Vector3f& center, Scalar radius, Scalar& t0, Scalar& t1) noexcept
+		FORCEINLINE bool RaySphereIntersection(const FRay& r, const FVector3f& center, Scalar radius, Scalar& t0, Scalar& t1) noexcept
 		{
-			Vector3f oc = r.Origin - center;
+			FVector3f oc = r.Origin - center;
 			Scalar a = Dot(r.Direction, r.Direction);
 			Scalar b = Scalar{ 2} * Dot(oc, r.Direction);
 			Scalar c = Dot(oc, oc) - radius * radius;
@@ -87,28 +87,28 @@ namespace Dash
 
 			if (discrim >= Scalar{ 0 })
 			{
-				Scalar sqrtDiscrim = Math::Sqrt(discrim);
+				Scalar sqrtDiscrim = FMath::Sqrt(discrim);
 				Scalar q = (b >= Scalar{ 0 }) ? (Scalar(-0.5) * (b + sqrtDiscrim)) : (Scalar(-0.5) * (b - sqrtDiscrim));
 
 				t0 = q / a;
 				t1 = c / q;
 
 				if (t1 < t0)
-					Math::Swap(t0, t1);
+					FMath::Swap(t0, t1);
 			}
 			else
 			{
-				Vector3f dir = Normalize(r.Direction);
-				Vector3f deltap = center - r.Origin;
+				FVector3f dir = Normalize(r.Direction);
+				FVector3f deltap = center - r.Origin;
 				Scalar ddp = Dot(dir, deltap);
 				Scalar deltapdot = Dot(deltap, deltap);
 
-				Vector3f remedyTerm = deltap - ddp * dir;
+				FVector3f remedyTerm = deltap - ddp * dir;
 				discrim = radius * radius - Dot(remedyTerm, remedyTerm);
 
 				if (discrim >= 0)
 				{
-					Scalar sqrtDiscrim = Math::Sqrt(discrim);
+					Scalar sqrtDiscrim = FMath::Sqrt(discrim);
 
 					Scalar q = (ddp >= Scalar{ 0 }) ? (ddp + sqrtDiscrim) : (ddp - sqrtDiscrim);
 
@@ -116,7 +116,7 @@ namespace Dash
 					t1 = (deltapdot - radius * radius) / q;
 
 					if (t1 < t0)
-						Math::Swap(t0, t1);
+						FMath::Swap(t0, t1);
 				}
 				else
 				{
@@ -127,11 +127,11 @@ namespace Dash
 			return true;
 		}
 
-		FORCEINLINE bool RayPlaneIntersection(const Ray& r, const Vector3f& normal, const Vector3f& p, Scalar& t) noexcept
+		FORCEINLINE bool RayPlaneIntersection(const FRay& r, const FVector3f& normal, const FVector3f& p, Scalar& t) noexcept
 		{
 			Scalar denominator = Dot(normal, r.Direction);
 
-			if (Abs(denominator) <= ScalarTraits<Scalar>::Epsilon())
+			if (Abs(denominator) <= TScalarTraits<Scalar>::Epsilon())
 				return false;
 
 			Scalar numerator = Dot((p - r.Origin), normal);

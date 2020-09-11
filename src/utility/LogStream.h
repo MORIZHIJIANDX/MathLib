@@ -7,20 +7,20 @@
 
 namespace Dash
 {
-	class LogStream
+	class FLogStream
 	{
 	public:
-		virtual void Write(LogLevel level, std::wstring logInfo) = 0;
+		virtual void Write(ELogLevel level, std::wstring logInfo) = 0;
 	};
 
 
-	class LogStreamFile : public LogStream
+	class FLogStreamFile : public FLogStream
 	{
 	public:
-		LogStreamFile(std::wstring fileName);
-		virtual ~LogStreamFile();
+		FLogStreamFile(std::wstring fileName);
+		virtual ~FLogStreamFile();
 
-		virtual void Write(LogLevel level, std::wstring logInfo) override;
+		virtual void Write(ELogLevel level, std::wstring logInfo) override;
 
 	private:
 		std::wofstream mFileStream;
@@ -28,36 +28,36 @@ namespace Dash
 	};
 
 
-	class LogStreamConsole : public LogStream
+	class FLogStreamConsole : public FLogStream
 	{
 	public:
-		LogStreamConsole();
-		~LogStreamConsole() = default;
+		FLogStreamConsole();
+		~FLogStreamConsole() = default;
 
-		virtual void Write(LogLevel level, std::wstring logInfo) override;
+		virtual void Write(ELogLevel level, std::wstring logInfo) override;
 	};
 
 
-	class LogStreamVS : public LogStream
+	class FLogStreamVS : public FLogStream
 	{
 	public:
-		LogStreamVS() = default;
-		~LogStreamVS() = default;
+		FLogStreamVS() = default;
+		~FLogStreamVS() = default;
 
-		virtual void Write(LogLevel level, std::wstring logInfo) override;
+		virtual void Write(ELogLevel level, std::wstring logInfo) override;
 	};
 
 
-	class LogStreamMessageBox : public LogStream
+	class FLogStreamMessageBox : public FLogStream
 	{
 	public:
-		LogStreamMessageBox(LogLevel filter);
-		~LogStreamMessageBox() = default;
+		FLogStreamMessageBox(ELogLevel filter);
+		~FLogStreamMessageBox() = default;
 
-		virtual void Write(LogLevel level, std::wstring logInfo) override;
+		virtual void Write(ELogLevel level, std::wstring logInfo) override;
 
 	private:
-		LogLevel mLevelFilter;
+		ELogLevel mLevelFilter;
 	};
 
 }

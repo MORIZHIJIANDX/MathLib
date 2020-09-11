@@ -203,16 +203,16 @@ void DXSample::LoadAssets()
     }
 
     {
-        mViewport.Width = mWidth;
-        mViewport.Height = mHeight;
+        mViewport.Width = static_cast<float>(mWidth);
+        mViewport.Height = static_cast<float>(mHeight);
         mViewport.TopLeftX = 0.0f;
         mViewport.TopLeftY = 0.0f;
         mViewport.MinDepth = 0.0f;
         mViewport.MaxDepth = 1.0f;
 
-        mScissorRect.left = 0.0f;
+        mScissorRect.left = 0;
         mScissorRect.right = mWidth;
-        mScissorRect.top = 0.0f;
+        mScissorRect.top = 0;
         mScissorRect.bottom = mHeight;
     }
 

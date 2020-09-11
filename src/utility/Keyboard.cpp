@@ -2,18 +2,18 @@
 
 namespace Dash
 {
-	Keyboard& Keyboard::Get()
+	FKeyboard& FKeyboard::Get()
 	{
-		static Keyboard instance;
+		static FKeyboard instance;
 		return instance;
 	}
 
-	bool Keyboard::IsKeyPressed(KeyCode key) const
+	bool FKeyboard::IsKeyPressed(EKeyCode key) const
 	{
 		return mKeyStates[static_cast<unsigned int>(key)];
 	}
 
-	std::optional<char> Keyboard::ReadChar()
+	std::optional<char> FKeyboard::ReadChar()
 	{
 		if (mCharBuffer.size() > 0u)
 		{
@@ -24,7 +24,7 @@ namespace Dash
 		return {};
 	}
 
-	void Keyboard::OnKeyPressed(KeyEventArgs& e)
+	void FKeyboard::OnKeyPressed(FKeyEventArgs& e)
 	{
 		if (!e.mRepeat || IsAutoRepeatEnabled())
 		{
@@ -39,7 +39,7 @@ namespace Dash
 		KeyPressed(e);
 	}
 
-	void Keyboard::OnKeyReleased(KeyEventArgs& e)
+	void FKeyboard::OnKeyReleased(FKeyEventArgs& e)
 	{
 		mKeyStates[static_cast<unsigned int>(e.mKey)] = false;
 
@@ -47,14 +47,14 @@ namespace Dash
 	}
 
 
-	void Keyboard::OnChar(char character)
+	void FKeyboard::OnChar(char character)
 	{
 		mCharBuffer.push(character);
 		TrimBuffer(mCharBuffer);
 	}
 
 	template<typename T>
-	inline void Keyboard::TrimBuffer(std::queue<T>& buffer)
+	inline void FKeyboard::TrimBuffer(std::queue<T>& buffer)
 	{
 		static const size_t bufferSize = 16;
 		while (buffer.size() > bufferSize)
@@ -63,27 +63,27 @@ namespace Dash
 		}
 	}
 
-	void Keyboard::ClearStates()
+	void FKeyboard::ClearStates()
 	{
 		mKeyStates.reset();
 	}
 
-	void Keyboard::FlushCharBuffer()
+	void FKeyboard::FlushCharBuffer()
 	{
 		mCharBuffer = std::queue<char>();
 	}
 
-	void Keyboard::EnableAutoRepeat()
+	void FKeyboard::EnableAutoRepeat()
 	{
 		mAutoRepeat = true;
 	}
 
-	void Keyboard::DisableAutoRepeat()
+	void FKeyboard::DisableAutoRepeat()
 	{
 		mAutoRepeat = false;
 	}
 
-	bool Keyboard::IsAutoRepeatEnabled() const
+	bool FKeyboard::IsAutoRepeatEnabled() const
 	{
 		return mAutoRepeat;
 	}

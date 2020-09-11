@@ -19,7 +19,7 @@
 namespace Dash 
 {
 	template<typename Scalar, std::size_t N>
-	class ScalarArray
+	class TScalarArray
 	{
 	public:
 		using DataType = std::array<Scalar, N>;
@@ -38,32 +38,32 @@ namespace Dash
 		using ReverseIterator = typename DataType::reverse_iterator;
 		using ConstReverseIterator = typename DataType::const_reverse_iterator;
 
-		constexpr ScalarArray() noexcept;
-		constexpr explicit ScalarArray(Zero) noexcept;
-		template <std::size_t I> constexpr explicit ScalarArray(Unit<I>) noexcept;
-		template <typename Scalar2> constexpr explicit ScalarArray(const Scalar2* v) noexcept;
-		constexpr explicit ScalarArray(std::initializer_list<Scalar> list) noexcept;
-		template <typename Scalar2> constexpr explicit ScalarArray(const ScalarArray<Scalar2, N - 1>& v) noexcept;
-		template <typename Scalar2> constexpr ScalarArray(const ScalarArray<Scalar2, N>& v) noexcept;
+		constexpr TScalarArray() noexcept;
+		constexpr explicit TScalarArray(FZero) noexcept;
+		template <std::size_t I> constexpr explicit TScalarArray(FUnit<I>) noexcept;
+		template <typename Scalar2> constexpr explicit TScalarArray(const Scalar2* v) noexcept;
+		constexpr explicit TScalarArray(std::initializer_list<Scalar> list) noexcept;
+		template <typename Scalar2> constexpr explicit TScalarArray(const TScalarArray<Scalar2, N - 1>& v) noexcept;
+		template <typename Scalar2> constexpr TScalarArray(const TScalarArray<Scalar2, N>& v) noexcept;
 
 		operator ConstPointer () const noexcept;
 		operator Pointer () noexcept;
 
-		ScalarArray<Scalar, N>& operator=(Zero) noexcept;
-		ScalarArray<Scalar, N>& operator+=(Zero) noexcept;
-		ScalarArray<Scalar, N>& operator-=(Zero) noexcept;
-		ScalarArray<Scalar, N>& operator*=(Zero) noexcept;
+		TScalarArray<Scalar, N>& operator=(FZero) noexcept;
+		TScalarArray<Scalar, N>& operator+=(FZero) noexcept;
+		TScalarArray<Scalar, N>& operator-=(FZero) noexcept;
+		TScalarArray<Scalar, N>& operator*=(FZero) noexcept;
 
-		template<std::size_t I> ScalarArray<Scalar, N>& operator=(Unit<I>) noexcept;
-		template<typename Scalar2> ScalarArray<Scalar, N>& operator=(const Scalar2* v) noexcept;
+		template<std::size_t I> TScalarArray<Scalar, N>& operator=(FUnit<I>) noexcept;
+		template<typename Scalar2> TScalarArray<Scalar, N>& operator=(const Scalar2* v) noexcept;
 
-		template<typename Scalar2> ScalarArray<Scalar, N>& operator=(const ScalarArray<Scalar2, N>& v) noexcept;
-		template<typename Scalar2> ScalarArray<Scalar, N>& operator+=(const ScalarArray<Scalar2, N>& v) noexcept;
-		template<typename Scalar2> ScalarArray<Scalar, N>& operator-=(const ScalarArray<Scalar2, N>& v) noexcept;
-		template<typename Scalar2> ScalarArray<Scalar, N>& operator*=(const ScalarArray<Scalar2, N>& v) noexcept;
+		template<typename Scalar2> TScalarArray<Scalar, N>& operator=(const TScalarArray<Scalar2, N>& v) noexcept;
+		template<typename Scalar2> TScalarArray<Scalar, N>& operator+=(const TScalarArray<Scalar2, N>& v) noexcept;
+		template<typename Scalar2> TScalarArray<Scalar, N>& operator-=(const TScalarArray<Scalar2, N>& v) noexcept;
+		template<typename Scalar2> TScalarArray<Scalar, N>& operator*=(const TScalarArray<Scalar2, N>& v) noexcept;
 
-		ScalarArray<Scalar, N>& operator*=(Scalar s) noexcept;
-		ScalarArray<Scalar, N>& operator/=(Scalar s) noexcept;
+		TScalarArray<Scalar, N>& operator*=(Scalar s) noexcept;
+		TScalarArray<Scalar, N>& operator/=(Scalar s) noexcept;
 
 		template<typename Scalar2> void Fill(Scalar2 s) noexcept;
 
@@ -93,39 +93,39 @@ namespace Dash
 #ifdef USE_OSTREAM
 
 	template<typename CharT, typename Traits, typename Scalar, std::size_t N>
-	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const ScalarArray<Scalar, N>& v);
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const TScalarArray<Scalar, N>& v);
 
 #endif // USE_OSTREAM
 
 #ifdef USE_ISTREAM
 
 	template<typename CharT, typename Traits, typename Scalar, std::size_t N>
-	std::basic_istream<CharT, Traits>& operator>>(std::basic_ostream<CharT, Traits>& is, const ScalarArray<Scalar, N>& v);
+	std::basic_istream<CharT, Traits>& operator>>(std::basic_ostream<CharT, Traits>& is, const TScalarArray<Scalar, N>& v);
 
 #endif // USE_ISTREAM
 
-	template<typename Scalar1, typename Scalar2, std::size_t N> bool operator==(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
-	template<typename Scalar1, typename Scalar2, std::size_t N> bool operator!=(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
+	template<typename Scalar1, typename Scalar2, std::size_t N> bool operator==(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept;
+	template<typename Scalar1, typename Scalar2, std::size_t N> bool operator!=(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept;
 
-	template <typename Scalar, std::size_t N> ScalarArray<Scalar, N> operator-(const ScalarArray<Scalar, N>& a) noexcept;
-
-	template<typename Scalar1, typename Scalar2, std::size_t N>
-	ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator+(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
+	template <typename Scalar, std::size_t N> TScalarArray<Scalar, N> operator-(const TScalarArray<Scalar, N>& a) noexcept;
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator-(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
+	TScalarArray<typename TPromote<Scalar1, Scalar2>::RT, N> operator+(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept;
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator*(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
+	TScalarArray<typename TPromote<Scalar1, Scalar2>::RT, N> operator-(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept;
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator*(const ScalarArray<Scalar1, N>& v, Scalar2 s) noexcept;
+	TScalarArray<typename TPromote<Scalar1, Scalar2>::RT, N> operator*(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept;
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator*(Scalar2 s, const ScalarArray<Scalar1, N>& v) noexcept;
+	TScalarArray<typename TPromote<Scalar1, Scalar2>::RT, N> operator*(const TScalarArray<Scalar1, N>& v, Scalar2 s) noexcept;
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator/(const ScalarArray<Scalar1, N>& v, Scalar2 s) noexcept;
+	TScalarArray<typename TPromote<Scalar1, Scalar2>::RT, N> operator*(Scalar2 s, const TScalarArray<Scalar1, N>& v) noexcept;
+
+	template<typename Scalar1, typename Scalar2, std::size_t N>
+	TScalarArray<typename TPromote<Scalar1, Scalar2>::RT, N> operator/(const TScalarArray<Scalar1, N>& v, Scalar2 s) noexcept;
 
 
 
@@ -138,62 +138,62 @@ namespace Dash
 
 	// --Declaration-- //
 
-	namespace Math
+	namespace FMath
 	{
 		template<typename Scalar, std::size_t N>
-		std::size_t MaxDimension(const ScalarArray<Scalar, N>& v) noexcept;
+		std::size_t MaxDimension(const TScalarArray<Scalar, N>& v) noexcept;
 
 		template<typename Scalar, std::size_t N>
-		std::size_t MinDimension(const ScalarArray<Scalar, N>& v) noexcept;
+		std::size_t MinDimension(const TScalarArray<Scalar, N>& v) noexcept;
 
 		template<typename Scalar, std::size_t N>
-		Scalar HorizontalAdd(const ScalarArray<Scalar, N>& v) noexcept;
+		Scalar HorizontalAdd(const TScalarArray<Scalar, N>& v) noexcept;
 
 		template<typename Scalar, std::size_t N>
-		Scalar HorizontalMin(const ScalarArray<Scalar, N>& v) noexcept;
+		Scalar HorizontalMin(const TScalarArray<Scalar, N>& v) noexcept;
 
 		template<typename Scalar, std::size_t N>
-		Scalar HorizontalMax(const ScalarArray<Scalar, N>& v) noexcept;
+		Scalar HorizontalMax(const TScalarArray<Scalar, N>& v) noexcept;
 
 		template<typename Scalar1, typename Scalar2, std::size_t N>
-		typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
+		typename TPromote<Scalar1, Scalar2>::RT Dot(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept;
 
 		template<typename Scalar1, typename Scalar2, std::size_t N>
-		typename Promote<Scalar1, Scalar2>::RT AbsDot(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept;
+		typename TPromote<Scalar1, Scalar2>::RT AbsDot(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept;
 
 
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Sin(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Cos(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Tan(const ScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Sin(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Cos(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Tan(const TScalarArray<Scalar, N>& v) noexcept;
 
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> ASin(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> ACos(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> ATan(const ScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> ASin(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> ACos(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> ATan(const TScalarArray<Scalar, N>& v) noexcept;
 
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Square(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Cube(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Abs(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Saturate(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Clamp(const ScalarArray<Scalar, N>& v, Scalar a, Scalar b) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> SmoothStep(const ScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Square(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Cube(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Abs(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Saturate(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Clamp(const TScalarArray<Scalar, N>& v, Scalar a, Scalar b) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> SmoothStep(const TScalarArray<Scalar, N>& v) noexcept;
 
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Exp(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Log(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Log2(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Log10(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Sqrt(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> RSqrt(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Cbrt(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Pow(const ScalarArray<Scalar, N>& base, Scalar exp) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Exp(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Log(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Log2(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Log10(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Sqrt(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> RSqrt(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Cbrt(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Pow(const TScalarArray<Scalar, N>& base, Scalar exp) noexcept;
 
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Min(const ScalarArray<Scalar, N>& a, const ScalarArray<Scalar, N>& b) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Max(const ScalarArray<Scalar, N>& a, const ScalarArray<Scalar, N>& b) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Min(const TScalarArray<Scalar, N>& a, const TScalarArray<Scalar, N>& b) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Max(const TScalarArray<Scalar, N>& a, const TScalarArray<Scalar, N>& b) noexcept;
 
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Ceil(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Floor(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Trunc(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Round(const ScalarArray<Scalar, N>& v) noexcept;
-		template<typename Scalar, std::size_t N> ScalarArray<Scalar, N> Frac(const ScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Ceil(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Floor(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Trunc(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Round(const TScalarArray<Scalar, N>& v) noexcept;
+		template<typename Scalar, std::size_t N> TScalarArray<Scalar, N> Frac(const TScalarArray<Scalar, N>& v) noexcept;
 	}
 
 
@@ -210,20 +210,20 @@ namespace Dash
 	// --Implementation-- //
 
 	template<typename T, std::size_t N>
-	FORCEINLINE constexpr ScalarArray<T, N>::ScalarArray() noexcept
+	FORCEINLINE constexpr TScalarArray<T, N>::TScalarArray() noexcept
 		: mData{}
 	{
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(Zero) noexcept
+	FORCEINLINE constexpr TScalarArray<Scalar, N>::TScalarArray(FZero) noexcept
 	{
 		mData.fill(Scalar{ 0 });
 	}
 
 	template<typename Scalar, std::size_t N>
 	template<std::size_t I>
-	FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(Unit<I>) noexcept
+	FORCEINLINE constexpr TScalarArray<Scalar, N>::TScalarArray(FUnit<I>) noexcept
 	{
 		ASSERT(GetSize() >= I);
 
@@ -233,7 +233,7 @@ namespace Dash
 
 	template<typename Scalar, std::size_t N>
 	template<typename Scalar2>
-	FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(const Scalar2* v) noexcept
+	FORCEINLINE constexpr TScalarArray<Scalar, N>::TScalarArray(const Scalar2* v) noexcept
 	{
 		ASSERT(v != nullptr);
 
@@ -244,7 +244,7 @@ namespace Dash
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(std::initializer_list<Scalar> list) noexcept
+	FORCEINLINE constexpr TScalarArray<Scalar, N>::TScalarArray(std::initializer_list<Scalar> list) noexcept
 	{
 		ASSERT(GetSize() >= list.size());
 
@@ -259,7 +259,7 @@ namespace Dash
 
 	template<typename Scalar, std::size_t N>
 	template<typename Scalar2>
-	FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(const ScalarArray<Scalar2, N - 1>& v) noexcept
+	FORCEINLINE constexpr TScalarArray<Scalar, N>::TScalarArray(const TScalarArray<Scalar2, N - 1>& v) noexcept
 	{
 		for (SizeType i = 0; i < GetSize() - 1; ++i)
 		{
@@ -271,7 +271,7 @@ namespace Dash
 
 	template<typename Scalar, std::size_t N>
 	template<typename Scalar2>
-	FORCEINLINE constexpr ScalarArray<Scalar, N>::ScalarArray(const ScalarArray<Scalar2, N>& v) noexcept
+	FORCEINLINE constexpr TScalarArray<Scalar, N>::TScalarArray(const TScalarArray<Scalar2, N>& v) noexcept
 	{
 		for (SizeType i = 0; i < GetSize(); ++i)
 		{
@@ -280,38 +280,38 @@ namespace Dash
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE ScalarArray<Scalar, N>::operator ConstPointer() const noexcept
+	FORCEINLINE TScalarArray<Scalar, N>::operator ConstPointer() const noexcept
 	{
 		return mData.data();
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE ScalarArray<Scalar, N>::operator Pointer() noexcept
+	FORCEINLINE TScalarArray<Scalar, N>::operator Pointer() noexcept
 	{
 		return mData.data();
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE ScalarArray<Scalar, N>& ScalarArray<Scalar, N>::operator=(Zero) noexcept
+	FORCEINLINE TScalarArray<Scalar, N>& TScalarArray<Scalar, N>::operator=(FZero) noexcept
 	{
 		mData.fill(Scalar{});
 		return *this;
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE ScalarArray<Scalar, N>& ScalarArray<Scalar, N>::operator+=(Zero) noexcept
+	FORCEINLINE TScalarArray<Scalar, N>& TScalarArray<Scalar, N>::operator+=(FZero) noexcept
 	{
 		return *this;
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE ScalarArray<Scalar, N>& ScalarArray<Scalar, N>::operator-=(Zero) noexcept
+	FORCEINLINE TScalarArray<Scalar, N>& TScalarArray<Scalar, N>::operator-=(FZero) noexcept
 	{
 		return *this;
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE ScalarArray<Scalar, N>& ScalarArray<Scalar, N>::operator*=(Zero) noexcept
+	FORCEINLINE TScalarArray<Scalar, N>& TScalarArray<Scalar, N>::operator*=(FZero) noexcept
 	{
 		mData.fill(Scalar{});
 		return *this;
@@ -319,7 +319,7 @@ namespace Dash
 
 	template<typename Scalar, std::size_t N>
 	template<std::size_t I>
-	FORCEINLINE ScalarArray<Scalar, N>& ScalarArray<Scalar, N>::operator=(Unit<I>) noexcept
+	FORCEINLINE TScalarArray<Scalar, N>& TScalarArray<Scalar, N>::operator=(FUnit<I>) noexcept
 	{
 		mData.fill(Scalar{});
 		mData[I] = Scalar{ 1 };
@@ -328,7 +328,7 @@ namespace Dash
 
 	template<typename Scalar, std::size_t N>
 	template<typename Scalar2>
-	FORCEINLINE ScalarArray<Scalar, N>& ScalarArray<Scalar, N>::operator=(const Scalar2* v) noexcept
+	FORCEINLINE TScalarArray<Scalar, N>& TScalarArray<Scalar, N>::operator=(const Scalar2* v) noexcept
 	{
 		ASSERT(v != nullptr);
 
@@ -342,7 +342,7 @@ namespace Dash
 
 	template<typename Scalar, std::size_t N>
 	template<typename Scalar2>
-	FORCEINLINE ScalarArray<Scalar, N>& ScalarArray<Scalar, N>::operator=(const ScalarArray<Scalar2, N>& v) noexcept
+	FORCEINLINE TScalarArray<Scalar, N>& TScalarArray<Scalar, N>::operator=(const TScalarArray<Scalar2, N>& v) noexcept
 	{
 		for (SizeType i = 0; i < GetSize(); ++i)
 		{
@@ -354,7 +354,7 @@ namespace Dash
 
 	template<typename Scalar, std::size_t N>
 	template<typename Scalar2>
-	FORCEINLINE ScalarArray<Scalar, N>& ScalarArray<Scalar, N>::operator+=(const ScalarArray<Scalar2, N>& v) noexcept
+	FORCEINLINE TScalarArray<Scalar, N>& TScalarArray<Scalar, N>::operator+=(const TScalarArray<Scalar2, N>& v) noexcept
 	{
 		for (SizeType i = 0; i < GetSize(); ++i)
 		{
@@ -366,7 +366,7 @@ namespace Dash
 
 	template<typename Scalar, std::size_t N>
 	template<typename Scalar2>
-	FORCEINLINE ScalarArray<Scalar, N>& ScalarArray<Scalar, N>::operator-=(const ScalarArray<Scalar2, N>& v) noexcept
+	FORCEINLINE TScalarArray<Scalar, N>& TScalarArray<Scalar, N>::operator-=(const TScalarArray<Scalar2, N>& v) noexcept
 	{
 		for (SizeType i = 0; i < GetSize(); ++i)
 		{
@@ -378,7 +378,7 @@ namespace Dash
 
 	template<typename Scalar, std::size_t N>
 	template<typename Scalar2>
-	FORCEINLINE ScalarArray<Scalar, N>& ScalarArray<Scalar, N>::operator*=(const ScalarArray<Scalar2, N>& v) noexcept
+	FORCEINLINE TScalarArray<Scalar, N>& TScalarArray<Scalar, N>::operator*=(const TScalarArray<Scalar2, N>& v) noexcept
 	{
 		for (SizeType i = 0; i < GetSize(); ++i)
 		{
@@ -389,7 +389,7 @@ namespace Dash
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE ScalarArray<Scalar, N>& ScalarArray<Scalar, N>::operator*=(Scalar s) noexcept
+	FORCEINLINE TScalarArray<Scalar, N>& TScalarArray<Scalar, N>::operator*=(Scalar s) noexcept
 	{
 		for (SizeType i = 0; i < GetSize(); ++i)
 		{
@@ -400,45 +400,45 @@ namespace Dash
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE ScalarArray<Scalar, N>& ScalarArray<Scalar, N>::operator/=(Scalar s) noexcept
+	FORCEINLINE TScalarArray<Scalar, N>& TScalarArray<Scalar, N>::operator/=(Scalar s) noexcept
 	{
-		ASSERT(!Math::IsZero(s));
+		ASSERT(!FMath::IsZero(s));
 
 		return *this *= Scalar{ 1 } / s;
 	}
 
 	template<typename Scalar, std::size_t N>
 	template<typename Scalar2>
-	FORCEINLINE void ScalarArray<Scalar, N>::Fill(Scalar2 s) noexcept
+	FORCEINLINE void TScalarArray<Scalar, N>::Fill(Scalar2 s) noexcept
 	{
 		mData.fill(static_cast<Scalar>(s));
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE constexpr typename ScalarArray<Scalar, N>::Iterator ScalarArray<Scalar, N>::Begin() noexcept
+	FORCEINLINE constexpr typename TScalarArray<Scalar, N>::Iterator TScalarArray<Scalar, N>::Begin() noexcept
 	{
-		using Iterator = typename ScalarArray<Scalar, N>::Iterator;
+		using Iterator = typename TScalarArray<Scalar, N>::Iterator;
 		return mData.begin();
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE constexpr typename ScalarArray<Scalar, N>::ConstIterator ScalarArray<Scalar, N>::Begin() const noexcept
+	FORCEINLINE constexpr typename TScalarArray<Scalar, N>::ConstIterator TScalarArray<Scalar, N>::Begin() const noexcept
 	{
-		using ConstIterator = typename ScalarArray<Scalar, N>::ConstIterator;
+		using ConstIterator = typename TScalarArray<Scalar, N>::ConstIterator;
 		return mData.begin();
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE constexpr typename ScalarArray<Scalar, N>::Iterator ScalarArray<Scalar, N>::End() noexcept
+	FORCEINLINE constexpr typename TScalarArray<Scalar, N>::Iterator TScalarArray<Scalar, N>::End() noexcept
 	{
-		using Iterator = typename ScalarArray<Scalar, N>::Iterator;
+		using Iterator = typename TScalarArray<Scalar, N>::Iterator;
 		return mData.end();
 	}
 
 	template<typename Scalar, std::size_t N>
-	FORCEINLINE constexpr typename ScalarArray<Scalar, N>::ConstIterator ScalarArray<Scalar, N>::End() const noexcept
+	FORCEINLINE constexpr typename TScalarArray<Scalar, N>::ConstIterator TScalarArray<Scalar, N>::End() const noexcept
 	{
-		using ConstIterator = typename ScalarArray<Scalar, N>::ConstIterator;
+		using ConstIterator = typename TScalarArray<Scalar, N>::ConstIterator;
 		return mData.end();
 	}
 
@@ -458,7 +458,7 @@ namespace Dash
 #ifdef USE_OSTREAM
 
 	template<typename CharT, typename Traits, typename Scalar, std::size_t N>
-	FORCEINLINE std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const ScalarArray<Scalar, N>& v)
+	FORCEINLINE std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const TScalarArray<Scalar, N>& v)
 	{
 		for (std::size_t i = 0; i < N; ++i)
 		{
@@ -477,7 +477,7 @@ namespace Dash
 #ifdef USE_ISTREAM
 
 	template<typename CharT, typename Traits, typename Scalar, std::size_t N>
-	FORCEINLINE std::basic_istream<CharT, Traits>& operator>>(std::basic_ostream<CharT, Traits>& is, const ScalarArray<Scalar, N>& v)
+	FORCEINLINE std::basic_istream<CharT, Traits>& operator>>(std::basic_ostream<CharT, Traits>& is, const TScalarArray<Scalar, N>& v)
 	{
 		for (std::size_t i = 0; i < N; ++i)
 		{
@@ -490,7 +490,7 @@ namespace Dash
 #endif
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	FORCEINLINE bool operator==(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept
+	FORCEINLINE bool operator==(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept
 	{
 		for (std::size_t i = 0; i < N; ++i)
 		{
@@ -504,15 +504,15 @@ namespace Dash
 	}
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	FORCEINLINE bool operator!=(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept
+	FORCEINLINE bool operator!=(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept
 	{
 		return !(v1 == v2);
 	}
 
 	template<typename Scalar, std::size_t N>
-	ScalarArray<Scalar, N> operator-(const ScalarArray<Scalar, N>& a) noexcept
+	TScalarArray<Scalar, N> operator-(const TScalarArray<Scalar, N>& a) noexcept
 	{
-		ScalarArray<Scalar, N> result;
+		TScalarArray<Scalar, N> result;
 
 		for (std::size_t i = 0; i < N; ++i)
 		{
@@ -523,10 +523,10 @@ namespace Dash
 	}
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator+(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept
+	FORCEINLINE TScalarArray<typename TPromote<Scalar1, Scalar2>::RT, N> operator+(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept
 	{
-		using RT = typename Promote<Scalar1, Scalar2>::RT;
-		ScalarArray<RT, N> result;
+		using RT = typename TPromote<Scalar1, Scalar2>::RT;
+		TScalarArray<RT, N> result;
 
 		for (std::size_t i = 0; i < N; ++i)
 		{
@@ -537,10 +537,10 @@ namespace Dash
 	}
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator-(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept
+	FORCEINLINE TScalarArray<typename TPromote<Scalar1, Scalar2>::RT, N> operator-(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept
 	{
-		using RT = typename Promote<Scalar1, Scalar2>::RT;
-		ScalarArray<RT, N> result;
+		using RT = typename TPromote<Scalar1, Scalar2>::RT;
+		TScalarArray<RT, N> result;
 
 		for (std::size_t i = 0; i < N; ++i)
 		{
@@ -551,10 +551,10 @@ namespace Dash
 	}
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator*(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept
+	FORCEINLINE TScalarArray<typename TPromote<Scalar1, Scalar2>::RT, N> operator*(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept
 	{
-		using RT = typename Promote<Scalar1, Scalar2>::RT;
-		ScalarArray<RT, N> result;
+		using RT = typename TPromote<Scalar1, Scalar2>::RT;
+		TScalarArray<RT, N> result;
 
 		for (std::size_t i = 0; i < N; ++i)
 		{
@@ -565,10 +565,10 @@ namespace Dash
 	}
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator*(const ScalarArray<Scalar1, N>& v, Scalar2 s) noexcept
+	FORCEINLINE TScalarArray<typename TPromote<Scalar1, Scalar2>::RT, N> operator*(const TScalarArray<Scalar1, N>& v, Scalar2 s) noexcept
 	{
-		using RT = typename Promote<Scalar1, Scalar2>::RT;
-		ScalarArray<RT, N> result;
+		using RT = typename TPromote<Scalar1, Scalar2>::RT;
+		TScalarArray<RT, N> result;
 
 		for (std::size_t i = 0; i < N; ++i)
 		{
@@ -579,16 +579,16 @@ namespace Dash
 	}
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator*(Scalar2 s, const ScalarArray<Scalar1, N>& v) noexcept
+	FORCEINLINE TScalarArray<typename TPromote<Scalar1, Scalar2>::RT, N> operator*(Scalar2 s, const TScalarArray<Scalar1, N>& v) noexcept
 	{
 		return v * s;
 	}
 
 	template<typename Scalar1, typename Scalar2, std::size_t N>
-	FORCEINLINE ScalarArray<typename Promote<Scalar1, Scalar2>::RT, N> operator/(const ScalarArray<Scalar1, N>& v, Scalar2 s) noexcept
+	FORCEINLINE TScalarArray<typename TPromote<Scalar1, Scalar2>::RT, N> operator/(const TScalarArray<Scalar1, N>& v, Scalar2 s) noexcept
 	{
-		ASSERT(!Math::IsZero(s));
-		using RT = typename Promote<Scalar1, Scalar2>::RT;
+		ASSERT(!FMath::IsZero(s));
+		using RT = typename TPromote<Scalar1, Scalar2>::RT;
 
 		return v * RT{ RT{1} / s };
 	}
@@ -604,10 +604,10 @@ namespace Dash
 
 	// --Implementation-- //
 
-	namespace Math
+	namespace FMath
 	{
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE std::size_t MaxDimension(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE std::size_t MaxDimension(const TScalarArray<Scalar, N>& v) noexcept
 		{
 			std::size_t maxDimension{};
 
@@ -623,7 +623,7 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE std::size_t MinDimension(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE std::size_t MinDimension(const TScalarArray<Scalar, N>& v) noexcept
 		{
 			std::size_t minDimension{};
 
@@ -639,7 +639,7 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE Scalar HorizontalAdd(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE Scalar HorizontalAdd(const TScalarArray<Scalar, N>& v) noexcept
 		{
 			Scalar result{};
 
@@ -652,7 +652,7 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE Scalar HorizontalMin(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE Scalar HorizontalMin(const TScalarArray<Scalar, N>& v) noexcept
 		{
 			Scalar minComponent = v[0];
 
@@ -668,7 +668,7 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE Scalar HorizontalMax(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE Scalar HorizontalMax(const TScalarArray<Scalar, N>& v) noexcept
 		{
 			Scalar maxComponent = v[0];
 
@@ -684,23 +684,23 @@ namespace Dash
 		}
 
 		template<typename Scalar1, typename Scalar2, std::size_t N>
-		FORCEINLINE typename Promote<Scalar1, Scalar2>::RT Dot(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept
+		FORCEINLINE typename TPromote<Scalar1, Scalar2>::RT Dot(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept
 		{
-			using RT = typename Promote<Scalar1, Scalar2>::RT;
+			using RT = typename TPromote<Scalar1, Scalar2>::RT;
 			return HorizontalAdd(v1 * v2);
 		}
 
 		template<typename Scalar1, typename Scalar2, std::size_t N>
-		FORCEINLINE typename Promote<Scalar1, Scalar2>::RT AbsDot(const ScalarArray<Scalar1, N>& v1, const ScalarArray<Scalar2, N>& v2) noexcept
+		FORCEINLINE typename TPromote<Scalar1, Scalar2>::RT AbsDot(const TScalarArray<Scalar1, N>& v1, const TScalarArray<Scalar2, N>& v2) noexcept
 		{
-			using RT = typename Promote<Scalar1, Scalar2>::RT;
+			using RT = typename TPromote<Scalar1, Scalar2>::RT;
 			return HorizontalAdd(v1 * v2);
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Sin(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Sin(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -711,9 +711,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Cos(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Cos(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -724,9 +724,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Tan(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Tan(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -737,9 +737,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> ASin(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> ASin(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -750,9 +750,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> ACos(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> ACos(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -763,9 +763,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> ATan(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> ATan(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -776,9 +776,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Square(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Square(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -789,9 +789,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Cube(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Cube(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -802,9 +802,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Abs(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Abs(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -815,9 +815,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Saturate(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Saturate(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -828,9 +828,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Clamp(const ScalarArray<Scalar, N>& v, Scalar a, Scalar b) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Clamp(const TScalarArray<Scalar, N>& v, Scalar a, Scalar b) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -841,9 +841,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> SmoothStep(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> SmoothStep(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -854,9 +854,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Exp(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Exp(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -867,9 +867,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Log(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Log(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -880,9 +880,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Log2(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Log2(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -893,9 +893,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Log10(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Log10(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -906,9 +906,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Sqrt(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Sqrt(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -919,9 +919,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> RSqrt(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> RSqrt(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -932,9 +932,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Cbrt(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Cbrt(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -945,9 +945,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Pow(const ScalarArray<Scalar, N>& base, Scalar exp) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Pow(const TScalarArray<Scalar, N>& base, Scalar exp) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -958,9 +958,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Min(const ScalarArray<Scalar, N>& a, const ScalarArray<Scalar, N>& b) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Min(const TScalarArray<Scalar, N>& a, const TScalarArray<Scalar, N>& b) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -971,9 +971,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Max(const ScalarArray<Scalar, N>& a, const ScalarArray<Scalar, N>& b) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Max(const TScalarArray<Scalar, N>& a, const TScalarArray<Scalar, N>& b) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -984,9 +984,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Ceil(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Ceil(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -997,9 +997,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Floor(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Floor(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -1010,9 +1010,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Trunc(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Trunc(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -1023,9 +1023,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Round(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Round(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{
@@ -1036,9 +1036,9 @@ namespace Dash
 		}
 
 		template<typename Scalar, std::size_t N>
-		FORCEINLINE ScalarArray<Scalar, N> Frac(const ScalarArray<Scalar, N>& v) noexcept
+		FORCEINLINE TScalarArray<Scalar, N> Frac(const TScalarArray<Scalar, N>& v) noexcept
 		{
-			ScalarArray<Scalar, N> result;
+			TScalarArray<Scalar, N> result;
 
 			for (size_t i = 0; i < N; i++)
 			{

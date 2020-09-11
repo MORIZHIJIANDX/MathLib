@@ -5,32 +5,32 @@
 
 namespace Dash
 {
-	Mouse& Mouse::Get()
+	FMouse& FMouse::Get()
 	{	
-		static Mouse instance;
+		static FMouse instance;
 		return instance;
 	}
 
-	bool Mouse::IsMouseButtonPressed(MouseButton button) const
+	bool FMouse::IsMouseButtonPressed(EMouseButton button) const
 	{
 		return mMouseButtonState[static_cast<unsigned int>(button)];
 	}
 
-	bool Mouse::IsInWindow() const
+	bool FMouse::IsInWindow() const
 	{
 		return mIsInWindow;
 	}
 
-	Vector2i Mouse::GetMousePos() const
+	FVector2i FMouse::GetMousePos() const
 	{
 		return mMousePos;
 	}
 
-	void Mouse::OnMouseButtonPressed(MouseButtonEventArgs& e)
+	void FMouse::OnMouseButtonPressed(FMouseButtonEventArgs& e)
 	{
-		mMouseButtonState[static_cast<unsigned int>(MouseButton::Left)] = e.mLeftButton;
-		mMouseButtonState[static_cast<unsigned int>(MouseButton::Middle)] = e.mMiddleButton;
-		mMouseButtonState[static_cast<unsigned int>(MouseButton::Right)] = e.mRightButton;
+		mMouseButtonState[static_cast<unsigned int>(EMouseButton::Left)] = e.mLeftButton;
+		mMouseButtonState[static_cast<unsigned int>(EMouseButton::Middle)] = e.mMiddleButton;
+		mMouseButtonState[static_cast<unsigned int>(EMouseButton::Right)] = e.mRightButton;
 
 		mMousePos.x = e.mX;
 		mMousePos.y = e.mY;
@@ -40,11 +40,11 @@ namespace Dash
 		LOG_INFO << "Button : " << static_cast<unsigned int>(e.mButton) << " , State : " << static_cast<unsigned int>(e.mState);
 	}
 
-	void Mouse::OnMouseButtonReleased(MouseButtonEventArgs& e)
+	void FMouse::OnMouseButtonReleased(FMouseButtonEventArgs& e)
 	{
-		mMouseButtonState[static_cast<unsigned int>(MouseButton::Left)] = e.mLeftButton;
-		mMouseButtonState[static_cast<unsigned int>(MouseButton::Middle)] = e.mMiddleButton;
-		mMouseButtonState[static_cast<unsigned int>(MouseButton::Right)] = e.mRightButton;
+		mMouseButtonState[static_cast<unsigned int>(EMouseButton::Left)] = e.mLeftButton;
+		mMouseButtonState[static_cast<unsigned int>(EMouseButton::Middle)] = e.mMiddleButton;
+		mMouseButtonState[static_cast<unsigned int>(EMouseButton::Right)] = e.mRightButton;
 
 		mMousePos.x = e.mX;
 		mMousePos.y = e.mY;
@@ -52,7 +52,7 @@ namespace Dash
 		MouseButtonReleased(e);
 	}
 
-	void Mouse::OnMouseMove(MouseMotionEventArgs& e)
+	void FMouse::OnMouseMove(FMouseMotionEventArgs& e)
 	{
 		mMousePos.x = e.mX;
 		mMousePos.y = e.mY;
@@ -60,7 +60,7 @@ namespace Dash
 		MouseMoved(e);
 	}
 
-	void Mouse::OnMouseWheel(MouseWheelEventArgs& e)
+	void FMouse::OnMouseWheel(FMouseWheelEventArgs& e)
 	{
 		mMouseWheelAccumulate += e.mWheelDelta;
 
@@ -76,23 +76,23 @@ namespace Dash
 		}
 	}
 
-	void Mouse::OnMouseLeave(MouseMotionEventArgs& e)
+	void FMouse::OnMouseLeave(FMouseMotionEventArgs& e)
 	{
 		mIsInWindow = false;
 	}
 
-	void Mouse::OnMouseEnter(MouseMotionEventArgs& e)
+	void FMouse::OnMouseEnter(FMouseMotionEventArgs& e)
 	{
 		mIsInWindow = true;
 	}
 
-	void Mouse::OnMouseWheelDown()
+	void FMouse::OnMouseWheelDown()
 	{
-		LOG_INFO << "Mouse Wheel Down";
+		LOG_INFO << "FMouse Wheel Down";
 	}
 
-	void Mouse::OnMouseWheelUp()
+	void FMouse::OnMouseWheelUp()
 	{
-		LOG_INFO << "Mouse Wheel Up";
+		LOG_INFO << "FMouse Wheel Up";
 	}
 }

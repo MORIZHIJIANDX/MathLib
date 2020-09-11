@@ -12,18 +12,18 @@
 namespace Dash {
 	
 
-	struct Zero
+	struct FZero
 	{
 		template<typename Scalar> explicit operator Scalar() const noexcept;
 	};
 
-	struct Identity
+	struct FIdentity
 	{
 		template<typename Scalar> explicit operator Scalar() const noexcept;
 	};
 
 	template<std::size_t>
-	struct Unit
+	struct FUnit
 	{
 	};
 
@@ -34,40 +34,40 @@ namespace Dash {
 
 	// --Declaration-- //
 
-	Zero operator-(Zero);
-	Zero operator+(Zero, Zero);
-	Identity operator+(Zero, Identity);
-	Identity operator+(Identity, Zero);
+	FZero operator-(FZero);
+	FZero operator+(FZero, FZero);
+	FIdentity operator+(FZero, FIdentity);
+	FIdentity operator+(FIdentity, FZero);
 
-	template<typename Element> const Element& operator+(Zero, const Element& e);
-	template<typename Element> const Element& operator+(const Element& e, Zero);
-
-
-	Zero operator-(Zero, Zero);
-	Zero operator-(Identity, Identity);
-	Identity operator-(Identity, Zero);
-
-	template<typename Element>       Element  operator-(Zero, const Element& e);
-	template<typename Element> const Element& operator-(const Element& e, Zero);
+	template<typename Element> const Element& operator+(FZero, const Element& e);
+	template<typename Element> const Element& operator+(const Element& e, FZero);
 
 
-	Zero operator*(Zero, Zero);
-	Zero operator*(Zero, Identity);
-	Zero operator*(Identity, Zero);
+	FZero operator-(FZero, FZero);
+	FZero operator-(FIdentity, FIdentity);
+	FIdentity operator-(FIdentity, FZero);
 
-	template<typename Element> Zero operator*(Zero, const Element& e);
-	template<typename Element> Zero operator*(const Element& e, Zero);
+	template<typename Element>       Element  operator-(FZero, const Element& e);
+	template<typename Element> const Element& operator-(const Element& e, FZero);
+
+
+	FZero operator*(FZero, FZero);
+	FZero operator*(FZero, FIdentity);
+	FZero operator*(FIdentity, FZero);
+
+	template<typename Element> FZero operator*(FZero, const Element& e);
+	template<typename Element> FZero operator*(const Element& e, FZero);
 
 #ifdef USE_OSTREAM
 
 	template<typename CharT, typename Traits>
-	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Zero);
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, FZero);
 
 	template<typename CharT, typename Traits>
-	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Identity);
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, FIdentity);
 
 	template<typename CharT, typename Traits, std::size_t I>
-	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Unit<I>);
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, FUnit<I>);
 
 #endif // USE_OSTREAM
 
@@ -81,39 +81,39 @@ namespace Dash {
 
 	// --Declaration-- //
 
-	namespace Math
+	namespace FMath
 	{
-		Identity Inverse(Identity);
+		FIdentity Inverse(FIdentity);
 
-		Zero Mul(Zero, Zero);
-		Zero Mul(Zero, Identity);
-		Zero Mul(Identity, Zero);
+		FZero Mul(FZero, FZero);
+		FZero Mul(FZero, FIdentity);
+		FZero Mul(FIdentity, FZero);
 
-		template<typename Element> Zero Mul(Zero, const Element& e);
-		template<typename Element> Zero Mul(const Element& e, Zero);
+		template<typename Element> FZero Mul(FZero, const Element& e);
+		template<typename Element> FZero Mul(const Element& e, FZero);
 
 
-		Identity Mul(Identity, Identity);
+		FIdentity Mul(FIdentity, FIdentity);
 
-		template<typename Element> const Element& Mul(Identity, const Element& e);
-		template<typename Element> const Element& Mul(const Element& e, Identity);
+		template<typename Element> const Element& Mul(FIdentity, const Element& e);
+		template<typename Element> const Element& Mul(const Element& e, FIdentity);
 
 
 		template<typename Element> Element Mul(const Element& a, const Element& b, const Element& c);
 
 
-		Zero Dot(Zero, Zero);
+		FZero Dot(FZero, FZero);
 
-		template<typename Vector> Zero Dot(Zero, const Vector& v);
-		template<typename Vector> Zero Dot(const Vector& v, Zero);
-
-
-		template<std::size_t I> Identity Dot(Unit<I>, Unit<I>);
-		template<std::size_t I, std::size_t J> Zero Dot(Unit<I>, Unit<J>);
+		template<typename Vector> FZero Dot(FZero, const Vector& v);
+		template<typename Vector> FZero Dot(const Vector& v, FZero);
 
 
-		template<typename Vector, std::size_t I> typename Vector::ScalarType Dot(const Vector& v, Unit<I>);
-		template<typename Vector, std::size_t I> typename Vector::ScalarType Dot(Unit<I>, const Vector& v);
+		template<std::size_t I> FIdentity Dot(FUnit<I>, FUnit<I>);
+		template<std::size_t I, std::size_t J> FZero Dot(FUnit<I>, FUnit<J>);
+
+
+		template<typename Vector, std::size_t I> typename Vector::ScalarType Dot(const Vector& v, FUnit<I>);
+		template<typename Vector, std::size_t I> typename Vector::ScalarType Dot(FUnit<I>, const Vector& v);
 	}
 
 
@@ -127,13 +127,13 @@ namespace Dash {
 	// --Implementation-- //
 
 	template<typename Scalar>
-	FORCEINLINE Zero::operator Scalar() const noexcept
+	FORCEINLINE FZero::operator Scalar() const noexcept
 	{
 		return Scalar{};
 	}
 
 	template<typename Scalar>
-	FORCEINLINE Identity::operator Scalar() const noexcept
+	FORCEINLINE FIdentity::operator Scalar() const noexcept
 	{
 		return Scalar{ 1 };
 	}
@@ -146,110 +146,110 @@ namespace Dash {
 
 	// --Implementation-- //
 
-	FORCEINLINE Zero operator-(Zero)
+	FORCEINLINE FZero operator-(FZero)
 	{
-		return Zero{};
+		return FZero{};
 	}
 
-	FORCEINLINE Zero operator+(Zero, Zero)
+	FORCEINLINE FZero operator+(FZero, FZero)
 	{
-		return Zero{};
+		return FZero{};
 	}
 
-	FORCEINLINE Identity operator+(Zero, Identity)
+	FORCEINLINE FIdentity operator+(FZero, FIdentity)
 	{
-		return Identity{};
+		return FIdentity{};
 	}
 
-	FORCEINLINE Identity operator+(Identity, Zero)
+	FORCEINLINE FIdentity operator+(FIdentity, FZero)
 	{
-		return Identity{};
+		return FIdentity{};
 	}
 
 	template<typename Element>
-	FORCEINLINE const Element& operator+(Zero, const Element& e)
+	FORCEINLINE const Element& operator+(FZero, const Element& e)
 	{
 		return e;
 	}
 
 	template<typename Element>
-	FORCEINLINE const Element& operator+(const Element& e, Zero)
+	FORCEINLINE const Element& operator+(const Element& e, FZero)
 	{
 		return e;
 	}
 
-	FORCEINLINE Zero operator-(Zero, Zero)
+	FORCEINLINE FZero operator-(FZero, FZero)
 	{
-		return Zero{};
+		return FZero{};
 	}
 
-	FORCEINLINE Zero operator-(Identity, Identity)
+	FORCEINLINE FZero operator-(FIdentity, FIdentity)
 	{
-		return Zero{};
+		return FZero{};
 	}
 
-	FORCEINLINE Identity operator-(Identity, Zero)
+	FORCEINLINE FIdentity operator-(FIdentity, FZero)
 	{
-		return Identity{};
+		return FIdentity{};
 	}
 
 	template<typename Element>
-	FORCEINLINE Element operator-(Zero, const Element& e)
+	FORCEINLINE Element operator-(FZero, const Element& e)
 	{
 		return -e;
 	}
 
 	template<typename Element>
-	FORCEINLINE const Element& operator-(const Element& e, Zero)
+	FORCEINLINE const Element& operator-(const Element& e, FZero)
 	{
 		return e;
 	}
 
-	FORCEINLINE Zero operator*(Zero, Zero)
+	FORCEINLINE FZero operator*(FZero, FZero)
 	{
-		return Zero{};
+		return FZero{};
 	}
 
-	FORCEINLINE Zero operator*(Zero, Identity)
+	FORCEINLINE FZero operator*(FZero, FIdentity)
 	{
-		return Zero{};
+		return FZero{};
 	}
 
-	FORCEINLINE Zero operator*(Identity, Zero)
+	FORCEINLINE FZero operator*(FIdentity, FZero)
 	{
-		return Zero{};
-	}
-
-	template<typename Element>
-	FORCEINLINE Zero operator*(Zero, const Element& e)
-	{
-		return Zero{};
+		return FZero{};
 	}
 
 	template<typename Element>
-	FORCEINLINE Zero operator*(const Element& e, Zero)
+	FORCEINLINE FZero operator*(FZero, const Element& e)
 	{
-		return Zero{};
+		return FZero{};
+	}
+
+	template<typename Element>
+	FORCEINLINE FZero operator*(const Element& e, FZero)
+	{
+		return FZero{};
 	}
 
 #ifdef USE_OSTREAM
 
 	template<typename CharT, typename Traits>
-	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Zero)
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, FZero)
 	{
-		return os << "Zero";
+		return os << "FZero";
 	}
 
 	template<typename CharT, typename Traits>
-	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Identity)
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, FIdentity)
 	{
-		return os << "Identity";
+		return os << "FIdentity";
 	}
 
 	template<typename CharT, typename Traits, std::size_t I>
-	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, Unit<I>)
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, FUnit<I>)
 	{
-		return os << "Unit" << I;
+		return os << "FUnit" << I;
 	}
 
 #endif // USE_OSTREAM
@@ -265,53 +265,53 @@ namespace Dash {
 
 	// --Implementation-- //
 
-	namespace Math
+	namespace FMath
 	{
-		FORCEINLINE Identity Inverse(Identity)
+		FORCEINLINE FIdentity Inverse(FIdentity)
 		{
-			return Identity{};
+			return FIdentity{};
 		}
 
-		FORCEINLINE Zero Mul(Zero, Zero)
+		FORCEINLINE FZero Mul(FZero, FZero)
 		{
-			return Zero{};
+			return FZero{};
 		}
 
-		FORCEINLINE Zero Mul(Zero, Identity)
+		FORCEINLINE FZero Mul(FZero, FIdentity)
 		{
-			return Zero{};
+			return FZero{};
 		}
 
-		FORCEINLINE Zero Mul(Identity, Zero)
+		FORCEINLINE FZero Mul(FIdentity, FZero)
 		{
-			return Zero{};
-		}
-
-		template<typename Element>
-		FORCEINLINE Zero Mul(Zero, const Element& e)
-		{
-			return Zero{};
+			return FZero{};
 		}
 
 		template<typename Element>
-		FORCEINLINE Zero Mul(const Element& e, Zero)
+		FORCEINLINE FZero Mul(FZero, const Element& e)
 		{
-			return Zero{};
-		}
-
-		FORCEINLINE Identity Mul(Identity, Identity)
-		{
-			return Identity{};
+			return FZero{};
 		}
 
 		template<typename Element>
-		FORCEINLINE const Element& Mul(Identity, const Element& e)
+		FORCEINLINE FZero Mul(const Element& e, FZero)
+		{
+			return FZero{};
+		}
+
+		FORCEINLINE FIdentity Mul(FIdentity, FIdentity)
+		{
+			return FIdentity{};
+		}
+
+		template<typename Element>
+		FORCEINLINE const Element& Mul(FIdentity, const Element& e)
 		{
 			return e;
 		}
 
 		template<typename Element>
-		FORCEINLINE const Element& Mul(const Element& e, Identity)
+		FORCEINLINE const Element& Mul(const Element& e, FIdentity)
 		{
 			return e;
 		}
@@ -323,37 +323,37 @@ namespace Dash {
 		}
 
 
-		FORCEINLINE Zero Dot(Zero, Zero)
+		FORCEINLINE FZero Dot(FZero, FZero)
 		{
-			return Zero{};
+			return FZero{};
 		}
 
 		template<typename Vector>
-		FORCEINLINE Zero Dot(Zero, const Vector& v)
+		FORCEINLINE FZero Dot(FZero, const Vector& v)
 		{
-			return Zero{};
+			return FZero{};
 		}
 
 		template<typename Vector>
-		FORCEINLINE Zero Dot(const Vector& v, Zero)
+		FORCEINLINE FZero Dot(const Vector& v, FZero)
 		{
-			return Zero{};
+			return FZero{};
 		}
 
 		template<std::size_t I>
-		FORCEINLINE Identity Dot(Unit<I>, Unit<I>)
+		FORCEINLINE FIdentity Dot(FUnit<I>, FUnit<I>)
 		{
-			return Identity{};
+			return FIdentity{};
 		}
 
 		template<std::size_t I, std::size_t J>
-		FORCEINLINE Zero Dot(Unit<I>, Unit<J>)
+		FORCEINLINE FZero Dot(FUnit<I>, FUnit<J>)
 		{
-			return Zero{};
+			return FZero{};
 		}
 
 		template<typename Vector, std::size_t I>
-		FORCEINLINE typename Vector::ScalarType Dot(const Vector& v, Unit<I>)
+		FORCEINLINE typename Vector::ScalarType Dot(const Vector& v, FUnit<I>)
 		{
 			using RT = typename Vector::ScalarType;
 
@@ -361,7 +361,7 @@ namespace Dash {
 		}
 
 		template<typename Vector, std::size_t I>
-		FORCEINLINE typename Vector::ScalarType Dot(Unit<I>, const Vector& v)
+		FORCEINLINE typename Vector::ScalarType Dot(FUnit<I>, const Vector& v)
 		{
 			using RT = typename Vector::ScalarType;
 

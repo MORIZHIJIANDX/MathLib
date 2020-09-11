@@ -2,13 +2,13 @@
 
 namespace Dash
 {
-	Shape::Shape(const Transform& objectToWorld, const Transform& worldToObject) noexcept
+	Shape::Shape(const FTransform& objectToWorld, const FTransform& worldToObject) noexcept
 		: ObjectToWorld(objectToWorld)
 		, WorldToObject(worldToObject)
 	{
 	}
 
-	BoundingBox Shape::WorldBound() const noexcept
+	FBoundingBox Shape::WorldBound() const noexcept
 	{
 		return ObjectToWorld.TransformBoundingBox(ObjectBound());
 	}

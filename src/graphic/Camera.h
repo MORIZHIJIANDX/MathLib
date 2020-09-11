@@ -5,45 +5,45 @@
 
 namespace Dash
 {
-	class Camera
+	class FCamera
 	{
 	public:
-		Camera(Scalar nearZ, Scalar farZ, const Viewport& vp = Viewport{});
-		virtual ~Camera();
+		FCamera(Scalar nearZ, Scalar farZ, const FViewport& vp = FViewport{});
+		virtual ~FCamera();
 
-		Matrix4x4 GetViewMatrix() const;
-		Matrix4x4 GetProjectionMatrix() const;
-		Matrix4x4 GetViewProjectionMatrix() const;
+		FMatrix4x4 GetViewMatrix() const;
+		FMatrix4x4 GetProjectionMatrix() const;
+		FMatrix4x4 GetViewProjectionMatrix() const;
 
-		Vector3f GetPosition() const;
-		Quaternion GetRotation() const;
+		FVector3f GetPosition() const;
+		FQuaternion GetRotation() const;
 
-		Vector3f GetForward() const;
-		Vector3f GetRight() const;
-		Vector3f GetUp() const;
+		FVector3f GetForward() const;
+		FVector3f GetRight() const;
+		FVector3f GetUp() const;
 
 		Scalar GetFar() const;
 		Scalar GetNear() const;
 
-		Viewport GetViewPort() const;
+		FViewport GetViewPort() const;
 
 		std::size_t GetPixelWidth() const;
 		std::size_t GetPixelHeight() const;
 
-		void SetWorldMatrix(const Matrix4x4& mat);
-		void SetProjectionMatrix(const Matrix4x4& mat);
+		void SetWorldMatrix(const FMatrix4x4& mat);
+		void SetProjectionMatrix(const FMatrix4x4& mat);
 
-		void SetPosition(const Vector3f& p);
-		void SetRotation(const Quaternion& q);
+		void SetPosition(const FVector3f& p);
+		void SetRotation(const FQuaternion& q);
 		void SetRotation(Scalar pitch, Scalar yaw, Scalar roll);
 
 		void SetFarClip(Scalar farZ);
 		void SetNearClip(Scalar nearZ);
 
-		void SetViewPort(const Viewport& vp);
+		void SetViewPort(const FViewport& vp);
 
-		void SetLookAt(const Vector3f& eye, const Vector3f& lookAt, const Vector3f& up);
-		void SetLookTo(const Vector3f& eye, const Vector3f& lookTo, const Vector3f& up);
+		void SetLookAt(const FVector3f& eye, const FVector3f& lookAt, const FVector3f& up);
+		void SetLookTo(const FVector3f& eye, const FVector3f& lookTo, const FVector3f& up);
 
 		void TranslateForward(Scalar speed);
 		void TranslateRight(Scalar speed);
@@ -75,25 +75,25 @@ namespace Dash
 
 		virtual void CreateProjectionMatrix() const = 0;
 
-		mutable Matrix4x4 mProjectionMatrix;
-		mutable Matrix4x4 mViewProjectionMatrix;
+		mutable FMatrix4x4 mProjectionMatrix;
+		mutable FMatrix4x4 mViewProjectionMatrix;
 
-		Transform mTransform;
+		FTransform mTransform;
 
 		Scalar mNear;
 		Scalar mFar;
 
-		Viewport mViewPort;
+		FViewport mViewPort;
 
 		mutable bool mWorldMatrixDirty;
 		mutable bool mProjectionMatrixDirty;
 	};
 
 
-	class OrthographicCamera : public Camera
+	class OrthographicCamera : public FCamera
 	{
 	public:
-		OrthographicCamera(Scalar minX, Scalar minY, Scalar maxX, Scalar maxY, Scalar nearZ, Scalar farZ, const Viewport& vp = Viewport{});
+		OrthographicCamera(Scalar minX, Scalar minY, Scalar maxX, Scalar maxY, Scalar nearZ, Scalar farZ, const FViewport& vp = FViewport{});
 		virtual ~OrthographicCamera();
 
 		Scalar GetMinX() const { return mXMin; }
@@ -116,10 +116,10 @@ namespace Dash
 		Scalar mYMax;
 	};
 
-	class PerspectiveCamera : public Camera
+	class PerspectiveCamera : public FCamera
 	{
 	public:
-		PerspectiveCamera(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ, const Viewport& vp = Viewport{});
+		PerspectiveCamera(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ, const FViewport& vp = FViewport{});
 		virtual ~PerspectiveCamera();
 
 		Scalar GetFieldOfView() const { return mFov; }
@@ -128,7 +128,7 @@ namespace Dash
 		void SetFieldOfView(Scalar fov);
 		void SetAspectRatio(Scalar aspect);
 
-		Ray GenerateRay(Scalar u, Scalar v) const;
+		FRay GenerateRay(Scalar u, Scalar v) const;
 
 	protected:
 

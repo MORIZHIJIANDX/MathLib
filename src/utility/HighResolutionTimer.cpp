@@ -2,13 +2,13 @@
 
 namespace Dash
 {
-	HighResolutionTimer::HighResolutionTimer()
+	FHighResolutionTimer::FHighResolutionTimer()
 		: mElapsedTime(0), mDeltaTime(0)
 	{
 		mStart = std::chrono::steady_clock::now();
 	}
 
-	void HighResolutionTimer::Update()
+	void FHighResolutionTimer::Update()
 	{
 		//double currCount = (std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - mStart)).count();
 		double currCount = (std::chrono::duration<double>(std::chrono::steady_clock::now() - mStart)).count();
@@ -16,34 +16,34 @@ namespace Dash
 		mElapsedTime = currCount;
 	}
 
-	double HighResolutionTimer::ElapsedSeconds() const
+	double FHighResolutionTimer::ElapsedSeconds() const
 	{
 		//return mElapsedTime * 0.000001;
 		return mElapsedTime;
 	}
 
-	double HighResolutionTimer::ElapsedMilliSeconds() const
+	double FHighResolutionTimer::ElapsedMilliSeconds() const
 	{
 		return mElapsedTime * 0.001;
 	}
 
-	double HighResolutionTimer::ElapsedMicroSeconds() const
+	double FHighResolutionTimer::ElapsedMicroSeconds() const
 	{
 		return mElapsedTime;
 	}
 
-	double HighResolutionTimer::DeltaSeconds() const
+	double FHighResolutionTimer::DeltaSeconds() const
 	{
 		//return mDeltaTime * 0.000001;
 		return mDeltaTime;
 	}
 
-	double HighResolutionTimer::DeltaMilliSeconds() const
+	double FHighResolutionTimer::DeltaMilliSeconds() const
 	{
 		return mDeltaTime * 0.001;
 	}
 
-	double HighResolutionTimer::DeltaMicroSeconds() const
+	double FHighResolutionTimer::DeltaMicroSeconds() const
 	{
 		return mDeltaTime;
 	}

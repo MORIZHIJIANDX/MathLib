@@ -9,24 +9,24 @@ namespace Dash
 {
 	#define RENDER_WINDOW_CLASS_NAME "RenderWindowClass"
 
-	Application::Application(size_t windowWidth, size_t windowHeight )
+	FApplication::FApplication(size_t windowWidth, size_t windowHeight )
 		: mWindow(RENDER_WINDOW_CLASS_NAME, "Test", windowWidth, windowHeight)
 		, mIsRunning(false)
 	{
 		
 	}
 
-	Application::~Application()
+	FApplication::~FApplication()
 	{
 	}
 
-	int Application::Run()
+	int FApplication::Run()
 	{
 		ASSERT(!mIsRunning);
 
 		mIsRunning = true;
 
-		std::thread updateThread = std::thread{ &Application::UpdateThread, this };
+		std::thread updateThread = std::thread{ &FApplication::UpdateThread, this };
 		SetThreadName(updateThread, "UpdateThread");
 
 		int returnCode = mWindow.WindowsMessageLoop();
@@ -41,24 +41,24 @@ namespace Dash
 		return returnCode;
 	}
 
-	void Application::Stop()
+	void FApplication::Stop()
 	{
 		mWindow.CloseWindow();
 	}
 
-	void Application::OnRender(const RenderEventArgs& e)
+	void FApplication::OnRender(const FRenderEventArgs& e)
 	{
 	}
 
-	void Application::OnUpdate(const UpdateEventArgs& e)
+	void FApplication::OnUpdate(const FUpdateEventArgs& e)
 	{
 	}
 
-	void Application::UpdateThread()
+	void FApplication::UpdateThread()
 	{
 		try
 		{
-			HighResolutionTimer timer;
+			FHighResolutionTimer timer;
 
 			size_t frameCount = 0;
 
@@ -71,8 +71,8 @@ namespace Dash
 
 				mWindow.ProcessMessage();
 
-				OnUpdate(UpdateEventArgs{ deltaTime, elapsedTime, frameCount });
-				OnRender(RenderEventArgs{ deltaTime, elapsedTime, frameCount });
+				OnUpdate(FUpdateEventArgs{ deltaTime, elapsedTime, frameCount });
+				OnRender(FRenderEventArgs{ deltaTime, elapsedTime, frameCount });
 
 				++frameCount;
 

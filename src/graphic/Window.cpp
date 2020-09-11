@@ -9,15 +9,15 @@
 namespace Dash
 {
 	using MessageFunc = std::function<void()>;
-	ThreadSafeQueue<MessageFunc> MessageQueue;
+	TThreadSafeQueue<MessageFunc> MessageQueue;
 
-	Window::Window(const std::string& name, const std::string title, size_t width, size_t height)
+	FWindow::FWindow(const std::string& name, const std::string title, size_t width, size_t height)
 		: mWindowTitle(title)
 		, mWindowWidth(width)
 		, mWindowHeight(height)
 		, mRequestQuit(false)
 	{
-		Window::WindowClassRegister::Get(name, ::GetModuleHandle(NULL));
+		FWindow::WindowClassRegister::Get(name, ::GetModuleHandle(NULL));
 		
 		RECT winRect;
 		winRect.left = 100;
@@ -37,44 +37,44 @@ namespace Dash
 			static_cast<int>(winRect.bottom - winRect.top),
 			nullptr,      
 			nullptr,       
-			Window::WindowClassRegister::Get()->GetWindowInstance(),
+			FWindow::WindowClassRegister::Get()->GetWindowInstance(),
 			this);
 
 		ShowWindow();
 	}
 
-	Window::~Window()
+	FWindow::~FWindow()
 	{
 		::DestroyWindow(mWindowHandle);
 	}
 
-	void Window::ShowWindow() noexcept
+	void FWindow::ShowWindow() noexcept
 	{
 		ASSERT(mWindowHandle != nullptr);
 
 		::ShowWindow(mWindowHandle, SW_SHOWDEFAULT);
 	}
 
-	void Window::HideWindow() noexcept
+	void FWindow::HideWindow() noexcept
 	{
 		ASSERT(mWindowHandle != nullptr);
 
 		::ShowWindow(mWindowHandle, SW_HIDE);
 	}
 
-	void Window::CloseWindow() noexcept
+	void FWindow::CloseWindow() noexcept
 	{
 		mRequestQuit = true;
 	}
 
-	void Window::SetTitle(const std::string& title) noexcept
+	void FWindow::SetTitle(const std::string& title) noexcept
 	{
 		ASSERT(mWindowHandle != nullptr);
 
 		::SetWindowText(mWindowHandle, title.c_str());
 	}
 
-	void Window::SetFullScreen(bool fullScreen) noexcept
+	void FWindow::SetFullScreen(bool fullScreen) noexcept
 	{
 		if (mFullScreen != fullScreen)
 		{
@@ -82,12 +82,12 @@ namespace Dash
 		}
 	}
 
-	bool Window::IsFullScreen() const noexcept
+	bool FWindow::IsFullScreen() const noexcept
 	{
 		return mFullScreen;
 	}
 
-	int Window::WindowsMessageLoop() noexcept
+	int FWindow::WindowsMessageLoop() noexcept
 	{
 		MSG msg = {};
 
@@ -109,7 +109,7 @@ namespace Dash
 		}
 	}
 
-	void Window::ProcessMessage() noexcept
+	void FWindow::ProcessMessage() noexcept
 	{
 		MessageFunc func;
 		while (MessageQueue.TryPop(func))
@@ -118,31 +118,31 @@ namespace Dash
 		}
 	}
 
-	// Convert the message ID into a MouseButton ID
-	static MouseButton DecodeMouseButton(UINT messageID)
+	// Convert the message ID into a EMouseButton ID
+	static EMouseButton DecodeMouseButton(UINT messageID)
 	{
-		MouseButton mouseButton = MouseButton::None;
+		EMouseButton mouseButton = EMouseButton::None;
 		switch (messageID)
 		{
 		case WM_LBUTTONDOWN:
 		case WM_LBUTTONUP:
 		case WM_LBUTTONDBLCLK:
 		{
-			mouseButton = MouseButton::Left;
+			mouseButton = EMouseButton::Left;
 			break;
 		}
 		case WM_RBUTTONDOWN:
 		case WM_RBUTTONUP:
 		case WM_RBUTTONDBLCLK:
 		{
-			mouseButton = MouseButton::Right;
+			mouseButton = EMouseButton::Right;
 			break;
 		}
 		case WM_MBUTTONDOWN:
 		case WM_MBUTTONUP:
 		case WM_MBUTTONDBLCLK:
 		{
-			mouseButton = MouseButton::Middle;
+			mouseButton = EMouseButton::Middle;
 			break;
 		}
 		}
@@ -150,17 +150,17 @@ namespace Dash
 		return mouseButton;
 	}
 
-	LRESULT Window::WinProcFunc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+	LRESULT FWindow::WinProcFunc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		if (msg == WM_CREATE)
 		{
 			// extract ptr to window class from creation data
 			const CREATESTRUCTW* const pCreate = reinterpret_cast<CREATESTRUCTW*>(lParam);
-			Window* const pWnd = static_cast<Window*>(pCreate->lpCreateParams);
+			FWindow* const pWnd = static_cast<FWindow*>(pCreate->lpCreateParams);
 			// set WinAPI-managed user data to store ptr to window instance
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWnd));
 			// set message proc to normal (non-setup) handler now that setup is finished
-			SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&Window::HandleMsgThunk));
+			SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&FWindow::HandleMsgThunk));
 			// forward message to window instance handler
 			return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 		}
@@ -168,15 +168,15 @@ namespace Dash
 		return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
 
-	LRESULT Window::HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+	LRESULT FWindow::HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		// retrieve ptr to window instance
-		Window* const pWnd = reinterpret_cast<Window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+		FWindow* const pWnd = reinterpret_cast<FWindow*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 		// forward message to window instance handler
 		return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 	}
 
-	LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
+	LRESULT FWindow::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 	{
 		switch (msg)
 		{
@@ -187,7 +187,7 @@ namespace Dash
 			return 0;
 			// clear keystate when window loses focus to prevent input getting "stuck"
 		case WM_KILLFOCUS:
-			MessageQueue.Push(std::bind(&Keyboard::ClearStates, &Keyboard::Get()));
+			MessageQueue.Push(std::bind(&FKeyboard::ClearStates, &FKeyboard::Get()));
 			break;
 
 			/*********** KEYBOARD MESSAGES ***********/
@@ -214,10 +214,10 @@ namespace Dash
 			bool control = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
 			bool alt = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
 
-			KeyCode key = (KeyCode)wParam;
+			EKeyCode key = (EKeyCode)wParam;
 			unsigned int scanCode = (lParam & 0x00FF0000) >> 16;
-			KeyEventArgs keyEventArgs(key, c, KeyState::Pressed, control, shift, alt, repeat);
-			MessageQueue.Push(std::bind(&Keyboard::OnKeyPressed, &Keyboard::Get(), keyEventArgs));
+			FKeyEventArgs keyEventArgs(key, c, EKeyState::Pressed, control, shift, alt, repeat);
+			MessageQueue.Push(std::bind(&FKeyboard::OnKeyPressed, &FKeyboard::Get(), keyEventArgs));
 			break;
 		}
 		case WM_KEYUP:
@@ -227,10 +227,10 @@ namespace Dash
 			bool control = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
 			bool alt = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
 
-			KeyCode key = (KeyCode)wParam;
+			EKeyCode key = (EKeyCode)wParam;
 
-			KeyEventArgs keyEventArgs(key, 0, KeyState::Released, control, shift, alt, false);
-			MessageQueue.Push(std::bind(&Keyboard::OnKeyReleased, &Keyboard::Get(), keyEventArgs));
+			FKeyEventArgs keyEventArgs(key, 0, EKeyState::Released, control, shift, alt, false);
+			MessageQueue.Push(std::bind(&FKeyboard::OnKeyReleased, &FKeyboard::Get(), keyEventArgs));
 			break;
 		}
 			/*********** END KEYBOARD MESSAGES ***********/
@@ -247,17 +247,17 @@ namespace Dash
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
-			MouseMotionEventArgs mouseMotionEventArgs(lButton, mButton, rButton, control, shift, x, y);
+			FMouseMotionEventArgs mouseMotionEventArgs(lButton, mButton, rButton, control, shift, x, y);
 
 			// in client region -> log move, and log enter + capture mouse (if not previously in window)
 			if (x >= 0 && x < mWindowWidth && y >= 0 && y < mWindowHeight)
 			{
-				MessageQueue.Push(std::bind(&Mouse::OnMouseMove, &Mouse::Get(), mouseMotionEventArgs));
+				MessageQueue.Push(std::bind(&FMouse::OnMouseMove, &FMouse::Get(), mouseMotionEventArgs));
 
-				if (!Mouse::Get().IsInWindow())
+				if (!FMouse::Get().IsInWindow())
 				{
 					SetCapture(hWnd);
-					MessageQueue.Push(std::bind(&Mouse::OnMouseEnter, &Mouse::Get(), mouseMotionEventArgs));
+					MessageQueue.Push(std::bind(&FMouse::OnMouseEnter, &FMouse::Get(), mouseMotionEventArgs));
 				}
 			}
 			// not in client -> log move / maintain capture if button down
@@ -265,13 +265,13 @@ namespace Dash
 			{
 				if (wParam & (MK_LBUTTON | MK_RBUTTON))
 				{
-					MessageQueue.Push(std::bind(&Mouse::OnMouseMove, &Mouse::Get(), mouseMotionEventArgs));
+					MessageQueue.Push(std::bind(&FMouse::OnMouseMove, &FMouse::Get(), mouseMotionEventArgs));
 				}
 				// button up -> release capture / log event for leaving
 				else
 				{
 					ReleaseCapture();
-					MessageQueue.Push(std::bind(&Mouse::OnMouseLeave, &Mouse::Get(), mouseMotionEventArgs));
+					MessageQueue.Push(std::bind(&FMouse::OnMouseLeave, &FMouse::Get(), mouseMotionEventArgs));
 				}
 			}
 			break;
@@ -289,8 +289,8 @@ namespace Dash
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
-			MouseButtonEventArgs mouseButtonEventArgs(DecodeMouseButton(msg), ButtonState::Pressed, lButton, mButton, rButton, control, shift, x, y);
-			MessageQueue.Push(std::bind(&Mouse::OnMouseButtonPressed, &Mouse::Get(), mouseButtonEventArgs));
+			FMouseButtonEventArgs mouseButtonEventArgs(DecodeMouseButton(msg), EButtonState::Pressed, lButton, mButton, rButton, control, shift, x, y);
+			MessageQueue.Push(std::bind(&FMouse::OnMouseButtonPressed, &FMouse::Get(), mouseButtonEventArgs));
 			break;
 		}
 		case WM_LBUTTONUP:
@@ -306,8 +306,8 @@ namespace Dash
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
-			MouseButtonEventArgs mouseButtonEventArgs(DecodeMouseButton(msg), ButtonState::Released, lButton, mButton, rButton, control, shift, x, y);
-			MessageQueue.Push(std::bind(&Mouse::OnMouseButtonReleased, &Mouse::Get(), mouseButtonEventArgs));
+			FMouseButtonEventArgs mouseButtonEventArgs(DecodeMouseButton(msg), EButtonState::Released, lButton, mButton, rButton, control, shift, x, y);
+			MessageQueue.Push(std::bind(&FMouse::OnMouseButtonReleased, &FMouse::Get(), mouseButtonEventArgs));
 			break;
 		}
 		case WM_MOUSEWHEEL:
@@ -330,8 +330,8 @@ namespace Dash
 			clientToScreenPoint.y = y;
 			::ScreenToClient(hWnd, &clientToScreenPoint);
 
-			MouseWheelEventArgs mouseWheelEventArgs((float)zDelta, lButton, mButton, rButton, control, shift, (int)clientToScreenPoint.x, (int)clientToScreenPoint.y);
-			MessageQueue.Push(std::bind(&Mouse::OnMouseWheel, &Mouse::Get(), mouseWheelEventArgs));
+			FMouseWheelEventArgs mouseWheelEventArgs((float)zDelta, lButton, mButton, rButton, control, shift, (int)clientToScreenPoint.x, (int)clientToScreenPoint.y);
+			MessageQueue.Push(std::bind(&FMouse::OnMouseWheel, &FMouse::Get(), mouseWheelEventArgs));
 			break;
 		}
 		/************** END MOUSE MESSAGES **************/
@@ -340,23 +340,23 @@ namespace Dash
 		return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
 
-	HINSTANCE Window::WindowClassRegister::GetWindowInstance() const noexcept
+	HINSTANCE FWindow::WindowClassRegister::GetWindowInstance() const noexcept
 	{
 		return mWindowInstance;
 	}
 
-	const std::string& Window::WindowClassRegister::GetWindowClassName() const noexcept
+	const std::string& FWindow::WindowClassRegister::GetWindowClassName() const noexcept
 	{
 		return mWindowClassName;
 	}
 
-	Window::WindowClassRegister::WindowClassRegister()
+	FWindow::WindowClassRegister::WindowClassRegister()
 		: mWindowClassName()
 		, mWindowInstance(nullptr)
 	{
 	}
 
-	Window::WindowClassRegister::WindowClassRegister(const std::string& windowName, HINSTANCE windowInstance)
+	FWindow::WindowClassRegister::WindowClassRegister(const std::string& windowName, HINSTANCE windowInstance)
 		: mWindowClassName(windowName)
 		, mWindowInstance(windowInstance)
 	{
@@ -365,7 +365,7 @@ namespace Dash
 		
 		winClass.cbSize = sizeof(winClass);
 		winClass.style = CS_HREDRAW | CS_VREDRAW;
-		winClass.lpfnWndProc = Window::WinProcFunc;
+		winClass.lpfnWndProc = FWindow::WinProcFunc;
 		winClass.cbClsExtra = 0;
 		winClass.cbWndExtra = 0;
 		winClass.hInstance = mWindowInstance;
@@ -380,7 +380,7 @@ namespace Dash
 		RegisterClassEx(&winClass);
 	}
 
-	Window::WindowClassRegister::~WindowClassRegister()
+	FWindow::WindowClassRegister::~WindowClassRegister()
 	{
 		UnregisterClass(mWindowClassName.c_str(), mWindowInstance);
 	}

@@ -8,15 +8,15 @@
 namespace Dash
 {
 	// ******************
-// LogStreamFile
+// FLogStreamFile
 //
 
-	LogStreamFile::LogStreamFile(std::wstring fileName)
+	FLogStreamFile::FLogStreamFile(std::wstring fileName)
 		: mFileStream(fileName, std::fstream::out)
 	{
 	}
 
-	LogStreamFile::~LogStreamFile()
+	FLogStreamFile::~FLogStreamFile()
 	{
 		if (mFileStream.is_open())
 		{
@@ -24,7 +24,7 @@ namespace Dash
 		}
 	}
 
-	void LogStreamFile::Write(LogLevel level, std::wstring logInfo)
+	void FLogStreamFile::Write(ELogLevel level, std::wstring logInfo)
 	{
 		std::scoped_lock lock(mFileMutex);
 		if (mFileStream.is_open())
@@ -36,12 +36,12 @@ namespace Dash
 
 
 	// ******************
-	// LogStreamConsole
+	// FLogStreamConsole
 	//
 
 	static const int MAX_CONSOLE_LINES = 500;
 
-	LogStreamConsole::LogStreamConsole()
+	FLogStreamConsole::FLogStreamConsole()
 	{
 		// Allocate a console. 
 		if (AllocConsole())
@@ -89,7 +89,7 @@ namespace Dash
 		}
 	}
 
-	void LogStreamConsole::Write(LogLevel level, std::wstring logInfo)
+	void FLogStreamConsole::Write(ELogLevel level, std::wstring logInfo)
 	{
 		CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
 		HANDLE hConOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -98,15 +98,15 @@ namespace Dash
 
 		switch (level)
 		{
-		case LogLevel::Info:
+		case ELogLevel::Info:
 			SetConsoleTextAttribute(hConOut, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 			std::wcout << logInfo;
 			break;
-		case LogLevel::Warning:
+		case ELogLevel::Warning:
 			SetConsoleTextAttribute(hConOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 			std::wcout << logInfo;
 			break;
-		case LogLevel::Error:
+		case ELogLevel::Error:
 			SetConsoleTextAttribute(hConOut, FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::wcout << logInfo;
 			break;
@@ -121,40 +121,40 @@ namespace Dash
 
 
 	// ******************
-	// LogStreamVS
+	// FLogStreamVS
 	//
 
-	void LogStreamVS::Write(LogLevel level, std::wstring logInfo)
+	void FLogStreamVS::Write(ELogLevel level, std::wstring logInfo)
 	{
 		OutputDebugStringW(logInfo.c_str());
 	}
 
 
 	// ******************
-	// LogStreamMessageBox
+	// FLogStreamMessageBox
 	//
 
-	LogStreamMessageBox::LogStreamMessageBox(LogLevel filter)
+	FLogStreamMessageBox::FLogStreamMessageBox(ELogLevel filter)
 		: mLevelFilter(filter)
 	{
 	}
 
-	void LogStreamMessageBox::Write(LogLevel level, std::wstring logInfo)
+	void FLogStreamMessageBox::Write(ELogLevel level, std::wstring logInfo)
 	{
 		std::wstring caption;
 		UINT uType = 0;
 
 		switch (level)
 		{
-		case LogLevel::Info:
+		case ELogLevel::Info:
 			caption = L"Information";
 			uType = MB_ICONINFORMATION;
 			break;
-		case LogLevel::Warning:
+		case ELogLevel::Warning:
 			caption = L"Warning";
 			uType = MB_ICONWARNING;
 			break;
-		case LogLevel::Error:
+		case ELogLevel::Error:
 			caption = L"Error";
 			uType = MB_ICONERROR;
 			break;

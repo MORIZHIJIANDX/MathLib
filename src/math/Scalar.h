@@ -4,13 +4,14 @@
 #include "ScalarTraits.h"
 
 #include <cmath>
+#include <immintrin.h>
 
 namespace Dash {
 
 	#undef min
 	#undef max
 
-	namespace Math {
+	namespace FMath {
 		template <typename Scalar> constexpr Scalar ACos(Scalar x) noexcept;
 		template <typename Scalar> constexpr Scalar ASin(Scalar x) noexcept;
 
@@ -42,6 +43,7 @@ namespace Dash {
 
 		template <typename Scalar> constexpr Scalar Min(Scalar a, Scalar b) noexcept;
 		template <typename Scalar> constexpr Scalar Max(Scalar a, Scalar b) noexcept;
+		template <typename Scalar> constexpr Scalar Min(Scalar a, Scalar b, Scalar c) noexcept;
 		template <typename Scalar> constexpr Scalar Max(Scalar a, Scalar b, Scalar c) noexcept;
 
 		template <typename Scalar> constexpr Scalar& Minimize(Scalar& a, Scalar b) noexcept;
@@ -84,6 +86,58 @@ namespace Dash {
 		template <typename Scalar> Scalar Degrees(Scalar rads) noexcept;
 
 		template <typename Scalar> constexpr void Swap(Scalar& x, Scalar& y) noexcept;
+
+		static FORCEINLINE int Rand() { return rand(); }
+
+		/** Seeds global random number functions Rand() and FRand() */
+		static FORCEINLINE void RandInit(int Seed) { srand(Seed); }
+
+		/** Returns a random float between 0 and 1, inclusive. */
+		static FORCEINLINE float FRand() { return Rand() / (float)RAND_MAX; }
+
+
+		static FORCEINLINE int TruncToInt(float F)
+		{
+			return _mm_cvtt_ss2si(_mm_set_ss(F));
+		}
+
+		static FORCEINLINE float TruncToFloat(float F)
+		{
+			return (float)TruncToInt(F); // same as generic implementation, but this will call the faster trunc
+		}
+
+		static FORCEINLINE int RoundToInt(float F)
+		{
+			// Note: the x2 is to workaround the rounding-to-nearest-even-number issue when the fraction is .5
+			return _mm_cvt_ss2si(_mm_set_ss(F + F + 0.5f)) >> 1;
+		}
+
+		static FORCEINLINE float RoundToFloat(float F)
+		{
+			return (float)RoundToInt(F);
+		}
+
+		static FORCEINLINE int FloorToInt(float F)
+		{
+			return _mm_cvt_ss2si(_mm_set_ss(F + F - 0.5f)) >> 1;
+		}
+
+		static FORCEINLINE float FloorToFloat(float F)
+		{
+			return (float)FloorToInt(F);
+		}
+
+		static FORCEINLINE int CeilToInt(float F)
+		{
+			// Note: the x2 is to workaround the rounding-to-nearest-even-number issue when the fraction is .5
+			return -(_mm_cvt_ss2si(_mm_set_ss(-0.5f - (F + F))) >> 1);
+		}
+
+		static FORCEINLINE float CeilToFloat(float F)
+		{
+			// Note: the x2 is to workaround the rounding-to-nearest-even-number issue when the fraction is .5
+			return (float)CeilToInt(F);
+		}
 
 
 		template<typename Scalar>
@@ -228,7 +282,13 @@ namespace Dash {
 		}
 
 		template<typename Scalar>
-		constexpr Scalar Max(Scalar a, Scalar b, Scalar c) noexcept
+		FORCEINLINE constexpr Scalar Min(Scalar a, Scalar b, Scalar c) noexcept
+		{
+			return Min(Min(a, b), c);
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr Scalar Max(Scalar a, Scalar b, Scalar c) noexcept
 		{
 			return Max(Max(a, b), c);
 		}
@@ -416,14 +476,14 @@ namespace Dash {
 		template<typename Scalar>
 		FORCEINLINE Scalar Radians(Scalar degs) noexcept
 		{
-			static const Scalar RADS_PER_DEG = ScalarTraits<Scalar>::Pi() / Scalar(180);
+			static const Scalar RADS_PER_DEG = TScalarTraits<Scalar>::Pi() / Scalar(180);
 			return RADS_PER_DEG * degs;
 		}
 
 		template<typename Scalar>
 		FORCEINLINE Scalar Degrees(Scalar rads) noexcept
 		{
-			static const Scalar DEGS_PER_RAD = Scalar(180) / ScalarTraits<Scalar>::Pi();
+			static const Scalar DEGS_PER_RAD = Scalar(180) / TScalarTraits<Scalar>::Pi();
 			return DEGS_PER_RAD * rads;
 		}
 

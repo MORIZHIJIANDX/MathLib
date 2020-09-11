@@ -3,49 +3,49 @@
 namespace Dash 
 {
 	template<typename Scalar1, typename Scalar2>
-	struct Promote
+	struct TPromote
 	{
 		using RT = Scalar1;
 	};
 
 	template<>
-	struct Promote<int, float>
+	struct TPromote<int, float>
 	{
 		using RT = float;
 	};
 
 	template<>
-	struct Promote<int, double>
+	struct TPromote<int, double>
 	{
 		using RT = double;
 	};
 
 	template<>
-	struct Promote<int, long double>
+	struct TPromote<int, long double>
 	{
 		using RT = long double;
 	};
 
 	template<>
-	struct Promote<int, long long>
+	struct TPromote<int, long long>
 	{
 		using RT = long long;
 	};
 
 	template<>
-	struct Promote<float, double>
+	struct TPromote<float, double>
 	{
 		using RT = double;
 	};
 
 	template<>
-	struct Promote<float, long double>
+	struct TPromote<float, long double>
 	{
 		using RT = long double;
 	};
 
 	template<>
-	struct Promote<double, long double>
+	struct TPromote<double, long double>
 	{
 		using RT = long double;
 	};

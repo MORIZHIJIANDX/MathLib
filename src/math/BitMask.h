@@ -11,8 +11,8 @@ namespace Dash
 	public:
 		BitMask();
 		explicit BitMask(uint32_t bits);
-		explicit BitMask(Zero);
-		template<uint32_t I> BitMask(Unit<I>);
+		explicit BitMask(FZero);
+		template<uint32_t I> BitMask(FUnit<I>);
 
 		operator uint32_t() const;
 		bool operator[](int i) const;

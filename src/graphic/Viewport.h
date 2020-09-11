@@ -4,9 +4,9 @@
 
 namespace Dash
 {
-	struct Viewport
+	struct FViewport
 	{
-		explicit Viewport(Scalar x = 0, Scalar y = 0, Scalar width = 512, Scalar height = 512,
+		explicit FViewport(Scalar x = 0, Scalar y = 0, Scalar width = 512, Scalar height = 512,
 			Scalar minDepth = 0, Scalar maxDepth = 1)
 			: TopLeftX(x)
 			, TopLeftY(y)

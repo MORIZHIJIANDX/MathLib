@@ -84,6 +84,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\math\Color.h" />
     <ClInclude Include="src\utility\Image.h" />
     <ClInclude Include="src\consolid\consolid.h" />
     <ClInclude Include="src\consolid\DashWinAPI.h" />
@@ -141,6 +142,7 @@
     <ClInclude Include="src\utility\ThreadSafeQueue.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\math\Color.cpp" />
     <ClCompile Include="src\utility\Image.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\graphic\App.cpp" />

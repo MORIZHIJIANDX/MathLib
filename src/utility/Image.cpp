@@ -3,7 +3,7 @@
 namespace Dash
 {
 	/*
-	Image::Image(std::size_t width, std::size_t height, Dash::DASH_FORMAT format)
+	Image::Image(std::size_t width, std::size_t height, Dash::EDASH_FORMAT format)
 		: mWidth(width)
 		, mHeight(height)
 		, mFormat(format)

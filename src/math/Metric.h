@@ -4,7 +4,7 @@
 
 namespace Dash
 {
-	namespace Math
+	namespace FMath
 	{
 		template <typename Vector> typename Vector::ScalarType LengthSquared(const Vector& v);
 		template <typename Vector> typename Vector::ScalarType Length(const Vector& v);

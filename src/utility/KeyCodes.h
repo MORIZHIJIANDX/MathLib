@@ -1,7 +1,7 @@
 #pragma once
 
 // Key code values for Windows
-enum class KeyCode : unsigned int
+enum class EKeyCode : unsigned int
 {
 	None = 0x00, // No key was pressed
 	LButton = 0x01, // Left mouse button
@@ -165,8 +165,8 @@ enum class KeyCode : unsigned int
 	MediaPlayPause = 0xb3, // The Play/Pause Media key
 	LaunchMail = 0xb4, // The Start Mail key
 	SelectMedia = 0xb5, // The Select Media key
-	LaunchApplication1 = 0xb6, // The Launch Application 1 key.
-	LaunchApplication2 = 0xb7, // The Launch Application 2 key.
+	LaunchApplication1 = 0xb6, // The Launch FApplication 1 key.
+	LaunchApplication2 = 0xb7, // The Launch FApplication 2 key.
 	// 0xB8 - B9 are reserved
 	OemSemicolon = 0xba, // Used for miscellaneous characters; it can vary by keyboard.  For the US standard keyboard, the ';:' key
 	Oem1 = 0xba, // Used for miscellaneous characters; it can vary by keyboard.  For the US standard keyboard, the ';:' key

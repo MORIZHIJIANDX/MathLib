@@ -15,31 +15,75 @@ namespace Dash
 	using Scalar = float;
 
 	template<typename T>
-	using Vector2 = ScalarArray<T, 2>;
+	using TVector2 = TScalarArray<T, 2>;
 
 	template<typename T>
-	using Vector3 = ScalarArray<T, 3>;
+	using TVector3 = TScalarArray<T, 3>;
 
 	template<typename T>
-	using Vector4 = ScalarArray<T, 4>;
+	using TVector4 = TScalarArray<T, 4>;
 
 
-	using Vector2f = ScalarArray<Scalar, 2>;
-	using Vector3f = ScalarArray<Scalar, 3>;
-	using Vector4f = ScalarArray<Scalar, 4>;
+	using FVector2f = TScalarArray<Scalar, 2>;
+	using FVector3f = TScalarArray<Scalar, 3>;
+	using FVector4f = TScalarArray<Scalar, 4>;
 
-	using Vector2i = ScalarArray<int, 2>;
-	using Vector3i = ScalarArray<int, 3>;
-	using Vector4i = ScalarArray<int, 4>;
+	using FVector2i = TScalarArray<int, 2>;
+	using FVector3i = TScalarArray<int, 3>;
+	using FVector4i = TScalarArray<int, 4>;
 
-	using Matrix2x2 = ScalarMatrix<Scalar, 2, 2>;
-	using Matrix3x3 = ScalarMatrix<Scalar, 3, 3>;
-	using Matrix4x4 = ScalarMatrix<Scalar, 4, 4>;
+	using FMatrix2x2 = TScalarMatrix<Scalar, 2, 2>;
+	using FMatrix3x3 = TScalarMatrix<Scalar, 3, 3>;
+	using FMatrix4x4 = TScalarMatrix<Scalar, 4, 4>;
 
-	using Rectangle = AABB<Scalar, 2>;
-	using BoundingBox = AABB<Scalar, 3>;
+	using FRectangle = TAABB<Scalar, 2>;
+	using FBoundingBox = TAABB<Scalar, 3>;
 
-	using Ray = ScalarRay<Scalar>;
+	using FRay = TScalarRay<Scalar>;
 
-	using Quaternion = ScalarQuaternion<Scalar>;
+	using FQuaternion = TScalarQuaternion<Scalar>;
+
+
+
+	template<typename T>
+	FORCEINLINE EDASH_FORMAT GetFormat()
+	{
+		ASSERT_FAIL("Invalid Format Type!");
+	}
+
+	template<>
+	FORCEINLINE EDASH_FORMAT GetFormat<float>()
+	{
+		return EDASH_FORMAT::R32_FLOAT;
+	}
+
+	template<>
+	FORCEINLINE EDASH_FORMAT GetFormat<unsigned short>()
+	{
+		return EDASH_FORMAT::R16_UINT;
+	}
+
+	template<>
+	FORCEINLINE EDASH_FORMAT GetFormat<unsigned int>()
+	{
+		return EDASH_FORMAT::R32_UINT;
+	}
+
+	template<>
+	FORCEINLINE EDASH_FORMAT GetFormat<FVector2f>()
+	{
+		return EDASH_FORMAT::R32G32_FLOAT;
+	}
+
+	template<>
+	FORCEINLINE EDASH_FORMAT GetFormat<FVector3f>()
+	{
+		return EDASH_FORMAT::R32G32B32_FLOAT;
+	}
+
+	template<>
+	FORCEINLINE EDASH_FORMAT GetFormat<FVector4f>()
+	{
+		return EDASH_FORMAT::R32G32B32A32_FLOAT;
+	}
 }

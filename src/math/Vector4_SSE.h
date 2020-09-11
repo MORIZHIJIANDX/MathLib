@@ -4,7 +4,7 @@
 
 namespace Dash
 {
-	namespace Math
+	namespace FMath
 	{
 		static __m128 _Div(__m128 a, __m128 b)
 		{
@@ -33,7 +33,7 @@ namespace Dash
 #define SHUFFLE4(vec1, vec2, x,y,z,w)    _mm_shuffle_ps(vec1, vec2, _MM_SHUFFLE(w,z,y,x))
 
 	template<>
-	class ScalarArray<float, 4>
+	class TScalarArray<float, 4>
 	{
 	public:
 		using DataType = std::array<float, 4>;
@@ -52,43 +52,43 @@ namespace Dash
 		using ReverseIterator = typename DataType::reverse_iterator;
 		using ConstReverseIterator = typename DataType::const_reverse_iterator;
 
-		ScalarArray() noexcept;
-		explicit ScalarArray(Zero) noexcept;
-		constexpr explicit ScalarArray(__m128 v) noexcept;
-		template <std::size_t I> constexpr explicit ScalarArray(Unit<I>) noexcept;
-		template <typename Scalar2> constexpr explicit ScalarArray(Scalar2 x, Scalar2 y, Scalar2 z, Scalar2 w = 0.0f) noexcept;
-		template <typename Scalar2> constexpr explicit ScalarArray(const ScalarArray<Scalar2, 3> v, Scalar2 w = 0.0f) noexcept;
-		template <typename Scalar2> constexpr explicit ScalarArray(const Scalar2* v) noexcept;
-		template <typename Scalar2> constexpr ScalarArray(const ScalarArray<Scalar2, 4>& v) noexcept;
+		TScalarArray() noexcept;
+		explicit TScalarArray(FZero) noexcept;
+		constexpr explicit TScalarArray(__m128 v) noexcept;
+		template <std::size_t I> constexpr explicit TScalarArray(FUnit<I>) noexcept;
+		template <typename Scalar2> constexpr explicit TScalarArray(Scalar2 x, Scalar2 y, Scalar2 z, Scalar2 w = 0.0f) noexcept;
+		template <typename Scalar2> constexpr explicit TScalarArray(const TScalarArray<Scalar2, 3> v, Scalar2 w = 0.0f) noexcept;
+		template <typename Scalar2> constexpr explicit TScalarArray(const Scalar2* v) noexcept;
+		template <typename Scalar2> constexpr TScalarArray(const TScalarArray<Scalar2, 4>& v) noexcept;
 
 		operator ConstPointer () const noexcept;
 		operator Pointer () noexcept;
 
 		operator __m128() const noexcept;
 
-		ScalarArray<float, 4>& operator=(Zero) noexcept;
-		ScalarArray<float, 4>& operator+=(Zero) noexcept;
-		ScalarArray<float, 4>& operator-=(Zero) noexcept;
-		ScalarArray<float, 4>& operator*=(Zero) noexcept;
+		TScalarArray<float, 4>& operator=(FZero) noexcept;
+		TScalarArray<float, 4>& operator+=(FZero) noexcept;
+		TScalarArray<float, 4>& operator-=(FZero) noexcept;
+		TScalarArray<float, 4>& operator*=(FZero) noexcept;
 
-		ScalarArray<float, 4>& operator=(__m128 v) noexcept;
+		TScalarArray<float, 4>& operator=(__m128 v) noexcept;
 
-		template<std::size_t I> ScalarArray<float, 4>& operator=(Unit<I>) noexcept;
+		template<std::size_t I> TScalarArray<float, 4>& operator=(FUnit<I>) noexcept;
 
-		template<typename Scalar2> ScalarArray<float, 4>& operator=(const Scalar2* v) noexcept;
-		template<typename Scalar2> ScalarArray<float, 4>& operator=(const ScalarArray<Scalar2, 4>& v) noexcept;
-		template<typename Scalar2> ScalarArray<float, 4>& operator+=(const ScalarArray<Scalar2, 4>& v) noexcept;
-		template<typename Scalar2> ScalarArray<float, 4>& operator-=(const ScalarArray<Scalar2, 4>& v) noexcept;
-		template<typename Scalar2> ScalarArray<float, 4>& operator*=(const ScalarArray<Scalar2, 4>& v) noexcept;
+		template<typename Scalar2> TScalarArray<float, 4>& operator=(const Scalar2* v) noexcept;
+		template<typename Scalar2> TScalarArray<float, 4>& operator=(const TScalarArray<Scalar2, 4>& v) noexcept;
+		template<typename Scalar2> TScalarArray<float, 4>& operator+=(const TScalarArray<Scalar2, 4>& v) noexcept;
+		template<typename Scalar2> TScalarArray<float, 4>& operator-=(const TScalarArray<Scalar2, 4>& v) noexcept;
+		template<typename Scalar2> TScalarArray<float, 4>& operator*=(const TScalarArray<Scalar2, 4>& v) noexcept;
 
-		ScalarArray<float, 4>& operator=(const float* v) noexcept;
-		ScalarArray<float, 4>& operator=(const ScalarArray<float, 4>& v) noexcept;
-		ScalarArray<float, 4>& operator+=(const ScalarArray<float, 4>& v) noexcept;
-		ScalarArray<float, 4>& operator-=(const ScalarArray<float, 4>& v) noexcept;
-		ScalarArray<float, 4>& operator*=(const ScalarArray<float, 4>& v) noexcept;
+		TScalarArray<float, 4>& operator=(const float* v) noexcept;
+		TScalarArray<float, 4>& operator=(const TScalarArray<float, 4>& v) noexcept;
+		TScalarArray<float, 4>& operator+=(const TScalarArray<float, 4>& v) noexcept;
+		TScalarArray<float, 4>& operator-=(const TScalarArray<float, 4>& v) noexcept;
+		TScalarArray<float, 4>& operator*=(const TScalarArray<float, 4>& v) noexcept;
 
-		ScalarArray<float, 4>& operator*=(float s) noexcept;
-		ScalarArray<float, 4>& operator/=(float s) noexcept;
+		TScalarArray<float, 4>& operator*=(float s) noexcept;
+		TScalarArray<float, 4>& operator/=(float s) noexcept;
 
 		template<typename Scalar2> void Fill(Scalar2 s) noexcept;
 
@@ -104,7 +104,7 @@ namespace Dash
 		{
 			struct { float x, y, z, w; };
 			DataType mData;
-			ScalarArray<float, 3> xyz;
+			TScalarArray<float, 3> xyz;
 			__m128 mVec;
 		};
 	};
@@ -118,15 +118,15 @@ namespace Dash
 
 	// --Declaration-- //
 
-	ScalarArray<float, 4> operator-(const ScalarArray<float, 4>& a) noexcept;
+	TScalarArray<float, 4> operator-(const TScalarArray<float, 4>& a) noexcept;
 
-	ScalarArray<float, 4> operator+(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept;
-	ScalarArray<float, 4> operator-(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept;
-	ScalarArray<float, 4> operator*(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept;
+	TScalarArray<float, 4> operator+(const TScalarArray<float, 4>& v1, const TScalarArray<float, 4>& v2) noexcept;
+	TScalarArray<float, 4> operator-(const TScalarArray<float, 4>& v1, const TScalarArray<float, 4>& v2) noexcept;
+	TScalarArray<float, 4> operator*(const TScalarArray<float, 4>& v1, const TScalarArray<float, 4>& v2) noexcept;
 
-	ScalarArray<float, 4> operator*(const ScalarArray<float, 4>& v, float s) noexcept;
-	ScalarArray<float, 4> operator*(float s, const ScalarArray<float, 4>& v) noexcept;
-	ScalarArray<float, 4> operator/(const ScalarArray<float, 4>& v, float s) noexcept;
+	TScalarArray<float, 4> operator*(const TScalarArray<float, 4>& v, float s) noexcept;
+	TScalarArray<float, 4> operator*(float s, const TScalarArray<float, 4>& v) noexcept;
+	TScalarArray<float, 4> operator/(const TScalarArray<float, 4>& v, float s) noexcept;
 
 
 
@@ -138,24 +138,24 @@ namespace Dash
 
 	// --Declaration-- //
 
-	namespace Math
+	namespace FMath
 	{
-		float HorizontalAdd(const ScalarArray<float, 4>& v) noexcept;
-		float HorizontalAdd3(const ScalarArray<float, 4>& v) noexcept;
+		float HorizontalAdd(const TScalarArray<float, 4>& v) noexcept;
+		float HorizontalAdd3(const TScalarArray<float, 4>& v) noexcept;
 
-		float Dot(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept;
-		float Dot3(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept;
+		float Dot(const TScalarArray<float, 4>& v1, const TScalarArray<float, 4>& v2) noexcept;
+		float Dot3(const TScalarArray<float, 4>& v1, const TScalarArray<float, 4>& v2) noexcept;
 
-		ScalarArray<float, 4> Cross(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept;
+		TScalarArray<float, 4> Cross(const TScalarArray<float, 4>& v1, const TScalarArray<float, 4>& v2) noexcept;
 
 		template <int X, int Y, int Z, int W>
-		ScalarArray<float, 4> Swizzle(const ScalarArray<float, 4>& a) noexcept;
+		TScalarArray<float, 4> Swizzle(const TScalarArray<float, 4>& a) noexcept;
 
-		ScalarArray<float, 4> Ceil(const ScalarArray<float, 4>& v) noexcept;
-		ScalarArray<float, 4> Floor(const ScalarArray<float, 4>& v) noexcept;
-		ScalarArray<float, 4> Trunc(const ScalarArray<float, 4>& v) noexcept;
-		ScalarArray<float, 4> Round(const ScalarArray<float, 4>& v) noexcept;
-		ScalarArray<float, 4> Frac(const ScalarArray<float, 4>& v) noexcept;
+		TScalarArray<float, 4> Ceil(const TScalarArray<float, 4>& v) noexcept;
+		TScalarArray<float, 4> Floor(const TScalarArray<float, 4>& v) noexcept;
+		TScalarArray<float, 4> Trunc(const TScalarArray<float, 4>& v) noexcept;
+		TScalarArray<float, 4> Round(const TScalarArray<float, 4>& v) noexcept;
+		TScalarArray<float, 4> Frac(const TScalarArray<float, 4>& v) noexcept;
 	}
 
 
@@ -169,104 +169,104 @@ namespace Dash
 
 	// --Implementation-- //
 
-	FORCEINLINE ScalarArray<float, 4>::ScalarArray() noexcept
+	FORCEINLINE TScalarArray<float, 4>::TScalarArray() noexcept
 		: mVec(_mm_setzero_ps())
 	{
 	}
 
-	FORCEINLINE ScalarArray<float, 4>::ScalarArray(Zero) noexcept
+	FORCEINLINE TScalarArray<float, 4>::TScalarArray(FZero) noexcept
 		: mVec(_mm_setzero_ps())
 	{
 	}
 
-	FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(__m128 v) noexcept
+	FORCEINLINE constexpr TScalarArray<float, 4>::TScalarArray(__m128 v) noexcept
 		: mVec(v)
 	{
 	}
 
 	template<std::size_t I>
-	FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(Unit<I>) noexcept
+	FORCEINLINE constexpr TScalarArray<float, 4>::TScalarArray(FUnit<I>) noexcept
 		: mVec(_mm_setr_ps(float(I == 0), float(I == 1), float(I == 2), float(I == 3)))
 	{
 	}
 
 	template <typename Scalar2>
-	FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(Scalar2 x, Scalar2 y, Scalar2 z, Scalar2 w) noexcept
+	FORCEINLINE constexpr TScalarArray<float, 4>::TScalarArray(Scalar2 x, Scalar2 y, Scalar2 z, Scalar2 w) noexcept
 		: mVec(_mm_setr_ps(float(x), float(y), float(z), float(w)))
 	{
 	}
 
 	template <typename Scalar2>
-	FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(const ScalarArray<Scalar2, 3> v, Scalar2 w) noexcept
+	FORCEINLINE constexpr TScalarArray<float, 4>::TScalarArray(const TScalarArray<Scalar2, 3> v, Scalar2 w) noexcept
 		: mVec(_mm_setr_ps(float(v.x), float(v.y), float(v.z), float(w)))
 	{
 	}
 
 	template <typename Scalar2>
-	FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(const Scalar2* v) noexcept
+	FORCEINLINE constexpr TScalarArray<float, 4>::TScalarArray(const Scalar2* v) noexcept
 		: mVec(_mm_setr_ps(float(v[0]), float(v[1]), float(v[2]), float(v[3])))
 	{
 		ASSERT(v != nullptr);
 	}
 
 	template <typename Scalar2>
-	FORCEINLINE constexpr ScalarArray<float, 4>::ScalarArray(const ScalarArray<Scalar2, 4>& v) noexcept
+	FORCEINLINE constexpr TScalarArray<float, 4>::TScalarArray(const TScalarArray<Scalar2, 4>& v) noexcept
 		: mVec(_mm_setr_ps(float(v.x), float(v.y), float(v.z), float(v.w)))
 	{
 	}
 
-	FORCEINLINE ScalarArray<float, 4>::operator ConstPointer() const noexcept
+	FORCEINLINE TScalarArray<float, 4>::operator ConstPointer() const noexcept
 	{
 		return mData.data();
 	}
 
-	FORCEINLINE ScalarArray<float, 4>::operator Pointer() noexcept
+	FORCEINLINE TScalarArray<float, 4>::operator Pointer() noexcept
 	{
 		return mData.data();
 	}
 
-	FORCEINLINE ScalarArray<float, 4>::operator __m128() const noexcept
+	FORCEINLINE TScalarArray<float, 4>::operator __m128() const noexcept
 	{
 		return mVec;
 	}
 
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator=(Zero) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator=(FZero) noexcept
 	{
 		mVec = _mm_setzero_ps();
 		return *this;
 	}
 
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator+=(Zero) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator+=(FZero) noexcept
 	{
 		return *this;
 	}
 
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator-=(Zero) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator-=(FZero) noexcept
 	{
 		return *this;
 	}
 
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator*=(Zero) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator*=(FZero) noexcept
 	{
 		mVec = _mm_setzero_ps();
 		return *this;
 	}
 
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator=(__m128 v) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator=(__m128 v) noexcept
 	{
 		mVec = v;
 		return *this;
 	}
 
 	template<std::size_t I>
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator=(Unit<I>) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator=(FUnit<I>) noexcept
 	{
 		mVec = _mm_setr_ps(float(I == 0), float(I == 1), float(I == 2), float(I == 3));
 		return *this;
 	}
 
 	template<typename Scalar2>
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator=(const Scalar2* v) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator=(const Scalar2* v) noexcept
 	{
 		ASSERT(v != nullptr);
 		mVec = _mm_setr_ps(float(v[0]), float(v[1]), float(v[2]), float(v[3]));
@@ -274,31 +274,31 @@ namespace Dash
 	}
 
 	template<typename Scalar2>
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator=(const ScalarArray<Scalar2, 4>& v) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator=(const TScalarArray<Scalar2, 4>& v) noexcept
 	{
 		mVec = _mm_setr_ps(float(v.x), float(v.y), float(v.z), float(v.w));
 		return *this;
 	}
 
 	template<typename Scalar2>
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator+=(const ScalarArray<Scalar2, 4>& v) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator+=(const TScalarArray<Scalar2, 4>& v) noexcept
 	{
-		return *this += ScalarArray<float, 4>{v};
+		return *this += TScalarArray<float, 4>{v};
 	}
 
 	template<typename Scalar2>
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator-=(const ScalarArray<Scalar2, 4>& v) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator-=(const TScalarArray<Scalar2, 4>& v) noexcept
 	{
-		return *this -= ScalarArray<float, 4>{v};
+		return *this -= TScalarArray<float, 4>{v};
 	}
 
 	template<typename Scalar2>
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator*=(const ScalarArray<Scalar2, 4>& v) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator*=(const TScalarArray<Scalar2, 4>& v) noexcept
 	{
-		return *this *= ScalarArray<float, 4>{v};
+		return *this *= TScalarArray<float, 4>{v};
 	}
 
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator=(const float* v) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator=(const float* v) noexcept
 	{
 		ASSERT(v != nullptr);
 		//mVec = _mm_setr_ps(v[0], v[1], v[2], v[3]);
@@ -306,64 +306,64 @@ namespace Dash
 		return *this;
 	}
 
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator=(const ScalarArray<float, 4>& v) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator=(const TScalarArray<float, 4>& v) noexcept
 	{
 		mVec = v.mVec;
 		return *this;
 	}
 
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator+=(const ScalarArray<float, 4>& v) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator+=(const TScalarArray<float, 4>& v) noexcept
 	{
 		mVec = _mm_add_ps(mVec, v.mVec);
 		return *this;
 	}
 
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator-=(const ScalarArray<float, 4>& v) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator-=(const TScalarArray<float, 4>& v) noexcept
 	{
 		mVec = _mm_sub_ps(mVec, v.mVec);
 		return *this;
 	}
 
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator*=(const ScalarArray<float, 4>& v) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator*=(const TScalarArray<float, 4>& v) noexcept
 	{
 		mVec = _mm_mul_ps(mVec, v.mVec);
 		return *this;
 	}
 
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator*=(float s) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator*=(float s) noexcept
 	{
 		mVec = _mm_mul_ps(mVec, _mm_set1_ps(s));
 		return *this;
 	}
 
-	FORCEINLINE ScalarArray<float, 4>& ScalarArray<float, 4>::operator/=(float s) noexcept
+	FORCEINLINE TScalarArray<float, 4>& TScalarArray<float, 4>::operator/=(float s) noexcept
 	{
-		mVec = Math::_Div(mVec, s);
+		mVec = FMath::_Div(mVec, s);
 		return *this;
 	}
 
 	template<typename Scalar2>
-	FORCEINLINE void ScalarArray<float, 4>::Fill(Scalar2 s) noexcept
+	FORCEINLINE void TScalarArray<float, 4>::Fill(Scalar2 s) noexcept
 	{
 		mVec = _mm_set1_ps(float(s));
 	}
 
-	FORCEINLINE constexpr ScalarArray<float, 4>::Iterator ScalarArray<float, 4>::Begin() noexcept
+	FORCEINLINE constexpr TScalarArray<float, 4>::Iterator TScalarArray<float, 4>::Begin() noexcept
 	{
 		return mData.begin();
 	}
 
-	FORCEINLINE constexpr ScalarArray<float, 4>::ConstIterator ScalarArray<float, 4>::Begin() const noexcept
+	FORCEINLINE constexpr TScalarArray<float, 4>::ConstIterator TScalarArray<float, 4>::Begin() const noexcept
 	{
 		return mData.begin();
 	}
 
-	FORCEINLINE constexpr ScalarArray<float, 4>::Iterator ScalarArray<float, 4>::End() noexcept
+	FORCEINLINE constexpr TScalarArray<float, 4>::Iterator TScalarArray<float, 4>::End() noexcept
 	{
 		return mData.end();
 	}
 
-	FORCEINLINE constexpr ScalarArray<float, 4>::ConstIterator ScalarArray<float, 4>::End() const noexcept
+	FORCEINLINE constexpr TScalarArray<float, 4>::ConstIterator TScalarArray<float, 4>::End() const noexcept
 	{
 		return mData.end();
 	}
@@ -379,39 +379,39 @@ namespace Dash
 	// --Implementation-- //
 
 
-	FORCEINLINE ScalarArray<float, 4> operator-(const ScalarArray<float, 4>& a) noexcept
+	FORCEINLINE TScalarArray<float, 4> operator-(const TScalarArray<float, 4>& a) noexcept
 	{
-		return ScalarArray<float, 4>{ _mm_sub_ps(_mm_setzero_ps(), a) };
+		return TScalarArray<float, 4>{ _mm_sub_ps(_mm_setzero_ps(), a) };
 	}
 
-	FORCEINLINE ScalarArray<float, 4> operator+(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept
+	FORCEINLINE TScalarArray<float, 4> operator+(const TScalarArray<float, 4>& v1, const TScalarArray<float, 4>& v2) noexcept
 	{
-		return ScalarArray<float, 4>{ _mm_add_ps(v1.mVec, v2.mVec) };
+		return TScalarArray<float, 4>{ _mm_add_ps(v1.mVec, v2.mVec) };
 	}
 
-	FORCEINLINE ScalarArray<float, 4> operator-(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept
+	FORCEINLINE TScalarArray<float, 4> operator-(const TScalarArray<float, 4>& v1, const TScalarArray<float, 4>& v2) noexcept
 	{
-		return ScalarArray<float, 4>{ _mm_sub_ps(v1.mVec, v2.mVec) };
+		return TScalarArray<float, 4>{ _mm_sub_ps(v1.mVec, v2.mVec) };
 	}
 
-	FORCEINLINE ScalarArray<float, 4> operator*(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept
+	FORCEINLINE TScalarArray<float, 4> operator*(const TScalarArray<float, 4>& v1, const TScalarArray<float, 4>& v2) noexcept
 	{
-		return ScalarArray<float, 4>{ _mm_mul_ps(v1.mVec, v2.mVec) };
+		return TScalarArray<float, 4>{ _mm_mul_ps(v1.mVec, v2.mVec) };
 	}
 
-	FORCEINLINE ScalarArray<float, 4> operator*(const ScalarArray<float, 4>& v, float s) noexcept
+	FORCEINLINE TScalarArray<float, 4> operator*(const TScalarArray<float, 4>& v, float s) noexcept
 	{
-		return ScalarArray<float, 4>{_mm_mul_ps(v.mVec, _mm_set1_ps(s))};
+		return TScalarArray<float, 4>{_mm_mul_ps(v.mVec, _mm_set1_ps(s))};
 	}
 
-	FORCEINLINE ScalarArray<float, 4> operator*(float s, const ScalarArray<float, 4>& v) noexcept
+	FORCEINLINE TScalarArray<float, 4> operator*(float s, const TScalarArray<float, 4>& v) noexcept
 	{
 		return v * s;
 	}
 
-	FORCEINLINE ScalarArray<float, 4> operator/(const ScalarArray<float, 4>& v, float s) noexcept
+	FORCEINLINE TScalarArray<float, 4> operator/(const TScalarArray<float, 4>& v, float s) noexcept
 	{
-		return ScalarArray<float, 4>{ Math::_Div(v.mVec, s) };
+		return TScalarArray<float, 4>{ FMath::_Div(v.mVec, s) };
 	}
 
 
@@ -424,9 +424,9 @@ namespace Dash
 
 	// --Implementation-- //
 
-	namespace Math
+	namespace FMath
 	{
-		FORCEINLINE float HorizontalAdd(const ScalarArray<float, 4>& v) noexcept
+		FORCEINLINE float HorizontalAdd(const TScalarArray<float, 4>& v) noexcept
 		{
 			__m128 temp = PERMUTE4(v, 1, 0, 2, 3);
 			__m128 temp1 = _mm_add_ps(temp, v);
@@ -434,14 +434,14 @@ namespace Dash
 			return _mm_cvtss_f32(_mm_add_ps(PERMUTE4(temp, 3, 0, 1, 2), temp1));
 		}
 
-		FORCEINLINE float HorizontalAdd3(const ScalarArray<float, 4>& v) noexcept
+		FORCEINLINE float HorizontalAdd3(const TScalarArray<float, 4>& v) noexcept
 		{
 			__m128 temp = PERMUTE3(v, 1, 0, 2);
 			__m128 temp1 = _mm_add_ps(temp, v.mVec);
 			return _mm_cvtss_f32(_mm_add_ps(PERMUTE3(temp, 2, 0, 1), temp1));
 		}
 
-		FORCEINLINE float Dot(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept
+		FORCEINLINE float Dot(const TScalarArray<float, 4>& v1, const TScalarArray<float, 4>& v2) noexcept
 		{
 			__m128 dot = _mm_mul_ps(v1, v2);
 			__m128 temp = PERMUTE4(dot, 1, 0, 2, 3);
@@ -450,7 +450,7 @@ namespace Dash
 			return _mm_cvtss_f32(_mm_add_ps(PERMUTE4(temp, 3, 0, 1, 2), temp1));
 		}
 
-		FORCEINLINE float Dot3(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept
+		FORCEINLINE float Dot3(const TScalarArray<float, 4>& v1, const TScalarArray<float, 4>& v2) noexcept
 		{
 			__m128 dot = _mm_mul_ps(v1, v2);
 			__m128 temp = PERMUTE3(dot, 1, 0, 2);
@@ -458,47 +458,47 @@ namespace Dash
 			return _mm_cvtss_f32(_mm_add_ps(PERMUTE3(temp, 2, 0, 1), temp1));
 		}
 
-		FORCEINLINE ScalarArray<float, 4> Cross(const ScalarArray<float, 4>& v1, const ScalarArray<float, 4>& v2) noexcept
+		FORCEINLINE TScalarArray<float, 4> Cross(const TScalarArray<float, 4>& v1, const TScalarArray<float, 4>& v2) noexcept
 		{
 			__m128 result = _mm_sub_ps(_mm_mul_ps(v1, PERMUTE3(v2, 1, 2, 0)), _mm_mul_ps(PERMUTE3(v1, 1, 2, 0), v2));
-			return ScalarArray<float, 4>{PERMUTE3(result, 1, 2, 0)};
+			return TScalarArray<float, 4>{PERMUTE3(result, 1, 2, 0)};
 		}
 
 		template <int X, int Y, int Z, int W>
-		FORCEINLINE ScalarArray<float, 4> Swizzle(const ScalarArray<float, 4>& a) noexcept
+		FORCEINLINE TScalarArray<float, 4> Swizzle(const TScalarArray<float, 4>& a) noexcept
 		{
-			return ScalarArray<float, 4>{_mm_shuffle_ps(a, a, _MM_SHUFFLE(W, Z, Y, X))};
+			return TScalarArray<float, 4>{_mm_shuffle_ps(a, a, _MM_SHUFFLE(W, Z, Y, X))};
 		}
 
-		FORCEINLINE ScalarArray<float, 4> homogenize(const ScalarArray<float, 4>& a)
+		FORCEINLINE TScalarArray<float, 4> homogenize(const TScalarArray<float, 4>& a)
 		{
 			ASSERT(!IsZero(a.w));
-			return ScalarArray<float, 4>{_Div(a, PERMUTE4(a, 3, 3, 3, 3))};
+			return TScalarArray<float, 4>{_Div(a, PERMUTE4(a, 3, 3, 3, 3))};
 		}
 
-		FORCEINLINE ScalarArray<float, 4> Ceil(const ScalarArray<float, 4>& v) noexcept
+		FORCEINLINE TScalarArray<float, 4> Ceil(const TScalarArray<float, 4>& v) noexcept
 		{
-			return ScalarArray<float, 4>{_mm_ceil_ps(v)};
+			return TScalarArray<float, 4>{_mm_ceil_ps(v)};
 		}
 
-		FORCEINLINE ScalarArray<float, 4> Floor(const ScalarArray<float, 4>& v) noexcept
+		FORCEINLINE TScalarArray<float, 4> Floor(const TScalarArray<float, 4>& v) noexcept
 		{
-			return ScalarArray<float, 4>{_mm_floor_ps(v)};
+			return TScalarArray<float, 4>{_mm_floor_ps(v)};
 		}
 
-		FORCEINLINE ScalarArray<float, 4> Trunc(const ScalarArray<float, 4>& v) noexcept
+		FORCEINLINE TScalarArray<float, 4> Trunc(const TScalarArray<float, 4>& v) noexcept
 		{
-			return ScalarArray<float, 4>{_mm_round_ps(v, _MM_FROUND_TRUNC)};
+			return TScalarArray<float, 4>{_mm_round_ps(v, _MM_FROUND_TRUNC)};
 		}
 
-		FORCEINLINE ScalarArray<float, 4> Round(const ScalarArray<float, 4>& v) noexcept
+		FORCEINLINE TScalarArray<float, 4> Round(const TScalarArray<float, 4>& v) noexcept
 		{
-			return ScalarArray<float, 4>{_mm_round_ps(v, _MM_FROUND_NINT)};
+			return TScalarArray<float, 4>{_mm_round_ps(v, _MM_FROUND_NINT)};
 		}
 
-		FORCEINLINE ScalarArray<float, 4> Frac(const ScalarArray<float, 4>& v) noexcept
+		FORCEINLINE TScalarArray<float, 4> Frac(const TScalarArray<float, 4>& v) noexcept
 		{
-			return ScalarArray<float, 4>{_mm_sub_ps(v, Floor(v))};
+			return TScalarArray<float, 4>{_mm_sub_ps(v, Floor(v))};
 		}
 	}
 }

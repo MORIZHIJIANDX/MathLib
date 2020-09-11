@@ -2,19 +2,19 @@
 
 namespace Dash
 {
-    namespace Math
+    namespace FMath
     {
         // Non-member Function
 
         // --Declaration-- //
 
-        template<typename Scalar> Scalar Width(const AABB<Scalar, 2>& b) noexcept;
+        template<typename Scalar> Scalar Width(const TAABB<Scalar, 2>& b) noexcept;
 
-        template<typename Scalar> Scalar Height(const AABB<Scalar, 2>& b) noexcept;
+        template<typename Scalar> Scalar Height(const TAABB<Scalar, 2>& b) noexcept;
 
-        template<typename Scalar> Scalar Area(const AABB<Scalar, 2>& b) noexcept;
+        template<typename Scalar> Scalar Area(const TAABB<Scalar, 2>& b) noexcept;
 
-        template<typename Scalar> std::size_t MaximumExtent(const AABB<Scalar, 2>& b) noexcept;
+        template<typename Scalar> std::size_t MaximumExtent(const TAABB<Scalar, 2>& b) noexcept;
 
 
 
@@ -25,28 +25,28 @@ namespace Dash
         // --Implementation-- //
 
         template<typename Scalar>
-        FORCEINLINE Scalar Width(const AABB<Scalar, 2>& b) noexcept
+        FORCEINLINE Scalar Width(const TAABB<Scalar, 2>& b) noexcept
         {
             return b.Upper.x - b.Lower.x;
         }
 
         template<typename Scalar>
-        FORCEINLINE Scalar Height(const AABB<Scalar, 2>& b) noexcept
+        FORCEINLINE Scalar Height(const TAABB<Scalar, 2>& b) noexcept
         {
             return b.Upper.y - b.Lower.y;
         }
 
         template<typename Scalar>
-        FORCEINLINE Scalar Area(const AABB<Scalar, 2>& b) noexcept
+        FORCEINLINE Scalar Area(const TAABB<Scalar, 2>& b) noexcept
         {
-            ScalarArray<Scalar, 2> d = Diagonal(b);
+            TScalarArray<Scalar, 2> d = Diagonal(b);
             return (d.x * d.y);
         }
 
         template<typename Scalar>
-        FORCEINLINE std::size_t MaximumExtent(const AABB<Scalar, 2>& b) noexcept
+        FORCEINLINE std::size_t MaximumExtent(const TAABB<Scalar, 2>& b) noexcept
         {
-            ScalarArray<Scalar, 2> diag = Diagonal(b);
+            TScalarArray<Scalar, 2> diag = Diagonal(b);
             if (diag.x > diag.y)
                 return 0;
             else
@@ -58,8 +58,8 @@ namespace Dash
 
     class AABB2iIterator : public std::forward_iterator_tag {
     public:
-        AABB2iIterator(const AABB<int, 2>& b, const ScalarArray<int, 2>& pt)
-            : p(pt), AABB(&b) {}
+        AABB2iIterator(const TAABB<int, 2>& b, const TScalarArray<int, 2>& pt)
+            : p(pt), TAABB(&b) {}
         AABB2iIterator operator++() {
             Advance();
             return *this;
@@ -70,24 +70,24 @@ namespace Dash
             return old;
         }
         bool operator==(const AABB2iIterator& bi) const {
-            return p == bi.p && AABB == bi.AABB;
+            return p == bi.p && TAABB == bi.TAABB;
         }
         bool operator!=(const AABB2iIterator& bi) const {
-            return p != bi.p || AABB != bi.AABB;
+            return p != bi.p || TAABB != bi.TAABB;
         }
 
-        ScalarArray<int, 2> operator*() const { return p; }
+        TScalarArray<int, 2> operator*() const { return p; }
 
     private:
         void Advance() {
             ++p.x;
-            if (p.x == AABB->Upper.x) {
-                p.x = AABB->Lower.x;
+            if (p.x == TAABB->Upper.x) {
+                p.x = TAABB->Lower.x;
                 ++p.y;
             }
         }
-        ScalarArray<int, 2> p;
-        const AABB<int, 2>* AABB;
+        TScalarArray<int, 2> p;
+        const TAABB<int, 2>* TAABB;
     };
 }
 

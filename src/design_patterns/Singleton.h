@@ -6,20 +6,20 @@
 namespace Dash
 {
 	template<typename T>
-	class Singleton
+	class TSingleton
 	{
 	private:
-		Singleton<T>(const Singleton<T>&) = delete;
-		Singleton<T>& operator = (const Singleton<T>&) = delete;
+		TSingleton<T>(const TSingleton<T>&) = delete;
+		TSingleton<T>& operator = (const TSingleton<T>&) = delete;
 
 	protected:
-		Singleton<T>() = default;
+		TSingleton<T>() = default;
 
 		static std::unique_ptr<T> mInstance;
 		static std::once_flag mOnce;
 
 	public:
-		virtual ~Singleton<T>() = default;
+		virtual ~TSingleton<T>() = default;
 
 		template<typename... Args>
 		static T* Get(Args&& ...args)
@@ -31,7 +31,7 @@ namespace Dash
 		}
 	};
 
-	template<typename T> std::unique_ptr<T> Singleton<T>::mInstance;
-	template<typename T> std::once_flag Singleton<T>::mOnce;
+	template<typename T> std::unique_ptr<T> TSingleton<T>::mInstance;
+	template<typename T> std::once_flag TSingleton<T>::mOnce;
 
 }

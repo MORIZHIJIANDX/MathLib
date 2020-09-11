@@ -2,7 +2,7 @@
 
 namespace Dash
 {
-	enum class LogLevel : unsigned int
+	enum class ELogLevel : unsigned int
 	{
 		Info = (1 << 0),
 		Error = (1 << 1),

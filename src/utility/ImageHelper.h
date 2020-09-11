@@ -8,11 +8,11 @@ namespace Dash
 
 	//Helper Function
 
-	FORCEINLINE void GetImageColor(Vector3f& color, const Vector2i& index, std::shared_ptr<Image> image, bool repeat = false)
+	FORCEINLINE void GetImageColor(FVector3f& color, const FVector2i& index, std::shared_ptr<Image> image, bool repeat = false)
 	{
 		switch (image->GetFormat())
 		{
-		case DASH_FORMAT::R32_FLOAT:
+		case EDASH_FORMAT::R32_FLOAT:
 		{
 			float temp = image->GetPixel<Scalar>(index);
 			if (repeat)
@@ -26,9 +26,9 @@ namespace Dash
 			return;
 		}
 		break;
-		case DASH_FORMAT::R32G32_FLOAT:
+		case EDASH_FORMAT::R32G32_FLOAT:
 		{
-			Vector2f temp = image->GetPixel<Vector2f>(index);
+			FVector2f temp = image->GetPixel<FVector2f>(index);
 			if (repeat)
 			{
 				color.x = temp.x * 255;
@@ -43,9 +43,9 @@ namespace Dash
 			return;
 		}
 		break;
-		case DASH_FORMAT::R32G32B32_FLOAT:
+		case EDASH_FORMAT::R32G32B32_FLOAT:
 		{
-			Dash::Vector3f temp = image->GetPixel<Dash::Vector3f>(index);
+			Dash::FVector3f temp = image->GetPixel<Dash::FVector3f>(index);
 
 			color.x = temp.x * 255;
 			color.y = temp.y * 255;
@@ -54,9 +54,9 @@ namespace Dash
 			return;
 		}
 		break;
-		case DASH_FORMAT::R32G32B32A32_FLOAT:
+		case EDASH_FORMAT::R32G32B32A32_FLOAT:
 		{
-			Vector4f temp = image->GetPixel<Vector4f>(index);
+			FVector4f temp = image->GetPixel<FVector4f>(index);
 
 			color.x = temp.x * 255;
 			color.y = temp.y * 255;
@@ -65,9 +65,9 @@ namespace Dash
 			return;
 		}
 		break;
-		case DASH_FORMAT::R8G8B8A8_UINT:
+		case EDASH_FORMAT::R8G8B8A8_UINT:
 		{
-			Vector4<uint8_t> temp = image->GetPixel<Vector4<uint8_t>>(index.x, image->GetHeight() - 1 - index.y);
+			TVector4<uint8_t> temp = image->GetPixel<TVector4<uint8_t>>(index.x, image->GetHeight() - 1 - index.y);
 
 			color.x = temp.z;
 			color.y = temp.y;
@@ -104,13 +104,13 @@ namespace Dash
 		{
 			for (std::size_t j = 0; j < imageWidth; ++j)
 			{
-				Vector3f color;
+				FVector3f color;
 
-				GetImageColor(color, Vector2i{ j, i }, image);
+				GetImageColor(color, FVector2i{ j, i }, image);
 
-				std::uint8_t r = static_cast<std::uint8_t>(Math::Max(0.0f, Math::Min(maxValue, color.x + 0.5f)));
-				std::uint8_t g = static_cast<std::uint8_t>(Math::Max(0.0f, Math::Min(maxValue, color.y + 0.5f)));
-				std::uint8_t b = static_cast<std::uint8_t>(Math::Max(0.0f, Math::Min(maxValue, color.z + 0.5f)));
+				std::uint8_t r = static_cast<std::uint8_t>(FMath::Max(0.0f, FMath::Min(maxValue, color.x + 0.5f)));
+				std::uint8_t g = static_cast<std::uint8_t>(FMath::Max(0.0f, FMath::Min(maxValue, color.y + 0.5f)));
+				std::uint8_t b = static_cast<std::uint8_t>(FMath::Max(0.0f, FMath::Min(maxValue, color.z + 0.5f)));
 
 				output << r << g << b;
 			}
@@ -148,7 +148,7 @@ namespace Dash
 
 		float invMaxValue = 1 / maxValue;
 
-		image = std::make_shared<Image>(imageWidth, imageHeight, DASH_FORMAT::R32G32B32_FLOAT);
+		image = std::make_shared<Image>(imageWidth, imageHeight, EDASH_FORMAT::R32G32B32_FLOAT);
 
 		input.ignore(256, '\n');
 
@@ -159,7 +159,7 @@ namespace Dash
 			{
 				input.read(reinterpret_cast<char*>(currentPixel), 3);
 
-				Vector3f color{ currentPixel[0] * invMaxValue, currentPixel[1] * invMaxValue, currentPixel[2] * invMaxValue };
+				FVector3f color{ currentPixel[0] * invMaxValue, currentPixel[1] * invMaxValue, currentPixel[2] * invMaxValue };
 
 				image->SetPixel(color, j, i);
 			}

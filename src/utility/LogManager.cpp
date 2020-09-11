@@ -10,34 +10,34 @@ namespace Dash
 {
 	struct LogMessage
 	{
-		LogLevel m_Level = LogLevel::Info;
+		ELogLevel m_Level = ELogLevel::Info;
 		std::wstring m_Message;
 	};
 
-	static std::vector<std::shared_ptr<LogStream>> gsLogStreams;
+	static std::vector<std::shared_ptr<FLogStream>> gsLogStreams;
 	static std::mutex gsLogStreamMutex;
 	static std::thread gsLogThread;
 	static std::atomic_bool gsProcessMessage = true;
-	static ThreadSafeQueue<LogMessage> gsMessageQueue;
+	static TThreadSafeQueue<LogMessage> gsMessageQueue;
 
 	// ******************
-	// LogString
+	// FLogString
 	//
 
-	LogString::~LogString()
+	FLogString::~FLogString()
 	{
 		mLogger.Log(mLogLevel, str());
 	}
 
 
-	LogString LogManager::operator()(LogLevel level)
+	FLogString FLogManager::operator()(ELogLevel level)
 	{
-		return LogString(*this, level);
+		return FLogString(*this, level);
 	}
 
 
 	// ******************
-	// LogManager
+	// FLogManager
 	//
 
 	void ProcessMessagesFunc()
@@ -58,12 +58,12 @@ namespace Dash
 		}
 	}
 
-	void LogManager::Init()
+	void FLogManager::Init()
 	{
 		gsLogThread = std::thread(&ProcessMessagesFunc);
 	}
 
-	void LogManager::Shutdown()
+	void FLogManager::Shutdown()
 	{
 		while (!gsMessageQueue.Empty())
 		{
@@ -79,13 +79,13 @@ namespace Dash
 		UnregisterAllStreams();
 	}
 
-	void LogManager::RegisterLogStream(std::shared_ptr<LogStream> logStream)
+	void FLogManager::RegisterLogStream(std::shared_ptr<FLogStream> logStream)
 	{
 		std::scoped_lock lock(gsLogStreamMutex);
 		gsLogStreams.push_back(logStream);
 	}
 
-	void LogManager::UnregisterLogStream(std::shared_ptr<LogStream> logStream)
+	void FLogManager::UnregisterLogStream(std::shared_ptr<FLogStream> logStream)
 	{
 		std::scoped_lock lock(gsLogStreamMutex);
 
@@ -97,13 +97,13 @@ namespace Dash
 		}
 	}
 
-	void LogManager::UnregisterAllStreams()
+	void FLogManager::UnregisterAllStreams()
 	{
 		std::scoped_lock lock(gsLogStreamMutex);
 		gsLogStreams.clear();
 	}
 
-	void LogManager::Log(LogLevel level, std::wstring logInfo)
+	void FLogManager::Log(ELogLevel level, std::wstring logInfo)
 	{
 		std::wstring msg = logInfo + L"\n";
 		gsMessageQueue.Push({ level, msg });

@@ -48,7 +48,7 @@ protected:
 
     void SetCustomWindowText(LPCWSTR text);
 
-    // Viewport dimensions.
+    // FViewport dimensions.
     UINT mWidth;
     UINT mHeight;
     float m_aspectRatio;
@@ -60,7 +60,7 @@ private:
     // Root assets path.
     std::wstring m_assetsPath;
 
-    // Window title.
+    // FWindow title.
     std::wstring m_title;
 
 

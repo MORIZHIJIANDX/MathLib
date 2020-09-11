@@ -6,11 +6,11 @@
 namespace Dash
 {
 	template<typename T>
-	class ThreadSafeQueue
+	class TThreadSafeQueue
 	{
 	public:
-		ThreadSafeQueue() noexcept;
-		ThreadSafeQueue(const ThreadSafeQueue& copy) noexcept;
+		TThreadSafeQueue() noexcept;
+		TThreadSafeQueue(const TThreadSafeQueue& copy) noexcept;
 
 		/**
 		 * Push a value into the back of the queue.
@@ -39,25 +39,25 @@ namespace Dash
 	};
 
 	template<typename T>
-	ThreadSafeQueue<T>::ThreadSafeQueue() noexcept
+	TThreadSafeQueue<T>::TThreadSafeQueue() noexcept
 	{}
 
 	template<typename T>
-	ThreadSafeQueue<T>::ThreadSafeQueue(const ThreadSafeQueue<T>& copy) noexcept
+	TThreadSafeQueue<T>::TThreadSafeQueue(const TThreadSafeQueue<T>& copy) noexcept
 	{
 		std::lock_guard<std::mutex> lock(copy.mMutex);
 		mQueue = copy.mQueue;
 	}
 
 	template<typename T>
-	void ThreadSafeQueue<T>::Push(T value) noexcept
+	void TThreadSafeQueue<T>::Push(T value) noexcept
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
 		mQueue.push(std::move(value));
 	}
 
 	template<typename T>
-	bool ThreadSafeQueue<T>::TryPop(T& value) noexcept
+	bool TThreadSafeQueue<T>::TryPop(T& value) noexcept
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
 		if (mQueue.empty())
@@ -70,14 +70,14 @@ namespace Dash
 	}
 
 	template<typename T>
-	bool ThreadSafeQueue<T>::Empty() const noexcept
+	bool TThreadSafeQueue<T>::Empty() const noexcept
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
 		return mQueue.empty();
 	}
 
 	template<typename T>
-	size_t ThreadSafeQueue<T>::Size() const noexcept
+	size_t TThreadSafeQueue<T>::Size() const noexcept
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
 		return mQueue.size();

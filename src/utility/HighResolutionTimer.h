@@ -4,11 +4,11 @@
 
 namespace Dash
 {
-	class HighResolutionTimer
+	class FHighResolutionTimer
 	{
 	public:
-		HighResolutionTimer();
-		~HighResolutionTimer() = default;
+		FHighResolutionTimer();
+		~FHighResolutionTimer() = default;
 
 		void Update();
 

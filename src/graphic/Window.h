@@ -8,11 +8,11 @@
 
 namespace Dash
 {
-	class Window
+	class FWindow
 	{
 	public:
-		Window(const std::string& name, const std::string title, size_t width = 1080, size_t height = 720);
-		virtual ~Window();
+		FWindow(const std::string& name, const std::string title, size_t width = 1080, size_t height = 720);
+		virtual ~FWindow();
 
 		const std::string& GetWindowName() const noexcept { return WindowClassRegister::Get()->GetWindowClassName(); }
 
@@ -40,7 +40,7 @@ namespace Dash
 		static LRESULT CALLBACK HandleMsgThunk(HWND, UINT, WPARAM, LPARAM);
 		LRESULT HandleMsg(HWND, UINT, WPARAM, LPARAM) noexcept;
 
-		class WindowClassRegister : public Singleton<WindowClassRegister>
+		class WindowClassRegister : public TSingleton<WindowClassRegister>
 		{
 		public:
 			HINSTANCE GetWindowInstance() const noexcept;

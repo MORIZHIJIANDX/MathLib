@@ -11,20 +11,20 @@ namespace Dash
 {
 	struct HitInfo
 	{
-		Vector3f Position;
-		Vector3f Normal;
-		Vector3f Tangent;
-		Vector2f TexCoord;
+		FVector3f Position;
+		FVector3f Normal;
+		FVector3f Tangent;
+		FVector2f TexCoord;
 	};
 
 	struct InputLayoutElement
 	{
 		std::string SemanticName;
 		std::size_t SemanticIndex;
-		DASH_FORMAT Format;
+		EDASH_FORMAT Format;
 		std::size_t AlignedByteOffset;
 
-		InputLayoutElement(const std::string& name, std::size_t index, DASH_FORMAT format, std::size_t offset)
+		InputLayoutElement(const std::string& name, std::size_t index, EDASH_FORMAT format, std::size_t offset)
 			: SemanticName(name)
 			, SemanticIndex(index)
 			, Format(format)
@@ -52,22 +52,22 @@ namespace Dash
 
 	struct TriangleMesh
 	{	
-		void GetVertexPosition(Vector3f& p, std::size_t vertexIndex)
+		void GetVertexPosition(FVector3f& p, std::size_t vertexIndex)
 		{
 			GetVertexProperty("POSITION", vertexIndex, p);
 		}
 
-		void GetVertexNormal(Vector3f& p, std::size_t vertexIndex)
+		void GetVertexNormal(FVector3f& p, std::size_t vertexIndex)
 		{
 			GetVertexProperty("NORMAL", vertexIndex, p);
 		}
 
-		void GetVertexTangent(Vector3f& p, std::size_t vertexIndex)
+		void GetVertexTangent(FVector3f& p, std::size_t vertexIndex)
 		{
 			GetVertexProperty("TANGENT", vertexIndex, p);
 		}
 
-		void GetVertexTexCoord(Vector2f& p, std::size_t vertexIndex)
+		void GetVertexTexCoord(FVector2f& p, std::size_t vertexIndex)
 		{
 			GetVertexProperty("TEXCOORD", vertexIndex, p);
 		}
@@ -93,7 +93,7 @@ namespace Dash
 		std::size_t VertexStride = 0;
 		std::size_t NumVertices = 0;
 		std::size_t NumIndices = 0;
-		DASH_FORMAT IndexType = DASH_FORMAT::R32_UINT;
+		EDASH_FORMAT IndexType = EDASH_FORMAT::R32_UINT;
 		std::vector<std::uint8_t> Vertices;
 		std::vector<std::uint8_t> Indices;
 	}; 
@@ -101,21 +101,21 @@ namespace Dash
 	class Shape
 	{
 	public:
-		Shape(const Transform& objectToWorld, const Transform& worldToObject) noexcept;
+		Shape(const FTransform& objectToWorld, const FTransform& worldToObject) noexcept;
 		~Shape() = default;
 
-		virtual bool Intersection(const Ray& r, Scalar* t, HitInfo* hitInfo) const noexcept = 0;
-		virtual bool IntersectionFast(const Ray& r) const noexcept
+		virtual bool Intersection(const FRay& r, Scalar* t, HitInfo* hitInfo) const noexcept = 0;
+		virtual bool IntersectionFast(const FRay& r) const noexcept
 		{
 			return Intersection(r, nullptr, nullptr);
 		}
 
-		virtual BoundingBox ObjectBound() const noexcept = 0;
-		virtual BoundingBox WorldBound() const noexcept;
+		virtual FBoundingBox ObjectBound() const noexcept = 0;
+		virtual FBoundingBox WorldBound() const noexcept;
 
 		virtual std::shared_ptr<TriangleMesh> ConvertToTriangleMesh() const noexcept  = 0;
 	
-		const Transform& ObjectToWorld;
-		const Transform& WorldToObject;
+		const FTransform& ObjectToWorld;
+		const FTransform& WorldToObject;
 	};
 }

@@ -7,10 +7,10 @@
 class Image
 {
 public:
-	Image(std::size_t width, std::size_t height, Dash::DASH_FORMAT format);
+	Image(std::size_t width, std::size_t height, Dash::EDASH_FORMAT format);
 	~Image();
 
-	Dash::DASH_FORMAT GetFormat() const { return mFormat; }
+	Dash::EDASH_FORMAT GetFormat() const { return mFormat; }
 
 	std::size_t GetWidth() const { return mWidth; }
 
@@ -22,21 +22,21 @@ public:
 	void SetPixel(const T& value, std::size_t x, std::size_t y);
 
 	template<typename T>
-	void SetPixel(const T& value, Dash::Vector2i index);
+	void SetPixel(const T& value, Dash::FVector2i index);
 
 	template<typename T>
 	T GetPixel(std::size_t x, std::size_t y);
 
 	template<typename T>
-	T GetPixel(Dash::Vector2i index);
+	T GetPixel(Dash::FVector2i index);
 
 	template<typename T>
-	void ClearImage(const T& value = T{ Dash::Zero{} });
+	void ClearImage(const T& value = T{ Dash::FZero{} });
 
 private:
 	std::size_t mWidth;
 	std::size_t mHeight;
-	Dash::DASH_FORMAT mFormat;
+	Dash::EDASH_FORMAT mFormat;
 	void* mData;
 };
 
@@ -51,7 +51,7 @@ FORCEINLINE void Image::SetPixel(const T& value, std::size_t x, std::size_t y)
 }
 
 template<typename T>
-FORCEINLINE void Image::SetPixel(const T& value, Dash::Vector2i index)
+FORCEINLINE void Image::SetPixel(const T& value, Dash::FVector2i index)
 {
 	SetPixel(value, index.x, index.y);
 }
@@ -67,7 +67,7 @@ FORCEINLINE T Image::GetPixel(std::size_t x, std::size_t y)
 }
 
 template<typename T>
-FORCEINLINE T Image::GetPixel(Dash::Vector2i index)
+FORCEINLINE T Image::GetPixel(Dash::FVector2i index)
 {
 	return GetPixel<T>(index.x, index.y);
 }
@@ -86,11 +86,11 @@ FORCEINLINE void Image::ClearImage(const T& value)
 
 //Helper Function
 
-FORCEINLINE void GetImageColor(Dash::Vector3f& color, const Dash::Vector2i& index, std::shared_ptr<Image> image, bool repeat = false)
+FORCEINLINE void GetImageColor(Dash::FVector3f& color, const Dash::FVector2i& index, std::shared_ptr<Image> image, bool repeat = false)
 {
 	switch (image->GetFormat())
 	{
-	case Dash::DASH_FORMAT::R32_FLOAT:
+	case Dash::EDASH_FORMAT::R32_FLOAT:
 	{
 		float temp = image->GetPixel<Dash::Scalar>(index);
 		if (repeat)
@@ -104,9 +104,9 @@ FORCEINLINE void GetImageColor(Dash::Vector3f& color, const Dash::Vector2i& inde
 		return;
 	}
 	break;
-	case Dash::DASH_FORMAT::R32G32_FLOAT:
+	case Dash::EDASH_FORMAT::R32G32_FLOAT:
 	{
-		Dash::Vector2f temp = image->GetPixel<Dash::Vector2f>(index);
+		Dash::FVector2f temp = image->GetPixel<Dash::FVector2f>(index);
 		if (repeat)
 		{
 			color.x = temp.x * 255;
@@ -121,9 +121,9 @@ FORCEINLINE void GetImageColor(Dash::Vector3f& color, const Dash::Vector2i& inde
 		return;
 	}
 	break;
-	case Dash::DASH_FORMAT::R32G32B32_FLOAT:
+	case Dash::EDASH_FORMAT::R32G32B32_FLOAT:
 	{
-		Dash::Vector3f temp = image->GetPixel<Dash::Vector3f>(index);
+		Dash::FVector3f temp = image->GetPixel<Dash::FVector3f>(index);
 
 		color.x = temp.x * 255;
 		color.y = temp.y * 255;
@@ -132,9 +132,9 @@ FORCEINLINE void GetImageColor(Dash::Vector3f& color, const Dash::Vector2i& inde
 		return;
 	}
 	break;
-	case Dash::DASH_FORMAT::R32G32B32A32_FLOAT:
+	case Dash::EDASH_FORMAT::R32G32B32A32_FLOAT:
 	{
-		Dash::Vector4f temp = image->GetPixel<Dash::Vector4f>(index);
+		Dash::FVector4f temp = image->GetPixel<Dash::FVector4f>(index);
 
 		color.x = temp.x * 255;
 		color.y = temp.y * 255;
@@ -143,9 +143,9 @@ FORCEINLINE void GetImageColor(Dash::Vector3f& color, const Dash::Vector2i& inde
 		return;
 	}
 	break;
-	case Dash::DASH_FORMAT::R8G8B8A8_UINT:
+	case Dash::EDASH_FORMAT::R8G8B8A8_UINT:
 	{
-		Dash::Vector4<uint8_t> temp = image->GetPixel<Dash::Vector4<uint8_t>>(index.x, image->GetHeight() - 1 - index.y);
+		Dash::TVector4<uint8_t> temp = image->GetPixel<Dash::TVector4<uint8_t>>(index.x, image->GetHeight() - 1 - index.y);
 
 		color.x = temp.z;
 		color.y = temp.y;
@@ -182,13 +182,13 @@ FORCEINLINE void SavePPMImage(std::shared_ptr<Image> image, const std::string& n
 	{
 		for (std::size_t j = 0; j < imageWidth; ++j)
 		{
-			Dash::Vector3f color;
+			Dash::FVector3f color;
 
-			GetImageColor(color, Dash::Vector2i{ j, i }, image);
+			GetImageColor(color, Dash::FVector2i{ j, i }, image);
 
-			std::uint8_t r = static_cast<std::uint8_t>(Dash::Math::Max(0.0f, Dash::Math::Min(maxValue, color.x + 0.5f)));
-			std::uint8_t g = static_cast<std::uint8_t>(Dash::Math::Max(0.0f, Dash::Math::Min(maxValue, color.y + 0.5f)));
-			std::uint8_t b = static_cast<std::uint8_t>(Dash::Math::Max(0.0f, Dash::Math::Min(maxValue, color.z + 0.5f)));
+			std::uint8_t r = static_cast<std::uint8_t>(Dash::FMath::Max(0.0f, Dash::FMath::Min(maxValue, color.x + 0.5f)));
+			std::uint8_t g = static_cast<std::uint8_t>(Dash::FMath::Max(0.0f, Dash::FMath::Min(maxValue, color.y + 0.5f)));
+			std::uint8_t b = static_cast<std::uint8_t>(Dash::FMath::Max(0.0f, Dash::FMath::Min(maxValue, color.z + 0.5f)));
 
 			output << r << g << b;
 		}
@@ -226,7 +226,7 @@ FORCEINLINE std::shared_ptr<Image> LoadPPMImage(const std::string& name)
 
 	float invMaxValue = 1 / maxValue;
 
-	image = std::make_shared<Image>(imageWidth, imageHeight, Dash::DASH_FORMAT::R32G32B32_FLOAT);
+	image = std::make_shared<Image>(imageWidth, imageHeight, Dash::EDASH_FORMAT::R32G32B32_FLOAT);
 
 	input.ignore(256, '\n');
 
@@ -237,7 +237,7 @@ FORCEINLINE std::shared_ptr<Image> LoadPPMImage(const std::string& name)
 		{
 			input.read(reinterpret_cast<char*>(currentPixel), 3);
 
-			Dash::Vector3f color{ currentPixel[0] * invMaxValue, currentPixel[1] * invMaxValue, currentPixel[2] * invMaxValue };
+			Dash::FVector3f color{ currentPixel[0] * invMaxValue, currentPixel[1] * invMaxValue, currentPixel[2] * invMaxValue };
 
 			image->SetPixel(color, j, i);
 		}

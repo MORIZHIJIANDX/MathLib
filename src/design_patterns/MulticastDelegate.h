@@ -23,14 +23,14 @@
 namespace Dash
 {
 	template<typename RET, typename ...PARAMS>
-	class MulticastDelegate<RET(PARAMS...)> final : private DelegateBase<RET(PARAMS...)> {
+	class TMulticastDelegate<RET(PARAMS...)> final : private TDelegateBase<RET(PARAMS...)> {
 	public:
 
-		MulticastDelegate() = default;
-		~MulticastDelegate() {
+		TMulticastDelegate() = default;
+		~TMulticastDelegate() {
 			for (auto& element : mInvocation) delete element;
 			mInvocation.clear();
-		} //~MulticastDelegate
+		} //~TMulticastDelegate
 
 		bool IsNull() const { return mInvocation.size() < 1; }
 		bool operator ==(void* ptr) const {
@@ -42,51 +42,51 @@ namespace Dash
 
 		size_t size() const { return mInvocation.size(); }
 
-		MulticastDelegate& operator =(const MulticastDelegate&) = delete;
-		MulticastDelegate(const MulticastDelegate&) = delete;
+		TMulticastDelegate& operator =(const TMulticastDelegate&) = delete;
+		TMulticastDelegate(const TMulticastDelegate&) = delete;
 
-		bool operator ==(const MulticastDelegate& another) const {
+		bool operator ==(const TMulticastDelegate& another) const {
 			if (mInvocation.size() != another.mInvocation.size()) return false;
 			auto anotherIt = another.mInvocation.begin();
 			for (auto it = mInvocation.begin(); it != mInvocation.end(); ++it)
 				if (**it != **anotherIt) return false;
 			return true;
 		} //==
-		bool operator !=(const MulticastDelegate& another) const { return !(*this == another); }
+		bool operator !=(const TMulticastDelegate& another) const { return !(*this == another); }
 
-		bool operator ==(const Delegate<RET(PARAMS...)>& another) const {
+		bool operator ==(const TDelegate<RET(PARAMS...)>& another) const {
 			if (IsNull() && another.IsNull()) return true;
 			if (another.IsNull() || (size() != 1)) return false;
 			return (another.m_Invocation == **mInvocation.begin());
 		} //==
-		bool operator !=(const Delegate<RET(PARAMS...)>& another) const { return !(*this == another); }
+		bool operator !=(const TDelegate<RET(PARAMS...)>& another) const { return !(*this == another); }
 
-		MulticastDelegate& operator +=(const MulticastDelegate& another) {
+		TMulticastDelegate& operator +=(const TMulticastDelegate& another) {
 			for (auto& item : another.mInvocation) // clone, not copy; flattens hierarchy:
-				this->mInvocation.push_back(new typename DelegateBase<RET(PARAMS...)>::InvocationElement(item->mObject, item->mStub));
+				this->mInvocation.push_back(new typename TDelegateBase<RET(PARAMS...)>::InvocationElement(item->mObject, item->mStub));
 			return *this;
 		} //operator +=
 
 		template <typename LAMBDA> // template instantiation is not neededm, will be deduced/inferred:
-		MulticastDelegate& operator +=(const LAMBDA& lambda) {
-			Delegate<RET(PARAMS...)> d = Delegate<RET(PARAMS...)>::template Create<LAMBDA>(lambda);
+		TMulticastDelegate& operator +=(const LAMBDA& lambda) {
+			TDelegate<RET(PARAMS...)> d = TDelegate<RET(PARAMS...)>::template Create<LAMBDA>(lambda);
 			return *this += d;
 		} //operator +=
 
-		MulticastDelegate& operator +=(const Delegate<RET(PARAMS...)>& another) {
+		TMulticastDelegate& operator +=(const TDelegate<RET(PARAMS...)>& another) {
 			if (another.IsNull()) return *this;
-			this->mInvocation.push_back(new typename DelegateBase<RET(PARAMS...)>::InvocationElement(another.m_Invocation.mObject, another.m_Invocation.mStub));
+			this->mInvocation.push_back(new typename TDelegateBase<RET(PARAMS...)>::InvocationElement(another.m_Invocation.mObject, another.m_Invocation.mStub));
 			return *this;
 		} //operator +=
 
 
 		template <typename LAMBDA> // template instantiation is not neededm, will be deduced/inferred:
-		MulticastDelegate& operator -=(const LAMBDA& lambda) {
-			Delegate<RET(PARAMS...)> d = Delegate<RET(PARAMS...)>::template Create<LAMBDA>(lambda);
+		TMulticastDelegate& operator -=(const LAMBDA& lambda) {
+			TDelegate<RET(PARAMS...)> d = TDelegate<RET(PARAMS...)>::template Create<LAMBDA>(lambda);
 			return *this -= d;
 		} //operator +=
 
-		MulticastDelegate& operator -=(const Delegate<RET(PARAMS...)>& another) {
+		TMulticastDelegate& operator -=(const TDelegate<RET(PARAMS...)>& another) {
 			if (another.IsNull()) return *this;
 
 			auto it = mInvocation.begin();
@@ -121,7 +121,7 @@ namespace Dash
 			} //loop
 		} //operator()
 
-		void operator()(PARAMS... arg, Delegate<void(size_t, RET*)> handler) const {
+		void operator()(PARAMS... arg, TDelegate<void(size_t, RET*)> handler) const {
 			operator() < decltype(handler) > (arg..., handler);
 		} //operator()
 		void operator()(PARAMS... arg, std::function<void(size_t, RET*)> handler) const {
@@ -130,9 +130,9 @@ namespace Dash
 
 	private:
 
-		std::list<typename DelegateBase<RET(PARAMS...)>::InvocationElement*> mInvocation;
+		std::list<typename TDelegateBase<RET(PARAMS...)>::InvocationElement*> mInvocation;
 
-	}; //class MulticastDelegate
+	}; //class TMulticastDelegate
 
 } /* namespace Core */
 

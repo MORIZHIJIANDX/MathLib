@@ -7,13 +7,13 @@
 
 namespace Dash
 {
-	class Keyboard
+	class FKeyboard
 	{
-		friend class Window;
+		friend class FWindow;
 	public:
-		static Keyboard& Get();
+		static FKeyboard& Get();
 
-		bool IsKeyPressed(KeyCode key) const;
+		bool IsKeyPressed(EKeyCode key) const;
 
 		std::optional<char> ReadChar();
 
@@ -22,15 +22,15 @@ namespace Dash
 		bool IsAutoRepeatEnabled() const;
 
 	public:
-		KeyboardEvent KeyPressed;
-		KeyboardEvent KeyReleased;
+		FKeyboardEvent KeyPressed;
+		FKeyboardEvent KeyReleased;
 
 	private:
-		Keyboard() {};
-		~Keyboard() {};
+		FKeyboard() {};
+		~FKeyboard() {};
 
-		void OnKeyPressed(KeyEventArgs& e);
-		void OnKeyReleased(KeyEventArgs& e);
+		void OnKeyPressed(FKeyEventArgs& e);
+		void OnKeyReleased(FKeyEventArgs& e);
 		void OnChar(char character);
 
 		void FlushCharBuffer();

@@ -20,17 +20,17 @@
 
 namespace Dash
 {
-	class ApplicationDX12 : public Application
+	class FApplicationDX12 : public FApplication
 	{
 	public:
-		ApplicationDX12(size_t windowWidth = 720, size_t windowHeight = 480);
-		virtual ~ApplicationDX12();
+		FApplicationDX12(size_t windowWidth = 720, size_t windowHeight = 480);
+		virtual ~FApplicationDX12();
 
-		void OnRender(const RenderEventArgs& e) override;
-		void OnUpdate(const UpdateEventArgs& e) override;
+		void OnRender(const FRenderEventArgs& e) override;
+		void OnUpdate(const FUpdateEventArgs& e) override;
 
 	private:
-        void PopulateCommandList(const RenderEventArgs& e);
+        void PopulateCommandList(const FRenderEventArgs& e);
         void WaitForPreviousFrame();
 
         void LoadPipeline();

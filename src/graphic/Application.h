@@ -5,22 +5,22 @@
 
 namespace Dash
 {
-	class Application
+	class FApplication
 	{
 	public:
-		Application(size_t windowWidth, size_t windowHeight);
-		virtual ~Application();
+		FApplication(size_t windowWidth, size_t windowHeight);
+		virtual ~FApplication();
 
 		virtual int Run();
 		virtual void Stop();
 
-		virtual void OnRender(const RenderEventArgs& e);
-		virtual void OnUpdate(const UpdateEventArgs& e);
+		virtual void OnRender(const FRenderEventArgs& e);
+		virtual void OnUpdate(const FUpdateEventArgs& e);
 
 	protected:
 		void UpdateThread();
 
-		Window mWindow;
+		FWindow mWindow;
 		std::atomic_bool mIsRunning;
 	};
 }

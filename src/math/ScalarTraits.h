@@ -5,10 +5,10 @@
 namespace Dash
 {
     template<typename Scalar>
-    struct ScalarTraits {};
+    struct TScalarTraits {};
 
     template<>
-    struct ScalarTraits<std::size_t>
+    struct TScalarTraits<std::size_t>
     {
         static std::size_t Pi()
         {
@@ -52,7 +52,7 @@ namespace Dash
     };
 
     template<>
-    struct ScalarTraits<float>
+    struct TScalarTraits<float>
     {
         static float Pi()
         {
@@ -97,7 +97,7 @@ namespace Dash
 
 
     template<>
-    struct ScalarTraits<double>
+    struct TScalarTraits<double>
     {
         static double Pi()
         {
@@ -142,7 +142,7 @@ namespace Dash
 
 
     template<>
-    struct ScalarTraits<long double>
+    struct TScalarTraits<long double>
     {
         static long double Pi()
         {

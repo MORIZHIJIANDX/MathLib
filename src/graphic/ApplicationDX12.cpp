@@ -8,8 +8,8 @@
 
 namespace Dash
 {
-	ApplicationDX12::ApplicationDX12(size_t windowWidth, size_t windowHeight)
-		: Application(windowWidth, windowHeight)
+	FApplicationDX12::FApplicationDX12(size_t windowWidth, size_t windowHeight)
+		: FApplication(windowWidth, windowHeight)
 	{
         {
             mViewport.Width = (FLOAT)mWindow.GetWindowWidth();
@@ -29,14 +29,14 @@ namespace Dash
         LoadAssets();
 	}
 
-	ApplicationDX12::~ApplicationDX12()
+	FApplicationDX12::~FApplicationDX12()
 	{
         WaitForPreviousFrame();
 
         CloseHandle(mFenceEvent);
 	}
 
-	void ApplicationDX12::OnRender(const RenderEventArgs& e)
+	void FApplicationDX12::OnRender(const FRenderEventArgs& e)
 	{
         PopulateCommandList(e);
 
@@ -48,12 +48,12 @@ namespace Dash
         WaitForPreviousFrame();
 	}
 
-	void ApplicationDX12::OnUpdate(const UpdateEventArgs& e)
+	void FApplicationDX12::OnUpdate(const FUpdateEventArgs& e)
 	{
 
 	}
 
-	void ApplicationDX12::PopulateCommandList(const RenderEventArgs& e)
+	void FApplicationDX12::PopulateCommandList(const FRenderEventArgs& e)
 	{
         ThrowIfFailed(mCommandAllocator->Reset());
         ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPipelineState.Get()));
@@ -70,7 +70,7 @@ namespace Dash
 
         mCommandList->OMSetRenderTargets(1, &descriptorHandle, FALSE, nullptr);
 
-        Dash::Vector4f clearColor{ Dash::Math::Sin((float)e.mTotalTime) * 0.5f + 0.5f, Dash::Math::Cos((float)e.mTotalTime + 0.5f) * 0.5f + 0.5f, 0.5f, 1.0f };
+        Dash::FVector4f clearColor{ Dash::FMath::Sin((float)e.mTotalTime) * 0.5f + 0.5f, Dash::FMath::Cos((float)e.mTotalTime + 0.5f) * 0.5f + 0.5f, 0.5f, 1.0f };
         mCommandList->ClearRenderTargetView(descriptorHandle, clearColor, 0, nullptr);
 
         mCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -84,7 +84,7 @@ namespace Dash
         ThrowIfFailed(mCommandList->Close());
 	}
 
-	void ApplicationDX12::WaitForPreviousFrame()
+	void FApplicationDX12::WaitForPreviousFrame()
 	{
         UINT valueToWait = mFenceValue;
         ThrowIfFailed(mD3DCommandQueue->Signal(mFence.Get(), valueToWait));
@@ -99,7 +99,7 @@ namespace Dash
         mBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
 	}
 
-	void ApplicationDX12::LoadPipeline()
+	void FApplicationDX12::LoadPipeline()
 	{
         UINT dxgiFactoryFlag = 0;
 
@@ -172,7 +172,7 @@ namespace Dash
         ThrowIfFailed(mD3DDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator)));
 	}
 
-	void ApplicationDX12::LoadAssets()
+	void FApplicationDX12::LoadAssets()
 	{
         CD3DX12_ROOT_SIGNATURE_DESC rootSignature;
         rootSignature.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -224,15 +224,15 @@ namespace Dash
         {
             struct Vertex
             {
-                Dash::Vector3f Pos;
-                Dash::Vector4f Color;
+                Dash::FVector3f Pos;
+                Dash::FVector4f Color;
             };
 
             Vertex triangle[] =
             {
-                { Dash::Vector3f{ 0.0f, 0.25f , 0.0f }, Dash::Vector4f{ 1.0f, 0.0f, 0.0f, 1.0f } },
-                { Dash::Vector3f{ 0.25f, -0.25f , 0.0f }, Dash::Vector4f{ 0.0f, 1.0f, 0.0f, 1.0f } },
-                { Dash::Vector3f{ -0.25f, -0.25f , 0.0f }, Dash::Vector4f{ 0.0f, 0.0f, 1.0f, 1.0f } }
+                { Dash::FVector3f{ 0.0f, 0.25f , 0.0f }, Dash::FVector4f{ 1.0f, 0.0f, 0.0f, 1.0f } },
+                { Dash::FVector3f{ 0.25f, -0.25f , 0.0f }, Dash::FVector4f{ 0.0f, 1.0f, 0.0f, 1.0f } },
+                { Dash::FVector3f{ -0.25f, -0.25f , 0.0f }, Dash::FVector4f{ 0.0f, 0.0f, 1.0f, 1.0f } }
             };
 
             const UINT vertexBufferSize = sizeof(triangle);
@@ -270,7 +270,7 @@ namespace Dash
         WaitForPreviousFrame();
 	}
 
-    void ApplicationDX12::GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter)
+    void FApplicationDX12::GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter)
     {
         *ppAdapter = nullptr;
 
