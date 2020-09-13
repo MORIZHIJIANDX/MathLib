@@ -157,6 +157,7 @@
     <ClCompile Include="src\shapes\Triangle.cpp" />
     <ClCompile Include="src\utility\Assert.cpp" />
     <ClCompile Include="src\utility\HighResolutionTimer.cpp" />
+    <ClCompile Include="src\utility\ImageHelper.cpp" />
     <ClCompile Include="src\utility\Keyboard.cpp" />
     <ClCompile Include="src\utility\LogManager.cpp" />
     <ClCompile Include="src\utility\LogStream.cpp" />

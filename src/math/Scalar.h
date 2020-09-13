@@ -12,6 +12,9 @@ namespace Dash {
 	#undef max
 
 	namespace FMath {
+
+		#define UPPER_ALIGNMENT(A, B) ((size_t)(((A)+((B)-1)) & ~(B - 1)))
+
 		template <typename Scalar> constexpr Scalar ACos(Scalar x) noexcept;
 		template <typename Scalar> constexpr Scalar ASin(Scalar x) noexcept;
 
@@ -65,6 +68,15 @@ namespace Dash {
 		template <typename Scalar> constexpr Scalar Round(Scalar x) noexcept;
 		template <typename Scalar> constexpr Scalar Frac(Scalar x) noexcept;
 
+		template <typename Scalar> constexpr int TruncToInt(Scalar x);
+		template <typename Scalar> constexpr float TruncToFloat(Scalar x);
+		template <typename Scalar> constexpr int RoundToInt(Scalar x);
+		template <typename Scalar> constexpr float RoundToFloat(Scalar x);
+		template <typename Scalar> constexpr int FloorToInt(Scalar x);
+		template <typename Scalar> constexpr float FloorToFloat(Scalar x);
+		template <typename Scalar> constexpr int CeilToInt(Scalar x);
+		template <typename Scalar> constexpr float CeilToFloat(Scalar x);
+
 		template <typename Scalar> constexpr Scalar Fmod(Scalar x, Scalar y) noexcept;
 		template <typename Scalar> constexpr Scalar Modf(Scalar x, Scalar* iptr) noexcept;
 
@@ -94,51 +106,6 @@ namespace Dash {
 
 		/** Returns a random float between 0 and 1, inclusive. */
 		static FORCEINLINE float FRand() { return Rand() / (float)RAND_MAX; }
-
-
-		static FORCEINLINE int TruncToInt(float F)
-		{
-			return _mm_cvtt_ss2si(_mm_set_ss(F));
-		}
-
-		static FORCEINLINE float TruncToFloat(float F)
-		{
-			return (float)TruncToInt(F); // same as generic implementation, but this will call the faster trunc
-		}
-
-		static FORCEINLINE int RoundToInt(float F)
-		{
-			// Note: the x2 is to workaround the rounding-to-nearest-even-number issue when the fraction is .5
-			return _mm_cvt_ss2si(_mm_set_ss(F + F + 0.5f)) >> 1;
-		}
-
-		static FORCEINLINE float RoundToFloat(float F)
-		{
-			return (float)RoundToInt(F);
-		}
-
-		static FORCEINLINE int FloorToInt(float F)
-		{
-			return _mm_cvt_ss2si(_mm_set_ss(F + F - 0.5f)) >> 1;
-		}
-
-		static FORCEINLINE float FloorToFloat(float F)
-		{
-			return (float)FloorToInt(F);
-		}
-
-		static FORCEINLINE int CeilToInt(float F)
-		{
-			// Note: the x2 is to workaround the rounding-to-nearest-even-number issue when the fraction is .5
-			return -(_mm_cvt_ss2si(_mm_set_ss(-0.5f - (F + F))) >> 1);
-		}
-
-		static FORCEINLINE float CeilToFloat(float F)
-		{
-			// Note: the x2 is to workaround the rounding-to-nearest-even-number issue when the fraction is .5
-			return (float)CeilToInt(F);
-		}
-
 
 		template<typename Scalar>
 		FORCEINLINE constexpr Scalar ACos(Scalar x) noexcept
@@ -373,7 +340,7 @@ namespace Dash {
 		template<typename Scalar>
 		FORCEINLINE constexpr Scalar Trunc(Scalar x) noexcept
 		{
-			return std::trunc(x);
+			return static_cast<Scalar>(std::trunc(x));
 		}
 
 		template<typename Scalar>
@@ -386,6 +353,54 @@ namespace Dash {
 		FORCEINLINE constexpr Scalar Frac(Scalar x) noexcept
 		{
 			return x - Trunc(x);
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr int TruncToInt(Scalar x)
+		{
+			return static_cast<int>(Trunc(x));
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr float TruncToFloat(Scalar x)
+		{
+			return static_cast<float>(Trunc(x));
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr int RoundToInt(Scalar x)
+		{
+			return static_cast<int>(Round(x));
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr float RoundToFloat(Scalar x)
+		{
+			return static_cast<float>(Round(x));
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr int FloorToInt(Scalar x)
+		{
+			return static_cast<int>(Floor(x));
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr float FloorToFloat(Scalar x)
+		{
+			return static_cast<float>(Floor(x));
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr int CeilToInt(Scalar x)
+		{
+			return static_cast<int>(Ceil(x));
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr float CeilToFloat(Scalar x)
+		{
+			return static_cast<float>(Ceil(x));
 		}
 
 		template<typename Scalar>

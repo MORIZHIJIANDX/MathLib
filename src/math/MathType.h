@@ -2,6 +2,7 @@
 
 #include "ScalarArray.h"
 #include "ScalarMatrix.h"
+#include "Color.h"
 #include "Quaternion.h"
 #include "Interval.h"
 #include "AABB.h"
@@ -46,43 +47,56 @@ namespace Dash
 
 
 	template<typename T>
-	FORCEINLINE EDASH_FORMAT GetFormat()
+	FORCEINLINE EDASH_FORMAT GetFormatForType()
 	{
 		ASSERT_FAIL("Invalid Format Type!");
+		return EDASH_FORMAT::UnKwon;
 	}
 
 	template<>
-	FORCEINLINE EDASH_FORMAT GetFormat<float>()
+	FORCEINLINE EDASH_FORMAT GetFormatForType<float>()
 	{
 		return EDASH_FORMAT::R32_FLOAT;
 	}
 
 	template<>
-	FORCEINLINE EDASH_FORMAT GetFormat<unsigned short>()
+	FORCEINLINE EDASH_FORMAT GetFormatForType<unsigned short>()
 	{
 		return EDASH_FORMAT::R16_UINT;
 	}
 
 	template<>
-	FORCEINLINE EDASH_FORMAT GetFormat<unsigned int>()
+	FORCEINLINE EDASH_FORMAT GetFormatForType<unsigned int>()
 	{
 		return EDASH_FORMAT::R32_UINT;
 	}
 
 	template<>
-	FORCEINLINE EDASH_FORMAT GetFormat<FVector2f>()
+	FORCEINLINE EDASH_FORMAT GetFormatForType<FVector2f>()
 	{
 		return EDASH_FORMAT::R32G32_FLOAT;
 	}
 
 	template<>
-	FORCEINLINE EDASH_FORMAT GetFormat<FVector3f>()
+	FORCEINLINE EDASH_FORMAT GetFormatForType<FVector3f>()
 	{
 		return EDASH_FORMAT::R32G32B32_FLOAT;
 	}
 
 	template<>
-	FORCEINLINE EDASH_FORMAT GetFormat<FVector4f>()
+	FORCEINLINE EDASH_FORMAT GetFormatForType<FVector4f>()
+	{
+		return EDASH_FORMAT::R32G32B32A32_FLOAT;
+	}
+
+	template<>
+	FORCEINLINE EDASH_FORMAT GetFormatForType<FColor>()
+	{
+		return EDASH_FORMAT::R8G8B8A8_UINT;
+	}
+
+	template<>
+	FORCEINLINE EDASH_FORMAT GetFormatForType<FLinearColor>()
 	{
 		return EDASH_FORMAT::R32G32B32A32_FLOAT;
 	}

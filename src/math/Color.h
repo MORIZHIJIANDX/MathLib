@@ -5,7 +5,6 @@
 #include "Scalar.h"
 #include "ScalarTraits.h"
 #include <cstdint>
-#include <vector>
 
 namespace Dash
 {
@@ -35,7 +34,12 @@ namespace Dash
 	 */
 	struct FLinearColor
 	{
-		float r, g, b, a;
+		union
+		{
+			struct { float r, g, b, a; };
+			float mData[4];
+		};
+		
 
 		/** Static lookup table used for FColor -> FLinearColor conversion. Pow(2.2) */
 		static float Pow22OneOver255Table[256];
@@ -59,22 +63,6 @@ namespace Dash
 
 		explicit FLinearColor(const TScalarArray<float, 4>& Vector);
 
-		explicit FLinearColor(const FFloat16Color& C);
-
-		// Serializer.
-
-		//friend void operator<<(FStructuredArchive::FSlot Slot, FLinearColor& Color)
-		//{
-		//	FStructuredArchive::FRecord Record = Slot.EnterRecord();
-		//	Record << SA_VALUE(TEXT("r"), Color.r) << SA_VALUE(TEXT("g"), Color.g) << SA_VALUE(TEXT("b"), Color.b) << SA_VALUE(TEXT("a"), Color.a);
-		//}
-
-		//bool Serialize(FStructuredArchive::FSlot Slot)
-		//{
-		//	Slot << *this;
-		//	return true;
-		//}
-
 		// Conversions.
 		FColor ToRGBE() const;
 
@@ -92,14 +80,14 @@ namespace Dash
 
 		// Operators.
 
-		FORCEINLINE float& Component(int32_t Index)
+		FORCEINLINE float& operator[](int32_t Index)
 		{
-			return (&r)[Index];
+			return mData[Index];
 		}
 
-		FORCEINLINE const float& Component(int32_t Index) const
+		FORCEINLINE const float& operator[](int32_t Index) const
 		{
-			return (&r)[Index];
+			return mData[Index];
 		}
 
 		FORCEINLINE FLinearColor operator+(const FLinearColor& ColorB) const
@@ -275,16 +263,6 @@ namespace Dash
 			return FMath::Sqrt(FMath::Square(V2.r - V1.r) + FMath::Square(V2.g - V1.g) + FMath::Square(V2.b - V1.b) + FMath::Square(V2.a - V1.a));
 		}
 
-		/**
-		 * Generates a list of sample points on a Bezier curve defined by 2 points.
-		 *
-		 * @param	ControlPoints	Array of 4 Linear Colors (vert1, controlpoint1, controlpoint2, vert2).
-		 * @param	NumPoints		Number of samples.
-		 * @param	OutPoints		Receives the output samples.
-		 * @return					Path length.
-		 */
-		static float EvaluateBezier(const FLinearColor* ControlPoints, int32_t NumPoints, std::vector<FLinearColor>& OutPoints);
-
 		/** Converts a linear space RGB color to an HSV color */
 		FLinearColor LinearRGBToHSV() const;
 
@@ -357,32 +335,6 @@ namespace Dash
 			return r * 0.3f + g * 0.59f + b * 0.11f;
 		}
 
-		//std::string ToString() const
-		//{
-		//	return std::string::Printf(TEXT("(r=%f,g=%f,b=%f,a=%f)"), r, g, b, a);
-		//}
-
-		/**
-		 * Initialize this Color based on an std::string. The String is expected to contain r=, g=, b=, a=.
-		 * The FLinearColor will be bogus when InitFromString returns false.
-		 *
-		 * @param InSourceString std::string containing the color values.
-		 * @return true if the r,g,b values were read successfully; false otherwise.
-		 */
-		 //bool InitFromString(const std::string& InSourceString)
-		 //{
-		 //	r = g = b = 0.f;
-		 //	a = 1.f;
-
-		 //	// The initialization is only successful if the r, g, and b values can all be parsed from the string
-		 //	const bool bSuccessful = FParse::Value(*InSourceString, TEXT("r="), r) && FParse::Value(*InSourceString, TEXT("g="), g) && FParse::Value(*InSourceString, TEXT("b="), b);
-
-		 //	// Alpha is optional, so don't factor in its presence (or lack thereof) in determining initialization success
-		 //	FParse::Value(*InSourceString, TEXT("a="), a);
-
-		 //	return bSuccessful;
-		 //}
-
 		 // Common colors.	
 		static const FLinearColor White;
 		static const FLinearColor Gray;
@@ -399,12 +351,28 @@ namespace Dash
 		return Color.operator*(Scalar);
 	}
 
-	//
-	//	FColor
-	//	Stores a color with 8 bits of precision per channel.  
-	//	Note: Linear color values should always be converted to gamma space before stored in an FColor, as 8 bits of precision is not enough to store linear space colors!
-	//	This can be done with FLinearColor::ToFColor(true) 
-	//
+#ifdef USE_OSTREAM
+
+	template<typename CharT, typename Traits>
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const FLinearColor& v)
+	{
+		os << "r=" << v.r << ",g=" << v.g << ",b=" << v.b << ",a=" << v.a;
+		return os;
+	}
+
+#endif // USE_OSTREAM
+
+#ifdef USE_ISTREAM
+
+	template<typename CharT, typename Traits>
+	std::basic_istream<CharT, Traits>& operator>>(std::basic_ostream<CharT, Traits>& is, const FLinearColor& v)
+	{
+		is >> v.r >> v.g >> v.b >> v.a;
+		return is;
+	}
+
+#endif // USE_ISTREAM
+
 
 	struct FColor
 	{
@@ -435,41 +403,15 @@ namespace Dash
 		}
 		constexpr FORCEINLINE FColor(uint8_t InR, uint8_t InG, uint8_t InB, uint8_t InA = 255)
 			// put these into the body for proper ordering with INTEL vs non-INTEL_BYTE_ORDER
-#if PLATFORM_LITTLE_ENDIAN
-			: b(InB), g(InG), r(InR), a(InA)
-#else
 			: a(InA), r(InR), g(InG), b(InB)
-#endif
 		{}
+
+		FORCEINLINE explicit FColor(const TScalarArray<uint8_t, 4>& InColor);
 
 		FORCEINLINE explicit FColor(uint32_t InColor)
 		{
 			DWColor() = InColor;
 		}
-
-		// Serializer.
-		//friend FArchive& operator<< (FArchive& Ar, FColor& Color)
-		//{
-		//	return Ar << Color.DWColor();
-		//}
-
-		//bool Serialize(FArchive& Ar)
-		//{
-		//	Ar << *this;
-		//	return true;
-		//}
-
-		//// Serializer.
-		//friend void operator<< (FStructuredArchive::FSlot Slot, FColor& Color)
-		//{
-		//	return Slot << Color.DWColor();
-		//}
-
-		//bool Serialize(FStructuredArchive::FSlot Slot)
-		//{
-		//	Slot << *this;
-		//	return true;
-		//}
 
 		// Operators.
 		FORCEINLINE bool operator==(const FColor& C) const

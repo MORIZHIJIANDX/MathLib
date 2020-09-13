@@ -26,6 +26,11 @@
 #include "src/graphic/App.h"
 #include "src/graphic/Sample.h"
 
+#include "src/utility/Image.h"
+
+#include "src/utility/ImageHelper.h"
+
+
 namespace DMath = Dash::FMath;
 
 template<typename T, std::size_t N>
@@ -230,27 +235,21 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 	//LOG_INFO << "FApplication Run";
 
-	char* char_darr = new char[4];
-	char char_sarr[4];
-	int int_val;
+	//Dash::FTexture<Dash::FLinearColor> image;
 
-	LOG_INFO << "Size : " << sizeof(char_darr);
-	LOG_INFO << "Size : " << sizeof(char_sarr);
-	LOG_INFO << "Size : " << sizeof(int_val);
-
-	delete[] char_darr;
+	Dash::FTexture image;
 
 	Dash::FApplicationDX12 app;
 	app.Run();
 
-	Dash::GetFormat<float>();
+	Dash::GetFormatForType<float>();
 
 	
 
 	//std::cout <<  sizeof(tt) << std::endl;
 
 	
-	
+
 
 	//DXSample sample(1280, 720, L"D3D12 Hello FWindow");
 	//return Win32Application::Run(&sample, hInstance, nCmdShow);
