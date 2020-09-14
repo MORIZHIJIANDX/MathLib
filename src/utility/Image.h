@@ -12,7 +12,7 @@ namespace Dash
 	{
 	public:
 		FTexture();
-		FTexture(size_t width, size_t height, EDASH_FORMAT format, size_t alignment = 1);
+		FTexture(size_t width, size_t height, EDASH_FORMAT format, size_t rowAlignment = 1);	
 		FTexture(const FTexture& other);
 		FTexture(FTexture&& other) noexcept;
 		~FTexture() {};
@@ -24,13 +24,17 @@ namespace Dash
 
 		size_t GetBitPerPixel() const { return mBitPerPixel; }
 
+		size_t GetRowPitch() const { return (size_t(mWidth) * size_t(mBitPerPixel) + (mRowAlignment * 8) - 1) / (mRowAlignment * 8); }
+
+		size_t GetRowAlignment() const { return mRowAlignment; }
+
 		size_t GetWidth() const { return mWidth; }
 
 		size_t GetHeight() const { return mHeight; }
 
-		const void* GetRawData() const { return mData.data(); }
+		const uint8_t* GetRawData() const { return mData.data(); }
 
-		void* GetRawData() { return mData.data(); }
+		uint8_t* GetRawData() { return mData.data(); }
 
 		template<typename T>
 		void SetPixel(const T& value, size_t x, size_t y);
@@ -54,9 +58,11 @@ namespace Dash
 	private:
 		size_t mWidth;
 		size_t mHeight;
-		EDASH_FORMAT mFormat;
+		
+		// Row Alignment in Byte
 		size_t mRowAlignment;
 		size_t mBitPerPixel;
+		EDASH_FORMAT mFormat;
 		std::vector<uint8_t> mData;
 	};
 

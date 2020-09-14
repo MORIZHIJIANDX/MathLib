@@ -17,7 +17,7 @@ namespace Dash
 	{
 		ASSERT(image != nullptr);
 
-		EDASH_FORMAT format;
+		EDASH_FORMAT format = EDASH_FORMAT::UnKwon;
 
 		switch (format)
 		{
@@ -154,145 +154,904 @@ namespace Dash
 		return image;
 	}
 
+	//-------------------------------------------------------------------------------------
+	// WIC Pixel Format Translation Data
+	//-------------------------------------------------------------------------------------
+	struct WICTranslate
+	{
+		GUID                wic;
+		DXGI_FORMAT         format;
+	};
 
-	bool GetTargetPixelFormat(const GUID* pSourceFormat, GUID* pTargetFormat)
-	{//查表确定兼容的最接近格式是哪个
-		*pTargetFormat = *pSourceFormat;
-		for (size_t i = 0; i < _countof(g_WICConvert); ++i)
+	const WICTranslate g_WICFormats[] =
+	{
+		{ GUID_WICPixelFormat128bppRGBAFloat,       DXGI_FORMAT_R32G32B32A32_FLOAT },
+
+		{ GUID_WICPixelFormat64bppRGBAHalf,         DXGI_FORMAT_R16G16B16A16_FLOAT },
+		{ GUID_WICPixelFormat64bppRGBA,             DXGI_FORMAT_R16G16B16A16_UNORM },
+
+		{ GUID_WICPixelFormat32bppRGBA,             DXGI_FORMAT_R8G8B8A8_UNORM },
+		{ GUID_WICPixelFormat32bppBGRA,             DXGI_FORMAT_B8G8R8A8_UNORM },
+		{ GUID_WICPixelFormat32bppBGR,              DXGI_FORMAT_B8G8R8X8_UNORM },
+
+		{ GUID_WICPixelFormat32bppRGBA1010102XR,    DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM },
+		{ GUID_WICPixelFormat32bppRGBA1010102,      DXGI_FORMAT_R10G10B10A2_UNORM },
+
+		{ GUID_WICPixelFormat16bppBGRA5551,         DXGI_FORMAT_B5G5R5A1_UNORM },
+		{ GUID_WICPixelFormat16bppBGR565,           DXGI_FORMAT_B5G6R5_UNORM },
+
+		{ GUID_WICPixelFormat32bppGrayFloat,        DXGI_FORMAT_R32_FLOAT },
+		{ GUID_WICPixelFormat16bppGrayHalf,         DXGI_FORMAT_R16_FLOAT },
+		{ GUID_WICPixelFormat16bppGray,             DXGI_FORMAT_R16_UNORM },
+		{ GUID_WICPixelFormat8bppGray,              DXGI_FORMAT_R8_UNORM },
+
+		{ GUID_WICPixelFormat8bppAlpha,             DXGI_FORMAT_A8_UNORM },
+
+		{ GUID_WICPixelFormat96bppRGBFloat,         DXGI_FORMAT_R32G32B32_FLOAT },
+	};
+
+	//-------------------------------------------------------------------------------------
+	// WIC Pixel Format nearest conversion table
+	//-------------------------------------------------------------------------------------
+
+	struct WICConvert
+	{
+		GUID        source;
+		GUID        target;
+	};
+
+	const WICConvert g_WICConvert[] =
+	{
+		// Note target GUID in this conversion table must be one of those directly supported formats (above).
+
+		{ GUID_WICPixelFormatBlackWhite,            GUID_WICPixelFormat8bppGray }, // DXGI_FORMAT_R8_UNORM
+
+		{ GUID_WICPixelFormat1bppIndexed,           GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+		{ GUID_WICPixelFormat2bppIndexed,           GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+		{ GUID_WICPixelFormat4bppIndexed,           GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+		{ GUID_WICPixelFormat8bppIndexed,           GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+
+		{ GUID_WICPixelFormat2bppGray,              GUID_WICPixelFormat8bppGray }, // DXGI_FORMAT_R8_UNORM 
+		{ GUID_WICPixelFormat4bppGray,              GUID_WICPixelFormat8bppGray }, // DXGI_FORMAT_R8_UNORM 
+
+		{ GUID_WICPixelFormat16bppGrayFixedPoint,   GUID_WICPixelFormat16bppGrayHalf }, // DXGI_FORMAT_R16_FLOAT 
+		{ GUID_WICPixelFormat32bppGrayFixedPoint,   GUID_WICPixelFormat32bppGrayFloat }, // DXGI_FORMAT_R32_FLOAT 
+
+		{ GUID_WICPixelFormat16bppBGR555,           GUID_WICPixelFormat16bppBGRA5551 }, // DXGI_FORMAT_B5G5R5A1_UNORM
+
+		{ GUID_WICPixelFormat32bppBGR101010,        GUID_WICPixelFormat32bppRGBA1010102 }, // DXGI_FORMAT_R10G10B10A2_UNORM
+
+		{ GUID_WICPixelFormat24bppBGR,              GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+		{ GUID_WICPixelFormat24bppRGB,              GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+		{ GUID_WICPixelFormat32bppPBGRA,            GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+		{ GUID_WICPixelFormat32bppPRGBA,            GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+
+		{ GUID_WICPixelFormat48bppRGB,              GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+		{ GUID_WICPixelFormat48bppBGR,              GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+		{ GUID_WICPixelFormat64bppBGRA,             GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+		{ GUID_WICPixelFormat64bppPRGBA,            GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+		{ GUID_WICPixelFormat64bppPBGRA,            GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+
+		{ GUID_WICPixelFormat48bppRGBFixedPoint,    GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+		{ GUID_WICPixelFormat48bppBGRFixedPoint,    GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+		{ GUID_WICPixelFormat64bppRGBAFixedPoint,   GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+		{ GUID_WICPixelFormat64bppBGRAFixedPoint,   GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+		{ GUID_WICPixelFormat64bppRGBFixedPoint,    GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+		{ GUID_WICPixelFormat64bppRGBHalf,          GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+		{ GUID_WICPixelFormat48bppRGBHalf,          GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+
+		{ GUID_WICPixelFormat128bppPRGBAFloat,      GUID_WICPixelFormat128bppRGBAFloat }, // DXGI_FORMAT_R32G32B32A32_FLOAT 
+		{ GUID_WICPixelFormat128bppRGBFloat,        GUID_WICPixelFormat128bppRGBAFloat }, // DXGI_FORMAT_R32G32B32A32_FLOAT 
+		{ GUID_WICPixelFormat128bppRGBAFixedPoint,  GUID_WICPixelFormat128bppRGBAFloat }, // DXGI_FORMAT_R32G32B32A32_FLOAT 
+		{ GUID_WICPixelFormat128bppRGBFixedPoint,   GUID_WICPixelFormat128bppRGBAFloat }, // DXGI_FORMAT_R32G32B32A32_FLOAT 
+		{ GUID_WICPixelFormat32bppRGBE,             GUID_WICPixelFormat128bppRGBAFloat }, // DXGI_FORMAT_R32G32B32A32_FLOAT 
+
+		{ GUID_WICPixelFormat32bppCMYK,             GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM
+		{ GUID_WICPixelFormat64bppCMYK,             GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+		{ GUID_WICPixelFormat40bppCMYKAlpha,        GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM
+		{ GUID_WICPixelFormat80bppCMYKAlpha,        GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+
+		{ GUID_WICPixelFormat32bppRGB,              GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM
+		{ GUID_WICPixelFormat64bppRGB,              GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+		{ GUID_WICPixelFormat64bppPRGBAHalf,        GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT
+
+		{ GUID_WICPixelFormat96bppRGBFixedPoint,   GUID_WICPixelFormat96bppRGBFloat }, // DXGI_FORMAT_R32G32B32_FLOAT
+
+		// We don't support n-channel formats
+	};
+
+	struct DXGIFormatTranslate
+	{
+		DXGI_FORMAT         DxgiFormat;
+		EDASH_FORMAT        DashFormat;
+	};
+
+	const DXGIFormatTranslate g_DXGIFormatTranslator[] =
+	{
+		{ DXGI_FORMAT_R32G32B32A32_FLOAT,		  EDASH_FORMAT::R32G32B32A32_FLOAT },
+
+		{ DXGI_FORMAT_R16G16B16A16_FLOAT,         EDASH_FORMAT::R16G16B16A16_FLOAT },
+		{ DXGI_FORMAT_R16G16B16A16_UNORM,         EDASH_FORMAT::R16G16B16A16_UNORM},
+
+		{ DXGI_FORMAT_R8G8B8A8_UNORM,             EDASH_FORMAT::R8G8B8A8_UNORM },
+		{ DXGI_FORMAT_B8G8R8A8_UNORM,             EDASH_FORMAT::B8G8R8A8_UNORM },
+		{ DXGI_FORMAT_B8G8R8X8_UNORM,             EDASH_FORMAT::B8G8R8X8_UNORM },
+
+		{ DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM, EDASH_FORMAT::R10G10B10_XR_BIAS_A2_UNORM },
+		{ DXGI_FORMAT_R10G10B10A2_UNORM,		  EDASH_FORMAT::R10G10B10A2_UNORM },
+
+		{ DXGI_FORMAT_B5G5R5A1_UNORM,			  EDASH_FORMAT::B5G5R5A1_UNORM },
+		{ DXGI_FORMAT_B5G6R5_UNORM,				  EDASH_FORMAT::B5G6R5_UNORM },
+
+		{ DXGI_FORMAT_R32_FLOAT,				  EDASH_FORMAT::R32_FLOAT },
+		{ DXGI_FORMAT_R16_FLOAT,				  EDASH_FORMAT::R16_FLOAT },
+		{ DXGI_FORMAT_R16_UNORM,				  EDASH_FORMAT::R16_UNORM },
+		{ DXGI_FORMAT_R8_UNORM,                   EDASH_FORMAT::R8_UNORM },
+
+		{ DXGI_FORMAT_A8_UNORM,					  EDASH_FORMAT::A8_UNORM },
+
+		{ DXGI_FORMAT_R32G32B32_FLOAT,			  EDASH_FORMAT::R32G32B32_FLOAT },
+	};
+
+	FORCEINLINE EDASH_FORMAT DXGIFormatToDashFormat(DXGI_FORMAT format)
+	{
+		for (size_t i = 0; i < _countof(g_DXGIFormatTranslator); ++i)
 		{
-			if (InlineIsEqualGUID(g_WICConvert[i].Source, *pSourceFormat))
+			if (format == g_DXGIFormatTranslator[i].DxgiFormat)
 			{
-				*pTargetFormat = g_WICConvert[i].Target;
-				return true;
+				return g_DXGIFormatTranslator[i].DashFormat;
 			}
 		}
-		return false;
-	}
 
-	EDASH_FORMAT GetDXGIFormatFromPixelFormat(const GUID* pPixelFormat)
-	{//查表确定最终对应的DXGI格式是哪一个
-		for (size_t i = 0; i < _countof(g_WICFormats); ++i)
-		{
-			if (InlineIsEqualGUID(g_WICFormats[i].Wic, *pPixelFormat))
-			{
-				return g_WICFormats[i].Format;
-			}
-		}
 		return EDASH_FORMAT::UnKwon;
 	}
 
-	FTexture ReadWICTexture(const std::wstring& fileName)
+	FORCEINLINE DXGI_FORMAT DashFormatToDXGIFormat(EDASH_FORMAT format)
 	{
-		Microsoft::WRL::ComPtr<IWICImagingFactory>			pIWICFactory;
-		Microsoft::WRL::ComPtr<IWICBitmapDecoder>			pIWICDecoder;
-		Microsoft::WRL::ComPtr<IWICBitmapFrameDecode>		pIWICFrame;
-		EDASH_FORMAT stTextureFormat;
-
-		UINT nTextureW;
-		UINT nTextureH;
-		UINT nBPP;
-
-		// 16、使用WIC创建并加载一个2D纹理
-		//使用纯COM方式创建WIC类厂对象，也是调用WIC第一步要做的事情
-		ThrowIfFailed(CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pIWICFactory)));
-
-		//使用WIC类厂对象接口加载纹理图片，并得到一个WIC解码器对象接口，图片信息就在这个接口代表的对象中了
-		const WCHAR* pszTexcuteFileName = fileName.c_str();
-
-		ThrowIfFailed(pIWICFactory->CreateDecoderFromFilename(
-			pszTexcuteFileName,              // 文件名
-			NULL,                            // 不指定解码器，使用默认
-			GENERIC_READ,                    // 访问权限
-			WICDecodeMetadataCacheOnDemand,  // 若需要就缓冲数据 
-			&pIWICDecoder                    // 解码器对象
-		));
-
-		// 获取第一帧图片(因为GIF等格式文件可能会有多帧图片，其他的格式一般只有一帧图片)
-		// 实际解析出来的往往是位图格式数据
-		ThrowIfFailed(pIWICDecoder->GetFrame(0, &pIWICFrame));
-
-		WICPixelFormatGUID wpf = {};
-		//获取WIC图片格式
-		ThrowIfFailed(pIWICFrame->GetPixelFormat(&wpf));
-		GUID tgFormat = {};
-
-		//通过第一道转换之后获取DXGI的等价格式
-		if (GetTargetPixelFormat(&wpf, &tgFormat))
+		for (size_t i = 0; i < _countof(g_DXGIFormatTranslator); ++i)
 		{
-			stTextureFormat = GetDXGIFormatFromPixelFormat(&tgFormat);
+			if (format == g_DXGIFormatTranslator[i].DashFormat)
+			{
+				return g_DXGIFormatTranslator[i].DxgiFormat;
+			}
 		}
 
-		if (EDASH_FORMAT::UnKwon == stTextureFormat)
-		{// 不支持的图片格式 目前退出了事 
-		 // 一般 在实际的引擎当中都会提供纹理格式转换工具，
-		 // 图片都需要提前转换好，所以不会出现不支持的现象
-			ASSERT_FAIL("Unsupported texture format!");
+		return DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+	}
+
+	BOOL WINAPI InitializeWICFactory(PINIT_ONCE, PVOID, PVOID* ifactory) noexcept
+	{
+		::CoInitialize(nullptr);
+
+		return SUCCEEDED(CoCreateInstance(
+			CLSID_WICImagingFactory2,
+			nullptr,
+			CLSCTX_INPROC_SERVER,
+			__uuidof(IWICImagingFactory2),
+			ifactory)) ? TRUE : FALSE;
+	}
+
+	IWICImagingFactory2* _GetWIC() noexcept;
+	// Also used by ScreenGrab
+
+	IWICImagingFactory2* _GetWIC() noexcept
+	{
+		static INIT_ONCE s_initOnce = INIT_ONCE_STATIC_INIT;
+
+		IWICImagingFactory2* factory = nullptr;
+		if (!InitOnceExecuteOnce(
+			&s_initOnce,
+			InitializeWICFactory,
+			nullptr,
+			reinterpret_cast<LPVOID*>(&factory)))
+		{
+			return nullptr;
 		}
 
-		// 定义一个位图格式的图片数据对象接口
-		Microsoft::WRL::ComPtr<IWICBitmapSource>pIBMP;
+		return factory;
+	}
 
-		if (!InlineIsEqualGUID(wpf, tgFormat))
-		{// 这个判断很重要，如果原WIC格式不是直接能转换为DXGI格式的图片时
-		 // 我们需要做的就是转换图片格式为能够直接对应DXGI格式的形式
-		 //创建图片格式转换器
-			Microsoft::WRL::ComPtr<IWICFormatConverter> pIConverter;
-			ThrowIfFailed(pIWICFactory->CreateFormatConverter(&pIConverter));
 
-			//初始化一个图片转换器，实际也就是将图片数据进行了格式转换
-			ThrowIfFailed(pIConverter->Initialize(
-				pIWICFrame.Get(),                // 输入原图片数据
-				tgFormat,						 // 指定待转换的目标格式
-				WICBitmapDitherTypeNone,         // 指定位图是否有调色板，现代都是真彩位图，不用调色板，所以为None
-				NULL,                            // 指定调色板指针
-				0.f,                             // 指定Alpha阀值
-				WICBitmapPaletteTypeCustom       // 调色板类型，实际没有使用，所以指定为Custom
-			));
-			// 调用QueryInterface方法获得对象的位图数据源接口
-			ThrowIfFailed(pIConverter.As(&pIBMP));
+	DXGI_FORMAT _WICToDXGI(const GUID& guid) noexcept
+	{
+		for (size_t i = 0; i < _countof(g_WICFormats); ++i)
+		{
+			if (memcmp(&g_WICFormats[i].wic, &guid, sizeof(GUID)) == 0)
+				return g_WICFormats[i].format;
+		}
+
+		return DXGI_FORMAT_UNKNOWN;
+	}
+
+	size_t _WICBitsPerPixel(REFGUID targetGuid) noexcept
+	{
+		auto pWIC = _GetWIC();
+		if (!pWIC)
+			return 0;
+
+		Microsoft::WRL::ComPtr<IWICComponentInfo> cinfo;
+		if (FAILED(pWIC->CreateComponentInfo(targetGuid, cinfo.GetAddressOf())))
+			return 0;
+
+		WICComponentType type;
+		if (FAILED(cinfo->GetComponentType(&type)))
+			return 0;
+
+		if (type != WICPixelFormat)
+			return 0;
+
+		Microsoft::WRL::ComPtr<IWICPixelFormatInfo> pfinfo;
+		if (FAILED(cinfo.As(&pfinfo)))
+			return 0;
+
+		UINT bpp;
+		if (FAILED(pfinfo->GetBitsPerPixel(&bpp)))
+			return 0;
+
+		return bpp;
+	}
+
+	FORCEINLINE EWIC_LOADER_FLAGS operator&(const EWIC_LOADER_FLAGS& a, const EWIC_LOADER_FLAGS& b)
+	{
+		return static_cast<EWIC_LOADER_FLAGS>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+	}
+
+	FORCEINLINE EWIC_LOADER_FLAGS operator|(const EWIC_LOADER_FLAGS& a, const EWIC_LOADER_FLAGS& b)
+	{
+		return static_cast<EWIC_LOADER_FLAGS>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+	}
+
+	bool Valid(const EWIC_LOADER_FLAGS& a)
+	{
+		return a != EWIC_LOADER_FLAGS::WIC_LOADER_DEFAULT;
+	}
+
+	inline void FitPowerOf2(UINT origx, UINT origy, UINT& targetx, UINT& targety, size_t maxsize)
+	{
+		float origAR = float(origx) / float(origy);
+
+		if (origx > origy)
+		{
+			size_t x;
+			for (x = maxsize; x > 1; x >>= 1) { if (x <= targetx) break; }
+			targetx = UINT(x);
+
+			float bestScore = FLT_MAX;
+			for (size_t y = maxsize; y > 0; y >>= 1)
+			{
+				float score = fabsf((float(x) / float(y)) - origAR);
+				if (score < bestScore)
+				{
+					bestScore = score;
+					targety = UINT(y);
+				}
+			}
 		}
 		else
 		{
-			//图片数据格式不需要转换，直接获取其位图数据源接口
-			ThrowIfFailed(pIWICFrame.As(&pIBMP));
+			size_t y;
+			for (y = maxsize; y > 1; y >>= 1) { if (y <= targety) break; }
+			targety = UINT(y);
+
+			float bestScore = FLT_MAX;
+			for (size_t x = maxsize; x > 0; x >>= 1)
+			{
+				float score = fabsf((float(x) / float(y)) - origAR);
+				if (score < bestScore)
+				{
+					bestScore = score;
+					targetx = UINT(x);
+				}
+			}
 		}
-		//获得图片大小（单位：像素）
-		ThrowIfFailed(pIBMP->GetSize(&nTextureW, &nTextureH));
+	}
 
-		//获取图片像素的位大小的BPP（Bits Per Pixel）信息，用以计算图片行数据的真实大小（单位：字节）
-		Microsoft::WRL::ComPtr<IWICComponentInfo> pIWICmntinfo;
-		ThrowIfFailed(pIWICFactory->CreateComponentInfo(tgFormat, pIWICmntinfo.GetAddressOf()));
-
-		WICComponentType type;
-		ThrowIfFailed(pIWICmntinfo->GetComponentType(&type));
-
-		if (type != WICPixelFormat)
+	//--------------------------------------------------------------------------------------
+	inline DXGI_FORMAT MakeSRGB(_In_ DXGI_FORMAT format) noexcept
+	{
+		switch (format)
 		{
-			ASSERT_FAIL("Unsupported texture format!");
+		case DXGI_FORMAT_R8G8B8A8_UNORM:
+			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+
+		case DXGI_FORMAT_BC1_UNORM:
+			return DXGI_FORMAT_BC1_UNORM_SRGB;
+
+		case DXGI_FORMAT_BC2_UNORM:
+			return DXGI_FORMAT_BC2_UNORM_SRGB;
+
+		case DXGI_FORMAT_BC3_UNORM:
+			return DXGI_FORMAT_BC3_UNORM_SRGB;
+
+		case DXGI_FORMAT_B8G8R8A8_UNORM:
+			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+
+		case DXGI_FORMAT_B8G8R8X8_UNORM:
+			return DXGI_FORMAT_B8G8R8X8_UNORM_SRGB;
+
+		case DXGI_FORMAT_BC7_UNORM:
+			return DXGI_FORMAT_BC7_UNORM_SRGB;
+
+		default:
+			return format;
 		}
+	}
 
-		Microsoft::WRL::ComPtr<IWICPixelFormatInfo> pIWICPixelinfo;
-		ThrowIfFailed(pIWICmntinfo.As(&pIWICPixelinfo));
+	FORCEINLINE uint32_t CountMips(uint32_t width, uint32_t height) noexcept
+	{
+		if (width == 0 || height == 0)
+			return 0;
 
-		// 到这里终于可以得到BPP了，这也是我看的比较吐血的地方，为了BPP居然饶了这么多环节
-		ThrowIfFailed(pIWICPixelinfo->GetBitsPerPixel(&nBPP));
-
-		// 计算图片实际的行大小（单位：字节），这里使用了一个上取整除法即（A+B-1）/B ，
-		// 这曾经被传说是微软的面试题,希望你已经对它了如指掌
-		UINT nPicRowPitch = (uint64_t(nTextureW) * uint64_t(nBPP) + 7u) / 8u;
-
-		//const UINT64 n64UploadBufferSize = GetRequiredIntermediateSize(pITexcute.Get(), 0, 1);
-		const UINT64 n64UploadBufferSize = 0;
-
-		void* pbPicData = ::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, n64UploadBufferSize);
-		if (nullptr == pbPicData)
+		uint32_t count = 1;
+		while (width > 1 || height > 1)
 		{
-			ASSERT_FAIL("Unsupported texture format!");
+			width >>= 1;
+			height >>= 1;
+			count++;
+		}
+		return count;
+	}
+
+
+	class auto_delete_file_wic
+	{
+	public:
+		auto_delete_file_wic(Microsoft::WRL::ComPtr<IWICStream>& hFile, LPCWSTR szFile) noexcept : m_filename(szFile), m_handle(hFile) {}
+
+		auto_delete_file_wic(const auto_delete_file_wic&) = delete;
+		auto_delete_file_wic& operator=(const auto_delete_file_wic&) = delete;
+
+		auto_delete_file_wic(const auto_delete_file_wic&&) = delete;
+		auto_delete_file_wic& operator=(const auto_delete_file_wic&&) = delete;
+
+		~auto_delete_file_wic()
+		{
+			if (m_filename)
+			{
+				m_handle.Reset();
+				DeleteFileW(m_filename);
+			}
 		}
 
-		ThrowIfFailed(pIBMP->CopyPixels(nullptr
-			, nPicRowPitch
-			, static_cast<UINT>(nPicRowPitch * nTextureH)   //注意这里才是图片数据真实的大小，这个值通常小于缓冲的大小
-			, reinterpret_cast<BYTE*>(pbPicData)));
+		void clear() noexcept { m_filename = nullptr; }
+
+	private:
+		LPCWSTR m_filename;
+		Microsoft::WRL::ComPtr<IWICStream>& m_handle;
+	};
+
+	FTexture LoadWICTexture(const std::wstring& fileName, EWIC_LOADER_FLAGS loadFlags)
+	{
+		auto pWIC = _GetWIC();
+		if (!pWIC)
+			ASSERT_FAIL("Get WIC Factory Failed!");
+
+		// Initialize WIC
+		Microsoft::WRL::ComPtr<IWICBitmapDecoder> decoder;
+		ThrowIfFailed(pWIC->CreateDecoderFromFilename(fileName.c_str(),
+			nullptr,
+			GENERIC_READ,
+			WICDecodeMetadataCacheOnDemand,
+			decoder.GetAddressOf()));
+
+
+		Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;
+		ThrowIfFailed(decoder->GetFrame(0, frame.GetAddressOf()));
+
+		UINT width, height;
+		ThrowIfFailed(frame->GetSize(&width, &height));
+
+		assert(width > 0 && height > 0);
+
+		size_t maxsize = 16384;
+
+		UINT twidth = width;
+		UINT theight = height;
+		if (Valid(loadFlags & EWIC_LOADER_FLAGS::WIC_LOADER_FIT_POW2))
+		{
+			FitPowerOf2(width, height, twidth, theight, maxsize);
+		}
+		else if (width > maxsize || height > maxsize)
+		{
+			float ar = static_cast<float>(height) / static_cast<float>(width);
+			if (width > height)
+			{
+				twidth = static_cast<UINT>(maxsize);
+				theight = std::max<UINT>(1, static_cast<UINT>(static_cast<float>(maxsize) * ar));
+			}
+			else
+			{
+				theight = static_cast<UINT>(maxsize);
+				twidth = std::max<UINT>(1, static_cast<UINT>(static_cast<float>(maxsize) / ar));
+			}
+			assert(twidth <= maxsize && theight <= maxsize);
+		}
+
+		if (Valid(loadFlags & EWIC_LOADER_FLAGS::WIC_LOADER_MAKE_SQUARE))
+		{
+			twidth = std::max<UINT>(twidth, theight);
+			theight = twidth;
+		}
+
+		// Determine format
+		WICPixelFormatGUID pixelFormat;
+		ThrowIfFailed(frame->GetPixelFormat(&pixelFormat));
+
+		WICPixelFormatGUID convertGUID;
+		memcpy_s(&convertGUID, sizeof(WICPixelFormatGUID), &pixelFormat, sizeof(GUID));
+
+		size_t bpp = 0;
+
+		DXGI_FORMAT format = _WICToDXGI(pixelFormat);
+		if (format == DXGI_FORMAT_UNKNOWN)
+		{
+			for (size_t i = 0; i < _countof(g_WICConvert); ++i)
+			{
+				if (memcmp(&g_WICConvert[i].source, &pixelFormat, sizeof(WICPixelFormatGUID)) == 0)
+				{
+					memcpy_s(&convertGUID, sizeof(WICPixelFormatGUID), &g_WICConvert[i].target, sizeof(GUID));
+
+					format = _WICToDXGI(g_WICConvert[i].target);
+					ASSERT(format != DXGI_FORMAT_UNKNOWN);
+					bpp = _WICBitsPerPixel(convertGUID);
+					break;
+				}
+			}
+
+			if (format == DXGI_FORMAT_UNKNOWN)
+			{
+				ASSERT_FAIL("ERROR: WICTextureLoader does not support all DXGI formats (WIC GUID {%8.8lX-%4.4X-%4.4X-%2.2X%2.2X-%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X}). Consider using DirectXTex.\n",
+					pixelFormat.Data1, pixelFormat.Data2, pixelFormat.Data3,
+					pixelFormat.Data4[0], pixelFormat.Data4[1], pixelFormat.Data4[2], pixelFormat.Data4[3],
+					pixelFormat.Data4[4], pixelFormat.Data4[5], pixelFormat.Data4[6], pixelFormat.Data4[7]);
+				//return HRESULT_FROM_WIN32(ERROR_NOT_SUPPORTED);
+			}
+		}
+		else
+		{
+			bpp = _WICBitsPerPixel(pixelFormat);
+		}
+
+		if (Valid(loadFlags & EWIC_LOADER_FLAGS::WIC_LOADER_FORCE_RGBA32))
+		{
+			memcpy_s(&convertGUID, sizeof(WICPixelFormatGUID), &GUID_WICPixelFormat32bppRGBA, sizeof(GUID));
+			format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			bpp = 32;
+		}
+
+		if (!bpp)
+			ASSERT_FAIL("Failed to get bpp");
+
+		// Handle sRGB formats
+		if (Valid(loadFlags & EWIC_LOADER_FLAGS::WIC_LOADER_FORCE_SRGB))
+		{
+			format = MakeSRGB(format);
+		}
+		else if (!Valid(loadFlags & EWIC_LOADER_FLAGS::WIC_LOADER_IGNORE_SRGB))
+		{
+			Microsoft::WRL::ComPtr<IWICMetadataQueryReader> metareader;
+			if (SUCCEEDED(frame->GetMetadataQueryReader(metareader.GetAddressOf())))
+			{
+				GUID containerFormat;
+				if (SUCCEEDED(metareader->GetContainerFormat(&containerFormat)))
+				{
+					bool sRGB = false;
+
+					PROPVARIANT value;
+					PropVariantInit(&value);
+
+					// Check for colorspace chunks
+					if (memcmp(&containerFormat, &GUID_ContainerFormatPng, sizeof(GUID)) == 0)
+					{
+						// Check for sRGB chunk
+						if (SUCCEEDED(metareader->GetMetadataByName(L"/sRGB/RenderingIntent", &value)) && value.vt == VT_UI1)
+						{
+							sRGB = true;
+						}
+						else if (SUCCEEDED(metareader->GetMetadataByName(L"/gAMA/ImageGamma", &value)) && value.vt == VT_UI4)
+						{
+							sRGB = (value.uintVal == 45455);
+						}
+						else
+						{
+							sRGB = Valid(loadFlags & EWIC_LOADER_FLAGS::WIC_LOADER_SRGB_DEFAULT);
+						}
+					}
+#if (defined(_XBOX_ONE) && defined(_TITLE)) || defined(_GAMING_XBOX)
+					else if (memcmp(&containerFormat, &GUID_ContainerFormatJpeg, sizeof(GUID)) == 0)
+					{
+						if (SUCCEEDED(metareader->GetMetadataByName(L"/app1/ifd/exif/{ushort=40961}", &value)) && value.vt == VT_UI2)
+						{
+							sRGB = (value.uiVal == 1);
+						}
+						else
+						{
+							sRGB = (loadFlags & WIC_LOADER_SRGB_DEFAULT) != 0;
+						}
+					}
+					else if (memcmp(&containerFormat, &GUID_ContainerFormatTiff, sizeof(GUID)) == 0)
+					{
+						if (SUCCEEDED(metareader->GetMetadataByName(L"/ifd/exif/{ushort=40961}", &value)) && value.vt == VT_UI2)
+						{
+							sRGB = (value.uiVal == 1);
+						}
+						else
+						{
+							sRGB = (loadFlags & WIC_LOADER_SRGB_DEFAULT) != 0;
+						}
+					}
+#else
+					else if (SUCCEEDED(metareader->GetMetadataByName(L"System.Image.ColorSpace", &value)) && value.vt == VT_UI2)
+					{
+						sRGB = (value.uiVal == 1);
+					}
+					else
+					{
+						sRGB = Valid(loadFlags & EWIC_LOADER_FLAGS::WIC_LOADER_SRGB_DEFAULT);
+					}
+#endif
+
+					(void)PropVariantClear(&value);
+
+					if (sRGB)
+						format = MakeSRGB(format);
+				}
+			}
+		}
+
+		// Allocate memory for decoded image
+		uint64_t rowBytes = (uint64_t(twidth) * uint64_t(bpp) + 7u) / 8u;
+		uint64_t numBytes = rowBytes * uint64_t(height);
+
+		if (rowBytes > UINT32_MAX || numBytes > UINT32_MAX)
+			ASSERT_FAIL("Arithmetic Overflow!");
+
+		auto rowPitch = static_cast<size_t>(rowBytes);
+		auto imageSize = static_cast<size_t>(numBytes);
+
+
+		EDASH_FORMAT dashFormat = DXGIFormatToDashFormat(format);
+		ASSERT(dashFormat != EDASH_FORMAT::UnKwon);
+		FTexture texture{twidth, theight, dashFormat};
+
+		// Load image data
+		if (memcmp(&convertGUID, &pixelFormat, sizeof(GUID)) == 0
+			&& twidth == width
+			&& theight == height)
+		{
+			// No format conversion or resize needed
+			ThrowIfFailed(frame->CopyPixels(nullptr, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), texture.GetRawData()));
+		}
+		else if (twidth != width || theight != height)
+		{
+			// Resize
+			auto pWIC = _GetWIC();
+			if (!pWIC)
+				ASSERT_FAIL("Get WIC Factory Failed!");
+
+			Microsoft::WRL::ComPtr<IWICBitmapScaler> scaler;
+			ThrowIfFailed(pWIC->CreateBitmapScaler(scaler.GetAddressOf()));
+
+			ThrowIfFailed(scaler->Initialize(frame.Get(), twidth, theight, WICBitmapInterpolationModeFant));
+
+			WICPixelFormatGUID pfScaler;
+			ThrowIfFailed(scaler->GetPixelFormat(&pfScaler));
+
+			if (memcmp(&convertGUID, &pfScaler, sizeof(GUID)) == 0)
+			{
+				// No format conversion needed
+				ThrowIfFailed(scaler->CopyPixels(nullptr, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), texture.GetRawData()));
+			}
+			else
+			{
+				Microsoft::WRL::ComPtr<IWICFormatConverter> FC;
+				ThrowIfFailed(pWIC->CreateFormatConverter(FC.GetAddressOf()));
+
+				BOOL canConvert = FALSE;
+				ThrowIfFailed(FC->CanConvert(pfScaler, convertGUID, &canConvert));
+				if (!canConvert)
+				{
+					ASSERT_FAIL("Can not convert format!");
+				}
+
+				ThrowIfFailed(FC->Initialize(scaler.Get(), convertGUID, WICBitmapDitherTypeErrorDiffusion, nullptr, 0, WICBitmapPaletteTypeMedianCut));
+
+				ThrowIfFailed(FC->CopyPixels(nullptr, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), texture.GetRawData()));
+			}
+		}
+		else
+		{
+			// Format conversion but no resize
+			auto pWIC = _GetWIC();
+			if (!pWIC)
+				ASSERT_FAIL("Get WIC Factory Failed!");
+
+			Microsoft::WRL::ComPtr<IWICFormatConverter> FC;
+			ThrowIfFailed(pWIC->CreateFormatConverter(FC.GetAddressOf()));
+
+			BOOL canConvert = FALSE;
+			ThrowIfFailed(FC->CanConvert(pixelFormat, convertGUID, &canConvert));
+			if (!canConvert)
+			{
+				ASSERT_FAIL("Can not convert format!");
+			}
+
+			ThrowIfFailed(FC->Initialize(frame.Get(), convertGUID, WICBitmapDitherTypeErrorDiffusion, nullptr, 0, WICBitmapPaletteTypeMedianCut));
+
+			ThrowIfFailed(FC->CopyPixels(nullptr, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), texture.GetRawData()));
+		}
+
+		return texture;
+	}
+
+	
+	void ExportWICTexture(const std::wstring& fileName, const FTexture& texture, REFGUID guidContainerFormat, const GUID* targetFormat, bool forceSRGB)
+	{
+		if (fileName.empty())
+			ASSERT("Invalid Args");
+
+		UINT64 fpRowPitch = texture.GetRowPitch();
+
+#if (defined(_XBOX_ONE) && defined(_TITLE)) || defined(_GAMING_XBOX)
+		// Round up the srcPitch to multiples of 1024
+		UINT64 dstRowPitch = (fpRowPitch + static_cast<uint64_t>(D3D12XBOX_TEXTURE_DATA_PITCH_ALIGNMENT) - 1u) & ~(static_cast<uint64_t>(D3D12XBOX_TEXTURE_DATA_PITCH_ALIGNMENT) - 1u);
+#else
+		// Round up the srcPitch to multiples of 256
+		//UINT64 dstRowPitch = (fpRowPitch + 255) & ~0xFFu;
+		UINT64 dstRowPitch = fpRowPitch;
+#endif
+
+		if (dstRowPitch > UINT32_MAX)
+			ASSERT_FAIL("Arithmetic Overflow!");
+
+		size_t textureWidth = texture.GetWidth();
+		size_t textureHeight = texture.GetHeight();
+		DXGI_FORMAT dxgiFormat = DashFormatToDXGIFormat(texture.GetFormat());
+
+		// Determine source format's WIC equivalent
+		WICPixelFormatGUID pfGuid = {};
+		bool sRGB = forceSRGB;
+		switch (dxgiFormat)
+		{
+		case DXGI_FORMAT_R32G32B32A32_FLOAT:            pfGuid = GUID_WICPixelFormat128bppRGBAFloat; break;
+		case DXGI_FORMAT_R16G16B16A16_FLOAT:            pfGuid = GUID_WICPixelFormat64bppRGBAHalf; break;
+		case DXGI_FORMAT_R16G16B16A16_UNORM:            pfGuid = GUID_WICPixelFormat64bppRGBA; break;
+		case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM:    pfGuid = GUID_WICPixelFormat32bppRGBA1010102XR; break;
+		case DXGI_FORMAT_R10G10B10A2_UNORM:             pfGuid = GUID_WICPixelFormat32bppRGBA1010102; break;
+		case DXGI_FORMAT_B5G5R5A1_UNORM:                pfGuid = GUID_WICPixelFormat16bppBGRA5551; break;
+		case DXGI_FORMAT_B5G6R5_UNORM:                  pfGuid = GUID_WICPixelFormat16bppBGR565; break;
+		case DXGI_FORMAT_R32_FLOAT:                     pfGuid = GUID_WICPixelFormat32bppGrayFloat; break;
+		case DXGI_FORMAT_R16_FLOAT:                     pfGuid = GUID_WICPixelFormat16bppGrayHalf; break;
+		case DXGI_FORMAT_R16_UNORM:                     pfGuid = GUID_WICPixelFormat16bppGray; break;
+		case DXGI_FORMAT_R8_UNORM:                      pfGuid = GUID_WICPixelFormat8bppGray; break;
+		case DXGI_FORMAT_A8_UNORM:                      pfGuid = GUID_WICPixelFormat8bppAlpha; break;
+
+		case DXGI_FORMAT_R8G8B8A8_UNORM:
+			pfGuid = GUID_WICPixelFormat32bppRGBA;
+			break;
+
+		case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+			pfGuid = GUID_WICPixelFormat32bppRGBA;
+			sRGB = true;
+			break;
+
+		case DXGI_FORMAT_B8G8R8A8_UNORM:
+			pfGuid = GUID_WICPixelFormat32bppBGRA;
+			break;
+
+		case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+			pfGuid = GUID_WICPixelFormat32bppBGRA;
+			sRGB = true;
+			break;
+
+		case DXGI_FORMAT_B8G8R8X8_UNORM:
+			pfGuid = GUID_WICPixelFormat32bppBGR;
+			break;
+
+		case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+			pfGuid = GUID_WICPixelFormat32bppBGR;
+			sRGB = true;
+			break;
+
+		default:
+			ASSERT_FAIL("ERROR: ScreenGrab does not support all DXGI formats (%u). Consider using DirectXTex.\n", static_cast<uint32_t>(dxgiFormat));
+		}
+
+		auto pWIC = _GetWIC();
+		if (!pWIC)
+			ASSERT_FAIL("Get WIC Factory Failed!");
+
+		Microsoft::WRL::ComPtr<IWICStream> stream;
+		ThrowIfFailed(pWIC->CreateStream(stream.GetAddressOf()));
+
+		ThrowIfFailed(stream->InitializeFromFilename(fileName.c_str(), GENERIC_WRITE));
+
+		auto_delete_file_wic delonfail(stream, fileName.c_str());
+
+		Microsoft::WRL::ComPtr<IWICBitmapEncoder> encoder;
+		ThrowIfFailed(pWIC->CreateEncoder(guidContainerFormat, nullptr, encoder.GetAddressOf()));
+
+		ThrowIfFailed(encoder->Initialize(stream.Get(), WICBitmapEncoderNoCache));
+
+		Microsoft::WRL::ComPtr<IWICBitmapFrameEncode> frame;
+		Microsoft::WRL::ComPtr<IPropertyBag2> props;
+		ThrowIfFailed(encoder->CreateNewFrame(frame.GetAddressOf(), props.GetAddressOf()));
+
+		if (targetFormat && memcmp(&guidContainerFormat, &GUID_ContainerFormatBmp, sizeof(WICPixelFormatGUID)) == 0)
+		{
+			// Opt-in to the WIC2 support for writing 32-bit Windows BMP files with an alpha channel
+			PROPBAG2 option = {};
+			option.pstrName = const_cast<wchar_t*>(L"EnableV5Header32bppBGRA");
+
+			VARIANT varValue;
+			varValue.vt = VT_BOOL;
+			varValue.boolVal = VARIANT_TRUE;
+			(void)props->Write(1, &option, &varValue);
+		}
+
+		ThrowIfFailed(frame->Initialize(props.Get()));
+
+		ThrowIfFailed(frame->SetSize(static_cast<UINT>(textureWidth), static_cast<UINT>(textureHeight)));
+
+		ThrowIfFailed(frame->SetResolution(72, 72));
+
+		// Pick a target format
+		WICPixelFormatGUID targetGuid = {};
+		if (targetFormat)
+		{
+			targetGuid = *targetFormat;
+		}
+		else
+		{
+			// Screenshots don't typically include the alpha channel of the render target
+			switch (dxgiFormat)
+			{
+			case DXGI_FORMAT_R32G32B32A32_FLOAT:
+			case DXGI_FORMAT_R16G16B16A16_FLOAT:
+				targetGuid = GUID_WICPixelFormat96bppRGBFloat; // WIC 2
+				break;
+
+			case DXGI_FORMAT_R16G16B16A16_UNORM: targetGuid = GUID_WICPixelFormat48bppBGR; break;
+			case DXGI_FORMAT_B5G5R5A1_UNORM:     targetGuid = GUID_WICPixelFormat16bppBGR555; break;
+			case DXGI_FORMAT_B5G6R5_UNORM:       targetGuid = GUID_WICPixelFormat16bppBGR565; break;
+
+			case DXGI_FORMAT_R32_FLOAT:
+			case DXGI_FORMAT_R16_FLOAT:
+			case DXGI_FORMAT_R16_UNORM:
+			case DXGI_FORMAT_R8_UNORM:
+			case DXGI_FORMAT_A8_UNORM:
+				targetGuid = GUID_WICPixelFormat8bppGray;
+				break;
+
+			default:
+				targetGuid = GUID_WICPixelFormat24bppBGR;
+				break;
+			}
+		}
+
+		ThrowIfFailed(frame->SetPixelFormat(&targetGuid));
+
+		if (targetFormat && memcmp(targetFormat, &targetGuid, sizeof(WICPixelFormatGUID)) != 0)
+		{
+			// Requested output pixel format is not supported by the WIC codec
+			ASSERT_FAIL("Not supported format");
+		}
+
+		// Encode WIC metadata
+		Microsoft::WRL::ComPtr<IWICMetadataQueryWriter> metawriter;
+		if (SUCCEEDED(frame->GetMetadataQueryWriter(metawriter.GetAddressOf())))
+		{
+			PROPVARIANT value;
+			PropVariantInit(&value);
+
+			value.vt = VT_LPSTR;
+			value.pszVal = const_cast<char*>("DirectXTK");
+
+			if (memcmp(&guidContainerFormat, &GUID_ContainerFormatPng, sizeof(GUID)) == 0)
+			{
+				// Set Software name
+				(void)metawriter->SetMetadataByName(L"/tEXt/{str=Software}", &value);
+
+				// Set sRGB chunk
+				if (sRGB)
+				{
+					value.vt = VT_UI1;
+					value.bVal = 0;
+					(void)metawriter->SetMetadataByName(L"/sRGB/RenderingIntent", &value);
+				}
+				else
+				{
+					// add gAMA chunk with gamma 1.0
+					value.vt = VT_UI4;
+					value.uintVal = 100000; // gama value * 100,000 -- i.e. gamma 1.0
+					(void)metawriter->SetMetadataByName(L"/gAMA/ImageGamma", &value);
+
+					// remove sRGB chunk which is added by default.
+					(void)metawriter->RemoveMetadataByName(L"/sRGB/RenderingIntent");
+				}
+			}
+#if (defined(_XBOX_ONE) && defined(_TITLE)) || defined(_GAMING_XBOX)
+			else if (memcmp(&guidContainerFormat, &GUID_ContainerFormatJpeg, sizeof(GUID)) == 0)
+			{
+				// Set Software name
+				(void)metawriter->SetMetadataByName(L"/app1/ifd/{ushort=305}", &value);
+
+				if (sRGB)
+				{
+					// Set EXIF Colorspace of sRGB
+					value.vt = VT_UI2;
+					value.uiVal = 1;
+					(void)metawriter->SetMetadataByName(L"/app1/ifd/exif/{ushort=40961}", &value);
+				}
+			}
+			else if (memcmp(&guidContainerFormat, &GUID_ContainerFormatTiff, sizeof(GUID)) == 0)
+			{
+				// Set Software name
+				(void)metawriter->SetMetadataByName(L"/ifd/{ushort=305}", &value);
+
+				if (sRGB)
+				{
+					// Set EXIF Colorspace of sRGB
+					value.vt = VT_UI2;
+					value.uiVal = 1;
+					(void)metawriter->SetMetadataByName(L"/ifd/exif/{ushort=40961}", &value);
+				}
+			}
+#else
+			else
+			{
+				// Set Software name
+				(void)metawriter->SetMetadataByName(L"System.ApplicationName", &value);
+
+				if (sRGB)
+				{
+					// Set EXIF Colorspace of sRGB
+					value.vt = VT_UI2;
+					value.uiVal = 1;
+					(void)metawriter->SetMetadataByName(L"System.Image.ColorSpace", &value);
+				}
+			}
+#endif
+		}
+
+		UINT64 imageSize = dstRowPitch * UINT64(textureHeight);
+		if (imageSize > UINT32_MAX)
+			ASSERT_FAIL("Arithmetic Overflow!");
+
+		if (memcmp(&targetGuid, &pfGuid, sizeof(WICPixelFormatGUID)) != 0)
+		{
+			// Conversion required to write
+			Microsoft::WRL::ComPtr<IWICBitmap> source;
+			ThrowIfFailed(pWIC->CreateBitmapFromMemory(static_cast<UINT>(textureWidth), static_cast<UINT>(textureHeight),
+				pfGuid,
+				static_cast<UINT>(dstRowPitch), static_cast<UINT>(imageSize),
+				const_cast<BYTE*>(texture.GetRawData()), source.GetAddressOf()));
+
+			Microsoft::WRL::ComPtr<IWICFormatConverter> FC;
+			ThrowIfFailed(pWIC->CreateFormatConverter(FC.GetAddressOf()));
+
+			BOOL canConvert = FALSE;
+			ThrowIfFailed(FC->CanConvert(pfGuid, targetGuid, &canConvert));
+			if (!canConvert)
+			{
+				ASSERT_FAIL("Can not convert format!");
+			}
+
+			ThrowIfFailed(FC->Initialize(source.Get(), targetGuid, WICBitmapDitherTypeNone, nullptr, 0, WICBitmapPaletteTypeMedianCut));
+
+			WICRect rect = { 0, 0, static_cast<INT>(textureWidth), static_cast<INT>(textureHeight) };
+			ThrowIfFailed(frame->WriteSource(FC.Get(), &rect));
+		}
+		else
+		{
+			// No conversion required
+			ThrowIfFailed(frame->WritePixels(static_cast<UINT>(textureHeight), static_cast<UINT>(dstRowPitch), static_cast<UINT>(imageSize), const_cast<BYTE*>(texture.GetRawData())));
+		}
+
+		ThrowIfFailed(frame->Commit());
+
+		ThrowIfFailed(encoder->Commit());
+
+		delonfail.clear();
 	}
 }

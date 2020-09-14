@@ -15,12 +15,15 @@ namespace Dash
 		: mWidth(width)
 		, mHeight(height)
 		, mFormat(format)
-		, mBitPerPixel(GetDashFormatSize(format))
+		, mBitPerPixel(GetByteSizeForFormat(format) * 8)
 		, mRowAlignment(alignment)
 	{
-		size_t alignmentRow = height == 0 ? 0 : (height - 1);
-		size_t picRowPitch = UPPER_ALIGNMENT(width * mBitPerPixel, alignment);
-		mData.resize(picRowPitch * alignmentRow + width * mBitPerPixel);
+		ASSERT(mRowAlignment >= 1);
+
+		//扩展为1字节(8 bit)的倍数
+		size_t picRowPitch = (size_t(mWidth) * size_t(mBitPerPixel) + (mRowAlignment * 8) - 1) / (mRowAlignment * 8);
+
+		mData.resize(picRowPitch * height);
 	}
 
 	FTexture::FTexture(const FTexture& other)
@@ -76,9 +79,8 @@ namespace Dash
 		mWidth = x;
 		mHeight = y;
 
-		size_t alignmentRow = mHeight == 0 ? 0 : (mHeight - 1);
-		size_t picRowPitch = UPPER_ALIGNMENT(mWidth * mBitPerPixel, mRowAlignment);
-		mData.resize(picRowPitch * alignmentRow + mWidth * mBitPerPixel);
+		size_t picRowPitch = (size_t(mWidth) * size_t(mBitPerPixel) + (mRowAlignment * 8) - 1) / (mRowAlignment * 8);
+		mData.resize(picRowPitch * mHeight);
 	}
 
 	void FTexture::Resize(const FVector2i& size)

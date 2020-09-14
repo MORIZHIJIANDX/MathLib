@@ -63,7 +63,7 @@ std::shared_ptr<Dash::TriangleMesh> CreateTriangleMesh()
 		triangleMesh->InputElementMap.insert(std::pair(triangleMesh->InputElements[i].SemanticName,
 			triangleMesh->InputElements[i].AlignedByteOffset));
 
-		triangleMesh->VertexStride += (uint32_t)GetDashFormatSize(triangleMesh->InputElements[i].Format);
+		triangleMesh->VertexStride += (uint32_t)GetByteSizeForFormat(triangleMesh->InputElements[i].Format);
 	}
 
 
@@ -237,20 +237,20 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 	//Dash::FTexture<Dash::FLinearColor> image;
 
-	Dash::FTexture image;
+	Dash::FTexture image = Dash::LoadWICTexture(L"coma.png");
+
+	Dash::ExportWICTexture(L"ovra.png", image, GUID_ContainerFormatPng, nullptr, true);
 
 	Dash::FApplicationDX12 app;
 	app.Run();
 
 	Dash::GetFormatForType<float>();
 
-	
 
 	//std::cout <<  sizeof(tt) << std::endl;
 
 	
-
-
+	
 	//DXSample sample(1280, 720, L"D3D12 Hello FWindow");
 	//return Win32Application::Run(&sample, hInstance, nCmdShow);
 

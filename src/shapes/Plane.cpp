@@ -150,7 +150,7 @@ namespace Dash
 			triangleMesh->InputElementMap.insert(std::pair(triangleMesh->InputElements[i].SemanticName,
 				triangleMesh->InputElements[i].AlignedByteOffset));
 
-			triangleMesh->VertexStride += GetDashFormatSize(triangleMesh->InputElements[i].Format);
+			triangleMesh->VertexStride += GetByteSizeForFormat(triangleMesh->InputElements[i].Format);
 		}
 
 		size_t positionOffset = triangleMesh->InputElementMap["POSITION"];
@@ -159,7 +159,7 @@ namespace Dash
 		size_t texCoordOffset = triangleMesh->InputElementMap["TEXCOORD"];
 
 		triangleMesh->Vertices.reserve((size_t)(triangleMesh->VertexStride) * triangleMesh->NumVertices);
-		triangleMesh->Indices.reserve((size_t)(GetDashFormatSize(triangleMesh->IndexType)) * triangleMesh->NumIndices);
+		triangleMesh->Indices.reserve((size_t)(GetByteSizeForFormat(triangleMesh->IndexType)) * triangleMesh->NumIndices);
 
 		//Write Vertex Attribute
 		size_t vertexIndex = 0;
