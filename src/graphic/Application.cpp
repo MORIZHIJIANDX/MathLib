@@ -81,6 +81,8 @@ namespace Dash
 		}
 		catch (const HrException& e)
 		{
+			HRESULT removeHr = GetDeviceRemoveReason();
+
 			MessageBoxA(NULL, HrToString(e.Error()).c_str(), "Error", MB_ICONERROR);
 		}
 	}

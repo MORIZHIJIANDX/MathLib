@@ -20,6 +20,8 @@ namespace Dash
 	protected:
 		void UpdateThread();
 
+		virtual HRESULT GetDeviceRemoveReason() { return 0; };
+
 		FWindow mWindow;
 		std::atomic_bool mIsRunning;
 	};

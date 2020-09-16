@@ -81,7 +81,7 @@ private:
 
     ComPtr<ID3D12Device> mD3DDevice;
     ComPtr<ID3D12CommandQueue> mD3DCommandQueue;
-    ComPtr<ID3D12DescriptorHeap> mDescriptorHeap;
+    ComPtr<ID3D12DescriptorHeap> mRTVDescriptorHeap;
     ComPtr<ID3D12Resource> mBackBuffers[BackBufferFrameCount];
     ComPtr<ID3D12RootSignature> mRootSignature;
     ComPtr<ID3D12PipelineState> mPipelineState;
@@ -93,7 +93,7 @@ private:
     ComPtr<ID3D12Fence> mFence;
 
     UINT mBackBufferIndex;
-    UINT mDescriptorHandleIncrementSize;
+    UINT mRTVDescriptorSize;
     UINT mFenceValue;
 
     HANDLE mFenceEvent;

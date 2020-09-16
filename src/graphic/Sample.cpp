@@ -89,18 +89,18 @@ void DXSample::LoadPipeline()
         heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
         heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-        ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&mDescriptorHeap)));
+        ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&mRTVDescriptorHeap)));
 
-        mDescriptorHandleIncrementSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        mRTVDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     }
 
     {
-        CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+        CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mRTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
         for (UINT i = 0; i < BackBufferFrameCount; i++)
         {
             ThrowIfFailed(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mBackBuffers[i])));
             mD3DDevice->CreateRenderTargetView(mBackBuffers[i].Get(), nullptr, descriptorHandle);
-            descriptorHandle.Offset(1, mDescriptorHandleIncrementSize);
+            descriptorHandle.Offset(1, mRTVDescriptorSize);
         }
     }
 
@@ -233,7 +233,7 @@ void DXSample::PopulateCommandList()
         D3D12_RESOURCE_STATE_PRESENT,
         D3D12_RESOURCE_STATE_RENDER_TARGET));
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), mBackBufferIndex, mDescriptorHandleIncrementSize);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mRTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), mBackBufferIndex, mRTVDescriptorSize);
 
     mCommandList->OMSetRenderTargets(1, &descriptorHandle, FALSE, nullptr);
 

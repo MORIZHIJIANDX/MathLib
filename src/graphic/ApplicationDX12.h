@@ -41,8 +41,25 @@ namespace Dash
             _Outptr_result_maybenull_ IDXGIAdapter1** ppAdapter,
             bool requestHighPerformanceAdapter = false);
 
+        virtual HRESULT GetDeviceRemoveReason() override
+        {
+            if (mD3DDevice)
+            {
+                return mD3DDevice->GetDeviceRemovedReason();
+            }
+
+            return 0;
+        }
+
+        std::vector<UINT8> GenerateTextureData();
+
     public:
         static const UINT BackBufferFrameCount = 2;
+
+        static const UINT FrameCount = 2;
+        static const UINT TextureWidth = 256;
+        static const UINT TextureHeight = 256;
+        static const UINT TexturePixelSize = 4;
 
     private:
         Microsoft::WRL::ComPtr<IDXGIFactory4> mDXGIFatory;
@@ -50,19 +67,22 @@ namespace Dash
 
         Microsoft::WRL::ComPtr<ID3D12Device> mD3DDevice;
         Microsoft::WRL::ComPtr<ID3D12CommandQueue> mD3DCommandQueue;
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDescriptorHeap;
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRTVDescriptorHeap;
         Microsoft::WRL::ComPtr<ID3D12Resource> mBackBuffers[BackBufferFrameCount];
         Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
         Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
         Microsoft::WRL::ComPtr<ID3D12Resource> mVertexBuffer;
         D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
 
+        Microsoft::WRL::ComPtr<ID3D12Resource> mTextureResource;
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSRVDescriptorHeap;
+
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
         Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
 
         UINT mBackBufferIndex;
-        UINT mDescriptorHandleIncrementSize;
+        UINT mRTVDescriptorSize;
         UINT mFenceValue;
 
         HANDLE mFenceEvent;
