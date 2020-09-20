@@ -84,6 +84,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\graphic\DX12Helper.h" />
     <ClInclude Include="src\math\Color.h" />
     <ClInclude Include="src\utility\Image.h" />
     <ClInclude Include="src\consolid\consolid.h" />
@@ -92,12 +93,10 @@
     <ClInclude Include="src\design_patterns\DelegateBase.h" />
     <ClInclude Include="src\design_patterns\MulticastDelegate.h" />
     <ClInclude Include="src\design_patterns\Singleton.h" />
-    <ClInclude Include="src\graphic\App.h" />
     <ClInclude Include="src\graphic\Application.h" />
     <ClInclude Include="src\graphic\ApplicationDX12.h" />
     <ClInclude Include="src\graphic\Camera.h" />
     <ClInclude Include="src\graphic\d3dx12.h" />
-    <ClInclude Include="src\graphic\Sample.h" />
     <ClInclude Include="src\graphic\Viewport.h" />
     <ClInclude Include="src\graphic\Window.h" />
     <ClInclude Include="src\math\AABB2.h" />
@@ -143,13 +142,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\math\Color.cpp" />
+    <ClCompile Include="src\utility\Exception.cpp" />
     <ClCompile Include="src\utility\Image.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="src\graphic\App.cpp" />
     <ClCompile Include="src\graphic\Application.cpp" />
     <ClCompile Include="src\graphic\ApplicationDX12.cpp" />
     <ClCompile Include="src\graphic\Camera.cpp" />
-    <ClCompile Include="src\graphic\Sample.cpp" />
     <ClCompile Include="src\graphic\Window.cpp" />
     <ClCompile Include="src\shapes\Plane.cpp" />
     <ClCompile Include="src\shapes\Shape.cpp" />

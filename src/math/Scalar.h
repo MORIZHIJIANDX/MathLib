@@ -13,7 +13,7 @@ namespace Dash {
 
 	namespace FMath {
 
-		#define UPPER_ALIGNMENT(A, B) ((size_t)(((A)+((B)-1)) & ~(B - 1)))
+		#define UPPER_ALIGNMENT(Base,Alignment) ((UINT)(((Base)+((Alignment)-1))&~(Alignment - 1)))
 
 		template <typename Scalar> constexpr Scalar ACos(Scalar x) noexcept;
 		template <typename Scalar> constexpr Scalar ASin(Scalar x) noexcept;

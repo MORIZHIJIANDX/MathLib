@@ -6,9 +6,20 @@
 #include "../utility/ImageHelper.h"
 #include <DirectXMath.h>
 #include <algorithm>
+#include "../utility/Keyboard.h"
+
 
 namespace Dash
 {
+    struct __declspec(align(256)) FFrameConstantBuffer
+    {
+        float Time;
+        FVector2f Speed;
+    };
+
+    static FFrameConstantBuffer* sFrameConstantBuffer = nullptr;
+
+
 	FApplicationDX12::FApplicationDX12(size_t windowWidth, size_t windowHeight)
 		: FApplication(windowWidth, windowHeight)
 	{
@@ -28,11 +39,15 @@ namespace Dash
 
         LoadPipeline();
         LoadAssets();
+
+        //sFrameConstantBuffer.time = 0.0f;
 	}
 
 	FApplicationDX12::~FApplicationDX12()
 	{
         WaitForPreviousFrame();
+
+        mConstantBuffer->Unmap(0, nullptr);
 
         CloseHandle(mFenceEvent);
 	}
@@ -44,27 +59,51 @@ namespace Dash
         ID3D12CommandList* commands[] = { mCommandList.Get() };
         mD3DCommandQueue->ExecuteCommandLists(_countof(commands), commands);
 
-        ThrowIfFailed(mSwapChain->Present(1, 0));
+        HR(mSwapChain->Present(1, 0));
 
         WaitForPreviousFrame();
 	}
 
 	void FApplicationDX12::OnUpdate(const FUpdateEventArgs& e)
 	{
+        if (FKeyboard::Get().IsKeyPressed(EKeyCode::U))
+        {
+            mCurrentSamplerIndex = (mCurrentSamplerIndex + 1) % 5;
+        }
 
+        if (FKeyboard::Get().IsKeyPressed(EKeyCode::K))
+        {
+            if (sFrameConstantBuffer)
+            {
+                sFrameConstantBuffer->Speed = sFrameConstantBuffer->Speed.x == 0.0f ? FVector2f{ 1.0f, 0.0f } : FVector2f{0.0f, 1.0f};
+            }
+        }
 	}
 
 	void FApplicationDX12::PopulateCommandList(const FRenderEventArgs& e)
 	{
-        ThrowIfFailed(mCommandAllocator->Reset());
-        ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPipelineState.Get()));
+        HR(mCommandAllocator->Reset());
+        HR(mCommandList->Reset(mCommandAllocator.Get(), mPipelineState.Get()));
+
+        sFrameConstantBuffer->Time = e.mTotalTime;
 
         mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+        mCommandList->SetPipelineState(mPipelineState.Get());
 
-        ID3D12DescriptorHeap* heaps[] = { mSRVDescriptorHeap.Get() };
+        ID3D12DescriptorHeap* heaps[] = { mSRVCBVDescriptorHeap.Get(), mSamplerDescriptorHeap.Get() };
         mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
-        mCommandList->SetGraphicsRootDescriptorTable(0, mSRVDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+        mCommandList->SetGraphicsRootDescriptorTable(0, mSRVCBVDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
+        CD3DX12_GPU_DESCRIPTOR_HANDLE samplerGPUHandle{ mSamplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 
+            mCurrentSamplerIndex, mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER) };
+
+        mCommandList->SetGraphicsRootDescriptorTable(1, samplerGPUHandle);
+
+        CD3DX12_GPU_DESCRIPTOR_HANDLE constantBufferGPUHandle{ mSRVCBVDescriptorHeap->GetGPUDescriptorHandleForHeapStart(),
+        1, mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) };
+
+        mCommandList->SetGraphicsRootDescriptorTable(2, constantBufferGPUHandle);
 
         mCommandList->RSSetViewports(1, &mViewport);
         mCommandList->RSSetScissorRects(1, &mScissorRect);
@@ -88,18 +127,18 @@ namespace Dash
             D3D12_RESOURCE_STATE_RENDER_TARGET,
             D3D12_RESOURCE_STATE_PRESENT));
 
-        ThrowIfFailed(mCommandList->Close());
+        HR(mCommandList->Close());
 	}
 
 	void FApplicationDX12::WaitForPreviousFrame()
 	{
         UINT valueToWait = mFenceValue;
-        ThrowIfFailed(mD3DCommandQueue->Signal(mFence.Get(), valueToWait));
+        HR(mD3DCommandQueue->Signal(mFence.Get(), valueToWait));
         ++mFenceValue;
 
         if (mFence->GetCompletedValue() < valueToWait)
         {
-            ThrowIfFailed(mFence->SetEventOnCompletion(valueToWait, mFenceEvent));
+            HR(mFence->SetEventOnCompletion(valueToWait, mFenceEvent));
             WaitForSingleObject(mFenceEvent, INFINITE);
         }
 
@@ -120,17 +159,17 @@ namespace Dash
         }
 #endif // DEBUG
 
-        ThrowIfFailed(CreateDXGIFactory2(dxgiFactoryFlag, IID_PPV_ARGS(&mDXGIFatory)));
+        HR(CreateDXGIFactory2(dxgiFactoryFlag, IID_PPV_ARGS(&mDXGIFatory)));
 
         Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgiAdapter;
         GetHardwareAdapter(mDXGIFatory.Get(), &dxgiAdapter, true);
 
-        ThrowIfFailed(D3D12CreateDevice(dxgiAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&mD3DDevice)));
+        HR(D3D12CreateDevice(dxgiAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&mD3DDevice)));
 
         D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
         commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
         commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-        ThrowIfFailed(mD3DDevice->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&mD3DCommandQueue)));
+        HR(mD3DDevice->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&mD3DCommandQueue)));
 
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
         swapChainDesc.Width = (UINT)mWindow.GetWindowWidth();
@@ -142,50 +181,166 @@ namespace Dash
         swapChainDesc.BufferCount = BackBufferFrameCount;
 
         Microsoft::WRL::ComPtr<IDXGISwapChain1> swapChain;
-        ThrowIfFailed(mDXGIFatory->CreateSwapChainForHwnd(mD3DCommandQueue.Get(),
+        HR(mDXGIFatory->CreateSwapChainForHwnd(mD3DCommandQueue.Get(),
             mWindow.GetWindowHandle(),
             &swapChainDesc,
             nullptr,
             nullptr,
             &swapChain));
 
-        ThrowIfFailed(swapChain.As(&mSwapChain));
+        HR(swapChain.As(&mSwapChain));
 
-        ThrowIfFailed(mDXGIFatory->MakeWindowAssociation(mWindow.GetWindowHandle(), DXGI_MWA_NO_ALT_ENTER));
+        HR(mDXGIFatory->MakeWindowAssociation(mWindow.GetWindowHandle(), DXGI_MWA_NO_ALT_ENTER));
 
         mBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
 
         {
-            //Create rtv heap
+            //Create rtv descriptor heap
             D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
             rtvHeapDesc.NumDescriptors = BackBufferFrameCount;
             rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
             rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-            ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&mRTVDescriptorHeap)));
+            HR(mD3DDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&mRTVDescriptorHeap)));
 
-            //Create srv heap
-            D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc{};
-            srvHeapDesc.NumDescriptors = 1;
-            srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-            srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            //Create srv descriptor heap
+            D3D12_DESCRIPTOR_HEAP_DESC srvCBVHeapDesc{};
+            srvCBVHeapDesc.NumDescriptors = 2;
+            srvCBVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            srvCBVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 
-            ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSRVDescriptorHeap)));
+            HR(mD3DDevice->CreateDescriptorHeap(&srvCBVHeapDesc, IID_PPV_ARGS(&mSRVCBVDescriptorHeap)));
 
             mRTVDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
         }
 
         {
+            //Create Rendertarget view
             CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mRTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
             for (UINT i = 0; i < BackBufferFrameCount; i++)
             {
-                ThrowIfFailed(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mBackBuffers[i])));
+                HR(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mBackBuffers[i])));
                 mD3DDevice->CreateRenderTargetView(mBackBuffers[i].Get(), nullptr, descriptorHandle);
                 descriptorHandle.Offset(1, mRTVDescriptorSize);
             }
         }
 
-        ThrowIfFailed(mD3DDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator)));
+        //Create Sampler Heap
+        {
+            D3D12_DESCRIPTOR_HEAP_DESC samplerDesc{};
+            samplerDesc.NumDescriptors = mMaxSamplerCount;
+            samplerDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+            samplerDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+            HR(mD3DDevice->CreateDescriptorHeap(&samplerDesc, IID_PPV_ARGS(&mSamplerDescriptorHeap)));
+        }
+
+        //Create sampler
+        {
+            D3D12_SAMPLER_DESC samplerDesc;
+            samplerDesc.Filter = D3D12_FILTER::D3D12_FILTER_ANISOTROPIC;
+            samplerDesc.MipLODBias = 0;
+            samplerDesc.MinLOD = 0;
+            samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+            samplerDesc.MaxAnisotropy = 1;
+            samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+            samplerDesc.BorderColor[0] = 0.0f;
+            samplerDesc.BorderColor[1] = 0.0f;
+            samplerDesc.BorderColor[2] = 0.0f;
+            samplerDesc.BorderColor[3] = 0.0f;
+            samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+            samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+            samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+
+            UINT samplerDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+
+            CD3DX12_CPU_DESCRIPTOR_HANDLE samplerDescriptorHandle{ mSamplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart()};
+            mD3DDevice->CreateSampler(&samplerDesc, samplerDescriptorHandle);
+
+
+            samplerDesc.Filter = D3D12_FILTER::D3D12_FILTER_MINIMUM_MIN_MAG_MIP_POINT;
+            samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+            samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+            samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+            samplerDesc.BorderColor[0] = 1.0f;
+            samplerDesc.BorderColor[1] = 0.0f;
+            samplerDesc.BorderColor[2] = 0.0f;
+            samplerDesc.BorderColor[3] = 0.0f;
+
+            samplerDescriptorHandle.Offset(samplerDescriptorSize);
+            mD3DDevice->CreateSampler(&samplerDesc, samplerDescriptorHandle);
+
+
+            samplerDesc.Filter = D3D12_FILTER::D3D12_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR;
+            samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
+            samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
+            samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
+            samplerDesc.BorderColor[0] = 0.0f;
+            samplerDesc.BorderColor[1] = 1.0f;
+            samplerDesc.BorderColor[2] = 0.0f;
+            samplerDesc.BorderColor[3] = 0.0f;
+
+            samplerDescriptorHandle.Offset(samplerDescriptorSize);
+            mD3DDevice->CreateSampler(&samplerDesc, samplerDescriptorHandle);
+
+
+            samplerDesc.Filter = D3D12_FILTER::D3D12_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT;
+            samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+            samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+            samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+            samplerDesc.BorderColor[0] = 0.0f;
+            samplerDesc.BorderColor[1] = 0.0f;
+            samplerDesc.BorderColor[2] = 1.0f;
+            samplerDesc.BorderColor[3] = 0.0f;
+
+            samplerDescriptorHandle.Offset(samplerDescriptorSize);
+            mD3DDevice->CreateSampler(&samplerDesc, samplerDescriptorHandle);
+
+            samplerDesc.Filter = D3D12_FILTER::D3D12_FILTER_MAXIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT;
+            samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
+            samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
+            samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
+            samplerDesc.BorderColor[0] = 1.0f;
+            samplerDesc.BorderColor[1] = 1.0f;
+            samplerDesc.BorderColor[2] = 1.0f;
+            samplerDesc.BorderColor[3] = 0.0f;
+
+            samplerDescriptorHandle.Offset(samplerDescriptorSize);
+            mD3DDevice->CreateSampler(&samplerDesc, samplerDescriptorHandle);
+        }
+
+        {
+            //Create texture heap
+            mTextureHeapSize = UPPER_ALIGNMENT(64 * 1024 * 1024, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+            mTextureHeapOffset = 0;
+
+            D3D12_HEAP_DESC textureHeapDesc{};
+            textureHeapDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+            textureHeapDesc.Flags = D3D12_HEAP_FLAG_DENY_RT_DS_TEXTURES | D3D12_HEAP_FLAG_DENY_BUFFERS;
+            textureHeapDesc.SizeInBytes = mTextureHeapSize;
+            textureHeapDesc.Properties.Type = D3D12_HEAP_TYPE_DEFAULT;
+            textureHeapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+            textureHeapDesc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+            mD3DDevice->CreateHeap(&textureHeapDesc, IID_PPV_ARGS(&mTextureHeap));
+
+            //Create upload heap
+            mUploadHeapSize = UPPER_ALIGNMENT(64 * 1024 * 1024, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+            mUploadHeapOffset = 0;
+
+            D3D12_HEAP_DESC uploadHeapDesc{};
+            uploadHeapDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+            uploadHeapDesc.Flags = D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
+            uploadHeapDesc.SizeInBytes = mUploadHeapSize;
+            uploadHeapDesc.Properties.Type = D3D12_HEAP_TYPE_UPLOAD;
+            uploadHeapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+            uploadHeapDesc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+            mD3DDevice->CreateHeap(&uploadHeapDesc, IID_PPV_ARGS(&mUploadHeap));
+        }
+
+        //Create Command Allocator
+        HR(mD3DDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator)));
 	}
 
 	void FApplicationDX12::LoadAssets()
@@ -198,34 +353,23 @@ namespace Dash
             signatureFeatureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
         }
 
-        CD3DX12_DESCRIPTOR_RANGE1 srvRanges[1];
-        srvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAGS::D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+        CD3DX12_DESCRIPTOR_RANGE1 shaderResourceRanges[3] = {};
+        shaderResourceRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAGS::D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+        shaderResourceRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAGS::D3D12_DESCRIPTOR_RANGE_FLAG_NONE);
+        shaderResourceRanges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
 
-        CD3DX12_ROOT_PARAMETER1 srvParameter[1];
-        srvParameter[0].InitAsDescriptorTable(1, &srvRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
-
-        D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
-        samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-        samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-        samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-        samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-        samplerDesc.MipLODBias = 0;
-        samplerDesc.MaxAnisotropy = 0;
-        samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-        samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-        samplerDesc.MinLOD = 0.0f;
-        samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-        samplerDesc.ShaderRegister = 0;
-        samplerDesc.RegisterSpace = 0;
-        samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+        CD3DX12_ROOT_PARAMETER1 shaderResourceParameter[3] = {};
+        shaderResourceParameter[0].InitAsDescriptorTable(1, &shaderResourceRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+        shaderResourceParameter[1].InitAsDescriptorTable(1, &shaderResourceRanges[1], D3D12_SHADER_VISIBILITY_PIXEL);
+        shaderResourceParameter[2].InitAsDescriptorTable(1, &shaderResourceRanges[2], D3D12_SHADER_VISIBILITY_ALL);
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init_1_1(_countof(srvParameter), srvParameter, 1, &samplerDesc, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        rootSignatureDesc.Init_1_1(_countof(shaderResourceParameter), shaderResourceParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
         Microsoft::WRL::ComPtr<ID3DBlob> blob;
         Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
-        ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, signatureFeatureData.HighestVersion, &blob, &errorBlob));
-        ThrowIfFailed(mD3DDevice->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
+        HR(D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, signatureFeatureData.HighestVersion, &blob, &errorBlob));
+        HR(mD3DDevice->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
 
         {
             Microsoft::WRL::ComPtr<ID3DBlob> vertexShader;
@@ -237,8 +381,8 @@ namespace Dash
             shaderCompileFlag |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif // _DEBUG
 
-            ThrowIfFailed(D3DCompileFromFile(L"shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", shaderCompileFlag, 0, &vertexShader, nullptr));
-            ThrowIfFailed(D3DCompileFromFile(L"shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", shaderCompileFlag, 0, &pixelShader, nullptr));
+            HR(D3DCompileFromFile(L"shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", shaderCompileFlag, 0, &vertexShader, nullptr));
+            HR(D3DCompileFromFile(L"shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", shaderCompileFlag, 0, &pixelShader, nullptr));
 
             D3D12_INPUT_ELEMENT_DESC inputElements[] =
             {
@@ -260,89 +404,75 @@ namespace Dash
             pipelineStateDesc.NumRenderTargets = 1;
             pipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
             pipelineStateDesc.SampleDesc.Count = 1;
-            ThrowIfFailed(mD3DDevice->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&mPipelineState)));
+            HR(mD3DDevice->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&mPipelineState)));
         }
 
-        ThrowIfFailed(mD3DDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(), mPipelineState.Get(), IID_PPV_ARGS(&mCommandList)));
-
-        //Create Vertex Buffer
-        {
-            struct Vertex
-            {
-                Dash::FVector3f Pos;
-                Dash::FVector2f Color;
-            };
-
-            Vertex triangle[] =
-            {
-                { Dash::FVector3f{ -0.5f,  -0.5f , 0.0f }, Dash::FVector2f{ 0.0f, 1.0f } },
-                { Dash::FVector3f{ -0.5f,   0.5f , 0.0f }, Dash::FVector2f{ 0.0f, 0.0f } },
-                { Dash::FVector3f{  0.5f,  -0.5f , 0.0f }, Dash::FVector2f{ 1.0f, 1.0f } },
-                { Dash::FVector3f{  0.5f,   0.5f , 0.0f }, Dash::FVector2f{ 1.0f, 0.0f } }
-            };
-
-            const UINT vertexBufferSize = sizeof(triangle);
-
-            ThrowIfFailed(mD3DDevice->CreateCommittedResource(
-                &CD3DX12_HEAP_PROPERTIES{ D3D12_HEAP_TYPE_UPLOAD },
-                D3D12_HEAP_FLAG_NONE,
-                &CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
-                D3D12_RESOURCE_STATE_GENERIC_READ,
-                nullptr,
-                IID_PPV_ARGS(&mVertexBuffer)));
-
-            UINT8* vertexDataBegin;
-            CD3DX12_RANGE readRange{ 0, 0 };
-            mVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&vertexDataBegin));
-            memcpy(vertexDataBegin, triangle, vertexBufferSize);
-            mVertexBuffer->Unmap(0, nullptr);
-
-            mVertexBufferView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
-            mVertexBufferView.SizeInBytes = vertexBufferSize;
-            mVertexBufferView.StrideInBytes = sizeof(Vertex);
-        };
-        
+        HR(mD3DDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(), mPipelineState.Get(), IID_PPV_ARGS(&mCommandList)));
 
         Microsoft::WRL::ComPtr<ID3D12Resource> uploadTextureBuffer;
 
         //Create Texture
         {
             
-            Dash::FTexture texture = LoadWICTexture(L"coma.png");
+            FTexture texture = LoadWICTexture(L"coma.png");
 
             D3D12_RESOURCE_DESC resourceDesc{};
             resourceDesc.MipLevels = 1;
             resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
             resourceDesc.Width = texture.GetWidth();
-            resourceDesc.Height = texture.GetHeight();;
+            resourceDesc.Height = (UINT)texture.GetHeight();
             resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
             resourceDesc.DepthOrArraySize = 1;
             resourceDesc.SampleDesc.Count = 1;
             resourceDesc.SampleDesc.Quality = 0;
             resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
-            ThrowIfFailed(mD3DDevice->CreateCommittedResource(
-                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT),
-                D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+            //Create texture resource
+
+            //HR(mD3DDevice->CreateCommittedResource(
+            //    &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT),
+            //    D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+            //    &resourceDesc,
+            //    D3D12_RESOURCE_STATE_COPY_DEST,
+            //    nullptr,
+            //    IID_PPV_ARGS(&mTextureResource)
+            //));
+
+            HR(mD3DDevice->CreatePlacedResource(
+                mTextureHeap.Get(),
+                mTextureHeapOffset,
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_COPY_DEST,
                 nullptr,
                 IID_PPV_ARGS(&mTextureResource)
             ));
 
-            UINT uploadBufferSize = GetRequiredIntermediateSize(mTextureResource.Get(), 0, 1);
+            D3D12_RESOURCE_ALLOCATION_INFO textureAllocationInfo = mD3DDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
 
-            //Microsoft::WRL::ComPtr<ID3D12Resource> uploadTextureBuffer;
+            mTextureHeapOffset += UPPER_ALIGNMENT(textureAllocationInfo.SizeInBytes, textureAllocationInfo.Alignment);
 
-            ThrowIfFailed(mD3DDevice->CreateCommittedResource(
-                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD),
-                D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+            //Create upload buffer
+            UINT64 uploadBufferSize = GetRequiredIntermediateSize(mTextureResource.Get(), 0, 1);
+
+            //HR(mD3DDevice->CreateCommittedResource(
+            //    &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD),
+            //    D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+            //    &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
+            //    D3D12_RESOURCE_STATE_GENERIC_READ,
+            //    nullptr,
+            //    IID_PPV_ARGS(&uploadTextureBuffer)
+            //));
+
+            HR(mD3DDevice->CreatePlacedResource(
+                mUploadHeap.Get(),
+                mUploadHeapOffset,
                 &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr,
                 IID_PPV_ARGS(&uploadTextureBuffer)
             ));
 
+            mUploadHeapOffset += UPPER_ALIGNMENT(uploadBufferSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
             
             UINT subresourceIndex = 0;
             UINT subresourceCount = 1;
@@ -364,10 +494,13 @@ namespace Dash
 
             BYTE* resourceData = nullptr;
 
-            ThrowIfFailed(uploadTextureBuffer->Map(0, nullptr, reinterpret_cast<void**>(&resourceData)));
+            HR(uploadTextureBuffer->Map(0, nullptr, reinterpret_cast<void**>(&resourceData)));
 
             size_t textureRowPitch = texture.GetRowPitch();
             uint8_t* textureData = texture.GetRawData();
+
+            ASSERT(footprint.Footprint.RowPitch == textureRowPitch);
+            ASSERT(numRows == texture.GetHeight());
 
             BYTE* resourceCopyStart = resourceData + footprint.Offset;
             for (size_t rowIdx = 0; rowIdx < numRows; rowIdx++)
@@ -384,53 +517,6 @@ namespace Dash
 
             mCommandList->CopyTextureRegion(&copyDst, 0, 0, 0, &copySrc, nullptr);
 
-            
-
-            /*
-            // Copy data to the intermediate upload heap and then schedule a copy 
-            // from the upload heap to the Texture2D.
-
-            D3D12_RESOURCE_DESC resourceDesc{};
-            resourceDesc.MipLevels = 1;
-            resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            resourceDesc.Width = TextureWidth;
-            resourceDesc.Height = TextureHeight;
-            resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-            resourceDesc.DepthOrArraySize = 1;
-            resourceDesc.SampleDesc.Count = 1;
-            resourceDesc.SampleDesc.Quality = 0;
-            resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-
-            ThrowIfFailed(mD3DDevice->CreateCommittedResource(
-                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT),
-                D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
-                &resourceDesc,
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                nullptr,
-                IID_PPV_ARGS(&mTextureResource)
-            ));
-
-            UINT uploadBufferSize = GetRequiredIntermediateSize(mTextureResource.Get(), 0, 1);
-
-            ThrowIfFailed(mD3DDevice->CreateCommittedResource(
-                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD),
-                D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
-                &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
-                D3D12_RESOURCE_STATE_GENERIC_READ,
-                nullptr,
-                IID_PPV_ARGS(&uploadTextureBuffer)
-            ));
-
-
-            std::vector<UINT8> tempTexture = GenerateTextureData();
-
-            D3D12_SUBRESOURCE_DATA textureData = {};
-            textureData.pData = &tempTexture[0];
-            textureData.RowPitch = TextureWidth * TexturePixelSize;
-            textureData.SlicePitch = textureData.RowPitch * TextureHeight;
-
-            UpdateSubresources(mCommandList.Get(), mTextureResource.Get(), uploadTextureBuffer.Get(), 0, 0, 1, &textureData);
-            */
             mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(mTextureResource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
             //Create shader resource view
@@ -440,21 +526,99 @@ namespace Dash
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
             srvDesc.Texture2D.MipLevels = 1;
 
-            mD3DDevice->CreateShaderResourceView(mTextureResource.Get(), &srvDesc, mSRVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+            mD3DDevice->CreateShaderResourceView(mTextureResource.Get(), &srvDesc, mSRVCBVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
         }
 
-        ThrowIfFailed(mCommandList->Close());
+        //Create Vertex Buffer
+        {
+            struct Vertex
+            {
+                Dash::FVector3f Pos;
+                Dash::FVector2f Color;
+            };
+
+            Vertex triangle[] =
+            {
+                { Dash::FVector3f{ -0.5f,  -0.5f , 0.0f }, Dash::FVector2f{ 0.0f, 2.0f } },
+                { Dash::FVector3f{ -0.5f,   0.5f , 0.0f }, Dash::FVector2f{ 0.0f, 0.0f } },
+                { Dash::FVector3f{  0.5f,  -0.5f , 0.0f }, Dash::FVector2f{ 2.0f, 2.0f } },
+                { Dash::FVector3f{  0.5f,   0.5f , 0.0f }, Dash::FVector2f{ 2.0f, 0.0f } }
+            };
+
+            const UINT vertexBufferSize = sizeof(triangle);
+
+            //HR(mD3DDevice->CreateCommittedResource(
+            //    &CD3DX12_HEAP_PROPERTIES{ D3D12_HEAP_TYPE_UPLOAD },
+            //    D3D12_HEAP_FLAG_NONE,
+            //    &CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
+            //    D3D12_RESOURCE_STATE_GENERIC_READ,
+            //    nullptr,
+            //    IID_PPV_ARGS(&mVertexBuffer)));
+
+            HR(mD3DDevice->CreatePlacedResource(
+                mUploadHeap.Get(),
+                mUploadHeapOffset,
+                & CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
+                D3D12_RESOURCE_STATE_GENERIC_READ,
+                nullptr,
+                IID_PPV_ARGS(&mVertexBuffer)));
+
+            mUploadHeapOffset += UPPER_ALIGNMENT(vertexBufferSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+
+            UINT8* vertexDataBegin;
+            CD3DX12_RANGE readRange{ 0, 0 };
+            mVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&vertexDataBegin));
+            memcpy(vertexDataBegin, triangle, vertexBufferSize);
+            mVertexBuffer->Unmap(0, nullptr);
+
+            mVertexBufferView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
+            mVertexBufferView.SizeInBytes = vertexBufferSize;
+            mVertexBufferView.StrideInBytes = sizeof(Vertex);
+        };
+
+        //Create constant buffer
+        {
+            UINT mConstantBufferSize = UPPER_ALIGNMENT(sizeof(FFrameConstantBuffer), 256);
+
+            HR(mD3DDevice->CreatePlacedResource(
+                mUploadHeap.Get(),
+                mUploadHeapOffset,
+                &CD3DX12_RESOURCE_DESC::Buffer(mConstantBufferSize),
+                D3D12_RESOURCE_STATE_GENERIC_READ,
+                nullptr,
+                IID_PPV_ARGS(&mConstantBuffer)));
+
+            mUploadHeapOffset += UPPER_ALIGNMENT(mConstantBufferSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+
+            D3D12_CONSTANT_BUFFER_VIEW_DESC constantBufferViewDesc;
+            constantBufferViewDesc.SizeInBytes = mConstantBufferSize;
+            constantBufferViewDesc.BufferLocation = mConstantBuffer->GetGPUVirtualAddress();
+
+            CD3DX12_CPU_DESCRIPTOR_HANDLE constantBufferHandle{mSRVCBVDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), 1, 
+                mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)};
+            mD3DDevice->CreateConstantBufferView(&constantBufferViewDesc, constantBufferHandle);
+
+            //mConstantBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mConstantBufferData));
+            //memcpy(mConstantBufferData, &sFrameConstantBuffer, mConstantBufferSize);
+
+            mConstantBuffer->Map(0, nullptr, reinterpret_cast<void**>(&sFrameConstantBuffer));
+
+            sFrameConstantBuffer->Time = 0.0f;
+            sFrameConstantBuffer->Speed = FVector2f{1.0f, 0.0f};
+        }
+
+        HR(mCommandList->Close());
         ID3D12CommandList* commands[] = { mCommandList.Get() };
         mD3DCommandQueue->ExecuteCommandLists(_countof(commands), commands);
 
-        ThrowIfFailed(mD3DDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
+        HR(mD3DDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
         mFenceValue = 1;
 
         mFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
         if (mFenceEvent == nullptr)
         {
-            ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+            HR(HRESULT_FROM_WIN32(GetLastError()));
         }
 
         WaitForPreviousFrame();
@@ -519,41 +683,5 @@ namespace Dash
         }
 
         *ppAdapter = adapter.Detach();
-    }
-
-    std::vector<UINT8> FApplicationDX12::GenerateTextureData()
-    {
-        const UINT rowPitch = TextureWidth * TexturePixelSize;
-        const UINT cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.
-        const UINT cellHeight = TextureWidth >> 3;    // The height of a cell in the checkerboard texture.
-        const UINT textureSize = rowPitch * TextureHeight;
-
-        std::vector<UINT8> data(textureSize);
-        UINT8* pData = &data[0];
-
-        for (UINT n = 0; n < textureSize; n += TexturePixelSize)
-        {
-            UINT x = n % rowPitch;
-            UINT y = n / rowPitch;
-            UINT i = x / cellPitch;
-            UINT j = y / cellHeight;
-
-            if (i % 2 == j % 2)
-            {
-                pData[n] = 0x00;        // R
-                pData[n + 1] = 0x00;    // G
-                pData[n + 2] = 0x00;    // B
-                pData[n + 3] = 0xff;    // A
-            }
-            else
-            {
-                pData[n] = 0xff;        // R
-                pData[n + 1] = 0xff;    // G
-                pData[n + 2] = 0xff;    // B
-                pData[n + 3] = 0xff;    // A
-            }
-        }
-
-        return data;
     }
 }

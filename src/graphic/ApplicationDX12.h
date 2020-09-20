@@ -51,8 +51,6 @@ namespace Dash
             return 0;
         }
 
-        std::vector<UINT8> GenerateTextureData();
-
     public:
         static const UINT BackBufferFrameCount = 2;
 
@@ -75,11 +73,23 @@ namespace Dash
         D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
 
         Microsoft::WRL::ComPtr<ID3D12Resource> mTextureResource;
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSRVDescriptorHeap;
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSRVCBVDescriptorHeap;
 
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
         Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
+
+        Microsoft::WRL::ComPtr<ID3D12Heap> mTextureHeap;
+        UINT mTextureHeapSize;
+        UINT mTextureHeapOffset;
+
+        Microsoft::WRL::ComPtr<ID3D12Heap> mUploadHeap;
+        UINT mUploadHeapSize;
+        UINT mUploadHeapOffset;
+
+        Microsoft::WRL::ComPtr<ID3D12Resource> mConstantBuffer;
+        UINT8* mConstantBufferData;
+        UINT mConstantBufferSize;
 
         UINT mBackBufferIndex;
         UINT mRTVDescriptorSize;
@@ -89,6 +99,10 @@ namespace Dash
 
         D3D12_VIEWPORT mViewport;
         RECT mScissorRect;
+
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSamplerDescriptorHeap;
+        const UINT mMaxSamplerCount = 5;
+        int mCurrentSamplerIndex = 0;
 	};
 
 }

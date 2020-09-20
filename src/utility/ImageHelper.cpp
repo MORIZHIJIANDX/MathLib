@@ -528,7 +528,7 @@ namespace Dash
 
 		// Initialize WIC
 		Microsoft::WRL::ComPtr<IWICBitmapDecoder> decoder;
-		ThrowIfFailed(pWIC->CreateDecoderFromFilename(fileName.c_str(),
+		HR(pWIC->CreateDecoderFromFilename(fileName.c_str(),
 			nullptr,
 			GENERIC_READ,
 			WICDecodeMetadataCacheOnDemand,
@@ -536,10 +536,10 @@ namespace Dash
 
 
 		Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;
-		ThrowIfFailed(decoder->GetFrame(0, frame.GetAddressOf()));
+		HR(decoder->GetFrame(0, frame.GetAddressOf()));
 
 		UINT width, height;
-		ThrowIfFailed(frame->GetSize(&width, &height));
+		HR(frame->GetSize(&width, &height));
 
 		assert(width > 0 && height > 0);
 
@@ -575,7 +575,7 @@ namespace Dash
 
 		// Determine format
 		WICPixelFormatGUID pixelFormat;
-		ThrowIfFailed(frame->GetPixelFormat(&pixelFormat));
+		HR(frame->GetPixelFormat(&pixelFormat));
 
 		WICPixelFormatGUID convertGUID;
 		memcpy_s(&convertGUID, sizeof(WICPixelFormatGUID), &pixelFormat, sizeof(GUID));
@@ -720,7 +720,7 @@ namespace Dash
 			&& theight == height)
 		{
 			// No format conversion or resize needed
-			ThrowIfFailed(frame->CopyPixels(nullptr, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), texture.GetRawData()));
+			HR(frame->CopyPixels(nullptr, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), texture.GetRawData()));
 		}
 		else if (twidth != width || theight != height)
 		{
@@ -730,33 +730,33 @@ namespace Dash
 				ASSERT_FAIL("Get WIC Factory Failed!");
 
 			Microsoft::WRL::ComPtr<IWICBitmapScaler> scaler;
-			ThrowIfFailed(pWIC->CreateBitmapScaler(scaler.GetAddressOf()));
+			HR(pWIC->CreateBitmapScaler(scaler.GetAddressOf()));
 
-			ThrowIfFailed(scaler->Initialize(frame.Get(), twidth, theight, WICBitmapInterpolationModeFant));
+			HR(scaler->Initialize(frame.Get(), twidth, theight, WICBitmapInterpolationModeFant));
 
 			WICPixelFormatGUID pfScaler;
-			ThrowIfFailed(scaler->GetPixelFormat(&pfScaler));
+			HR(scaler->GetPixelFormat(&pfScaler));
 
 			if (memcmp(&convertGUID, &pfScaler, sizeof(GUID)) == 0)
 			{
 				// No format conversion needed
-				ThrowIfFailed(scaler->CopyPixels(nullptr, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), texture.GetRawData()));
+				HR(scaler->CopyPixels(nullptr, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), texture.GetRawData()));
 			}
 			else
 			{
 				Microsoft::WRL::ComPtr<IWICFormatConverter> FC;
-				ThrowIfFailed(pWIC->CreateFormatConverter(FC.GetAddressOf()));
+				HR(pWIC->CreateFormatConverter(FC.GetAddressOf()));
 
 				BOOL canConvert = FALSE;
-				ThrowIfFailed(FC->CanConvert(pfScaler, convertGUID, &canConvert));
+				HR(FC->CanConvert(pfScaler, convertGUID, &canConvert));
 				if (!canConvert)
 				{
 					ASSERT_FAIL("Can not convert format!");
 				}
 
-				ThrowIfFailed(FC->Initialize(scaler.Get(), convertGUID, WICBitmapDitherTypeErrorDiffusion, nullptr, 0, WICBitmapPaletteTypeMedianCut));
+				HR(FC->Initialize(scaler.Get(), convertGUID, WICBitmapDitherTypeErrorDiffusion, nullptr, 0, WICBitmapPaletteTypeMedianCut));
 
-				ThrowIfFailed(FC->CopyPixels(nullptr, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), texture.GetRawData()));
+				HR(FC->CopyPixels(nullptr, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), texture.GetRawData()));
 			}
 		}
 		else
@@ -767,18 +767,18 @@ namespace Dash
 				ASSERT_FAIL("Get WIC Factory Failed!");
 
 			Microsoft::WRL::ComPtr<IWICFormatConverter> FC;
-			ThrowIfFailed(pWIC->CreateFormatConverter(FC.GetAddressOf()));
+			HR(pWIC->CreateFormatConverter(FC.GetAddressOf()));
 
 			BOOL canConvert = FALSE;
-			ThrowIfFailed(FC->CanConvert(pixelFormat, convertGUID, &canConvert));
+			HR(FC->CanConvert(pixelFormat, convertGUID, &canConvert));
 			if (!canConvert)
 			{
 				ASSERT_FAIL("Can not convert format!");
 			}
 
-			ThrowIfFailed(FC->Initialize(frame.Get(), convertGUID, WICBitmapDitherTypeErrorDiffusion, nullptr, 0, WICBitmapPaletteTypeMedianCut));
+			HR(FC->Initialize(frame.Get(), convertGUID, WICBitmapDitherTypeErrorDiffusion, nullptr, 0, WICBitmapPaletteTypeMedianCut));
 
-			ThrowIfFailed(FC->CopyPixels(nullptr, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), texture.GetRawData()));
+			HR(FC->CopyPixels(nullptr, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), texture.GetRawData()));
 		}
 
 		return texture;
@@ -862,20 +862,20 @@ namespace Dash
 			ASSERT_FAIL("Get WIC Factory Failed!");
 
 		Microsoft::WRL::ComPtr<IWICStream> stream;
-		ThrowIfFailed(pWIC->CreateStream(stream.GetAddressOf()));
+		HR(pWIC->CreateStream(stream.GetAddressOf()));
 
-		ThrowIfFailed(stream->InitializeFromFilename(fileName.c_str(), GENERIC_WRITE));
+		HR(stream->InitializeFromFilename(fileName.c_str(), GENERIC_WRITE));
 
 		auto_delete_file_wic delonfail(stream, fileName.c_str());
 
 		Microsoft::WRL::ComPtr<IWICBitmapEncoder> encoder;
-		ThrowIfFailed(pWIC->CreateEncoder(guidContainerFormat, nullptr, encoder.GetAddressOf()));
+		HR(pWIC->CreateEncoder(guidContainerFormat, nullptr, encoder.GetAddressOf()));
 
-		ThrowIfFailed(encoder->Initialize(stream.Get(), WICBitmapEncoderNoCache));
+		HR(encoder->Initialize(stream.Get(), WICBitmapEncoderNoCache));
 
 		Microsoft::WRL::ComPtr<IWICBitmapFrameEncode> frame;
 		Microsoft::WRL::ComPtr<IPropertyBag2> props;
-		ThrowIfFailed(encoder->CreateNewFrame(frame.GetAddressOf(), props.GetAddressOf()));
+		HR(encoder->CreateNewFrame(frame.GetAddressOf(), props.GetAddressOf()));
 
 		if (targetFormat && memcmp(&guidContainerFormat, &GUID_ContainerFormatBmp, sizeof(WICPixelFormatGUID)) == 0)
 		{
@@ -889,11 +889,11 @@ namespace Dash
 			(void)props->Write(1, &option, &varValue);
 		}
 
-		ThrowIfFailed(frame->Initialize(props.Get()));
+		HR(frame->Initialize(props.Get()));
 
-		ThrowIfFailed(frame->SetSize(static_cast<UINT>(textureWidth), static_cast<UINT>(textureHeight)));
+		HR(frame->SetSize(static_cast<UINT>(textureWidth), static_cast<UINT>(textureHeight)));
 
-		ThrowIfFailed(frame->SetResolution(72, 72));
+		HR(frame->SetResolution(72, 72));
 
 		// Pick a target format
 		WICPixelFormatGUID targetGuid = {};
@@ -929,7 +929,7 @@ namespace Dash
 			}
 		}
 
-		ThrowIfFailed(frame->SetPixelFormat(&targetGuid));
+		HR(frame->SetPixelFormat(&targetGuid));
 
 		if (targetFormat && memcmp(targetFormat, &targetGuid, sizeof(WICPixelFormatGUID)) != 0)
 		{
@@ -1022,35 +1022,35 @@ namespace Dash
 		{
 			// Conversion required to write
 			Microsoft::WRL::ComPtr<IWICBitmap> source;
-			ThrowIfFailed(pWIC->CreateBitmapFromMemory(static_cast<UINT>(textureWidth), static_cast<UINT>(textureHeight),
+			HR(pWIC->CreateBitmapFromMemory(static_cast<UINT>(textureWidth), static_cast<UINT>(textureHeight),
 				pfGuid,
 				static_cast<UINT>(dstRowPitch), static_cast<UINT>(imageSize),
 				const_cast<BYTE*>(texture.GetRawData()), source.GetAddressOf()));
 
 			Microsoft::WRL::ComPtr<IWICFormatConverter> FC;
-			ThrowIfFailed(pWIC->CreateFormatConverter(FC.GetAddressOf()));
+			HR(pWIC->CreateFormatConverter(FC.GetAddressOf()));
 
 			BOOL canConvert = FALSE;
-			ThrowIfFailed(FC->CanConvert(pfGuid, targetGuid, &canConvert));
+			HR(FC->CanConvert(pfGuid, targetGuid, &canConvert));
 			if (!canConvert)
 			{
 				ASSERT_FAIL("Can not convert format!");
 			}
 
-			ThrowIfFailed(FC->Initialize(source.Get(), targetGuid, WICBitmapDitherTypeNone, nullptr, 0, WICBitmapPaletteTypeMedianCut));
+			HR(FC->Initialize(source.Get(), targetGuid, WICBitmapDitherTypeNone, nullptr, 0, WICBitmapPaletteTypeMedianCut));
 
 			WICRect rect = { 0, 0, static_cast<INT>(textureWidth), static_cast<INT>(textureHeight) };
-			ThrowIfFailed(frame->WriteSource(FC.Get(), &rect));
+			HR(frame->WriteSource(FC.Get(), &rect));
 		}
 		else
 		{
 			// No conversion required
-			ThrowIfFailed(frame->WritePixels(static_cast<UINT>(textureHeight), static_cast<UINT>(dstRowPitch), static_cast<UINT>(imageSize), const_cast<BYTE*>(texture.GetRawData())));
+			HR(frame->WritePixels(static_cast<UINT>(textureHeight), static_cast<UINT>(dstRowPitch), static_cast<UINT>(imageSize), const_cast<BYTE*>(texture.GetRawData())));
 		}
 
-		ThrowIfFailed(frame->Commit());
+		HR(frame->Commit());
 
-		ThrowIfFailed(encoder->Commit());
+		HR(encoder->Commit());
 
 		delonfail.clear();
 	}

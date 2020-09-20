@@ -23,9 +23,6 @@
 
 #include "src/graphic/ApplicationDX12.h"
 
-#include "src/graphic/App.h"
-#include "src/graphic/Sample.h"
-
 #include "src/utility/Image.h"
 
 #include "src/utility/ImageHelper.h"
