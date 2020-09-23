@@ -67,12 +67,12 @@ namespace Dash
 		if (mMouseWheelAccumulate >= WHEEL_DELTA)
 		{
 			mMouseWheelAccumulate -= WHEEL_DELTA;
-			OnMouseWheelUp();
+			OnMouseWheelUp(e);
 		}
 		else if (mMouseWheelAccumulate <= -WHEEL_DELTA)
 		{
 			mMouseWheelAccumulate += WHEEL_DELTA;
-			OnMouseWheelDown();
+			OnMouseWheelDown(e);
 		}
 	}
 
@@ -86,13 +86,17 @@ namespace Dash
 		mIsInWindow = true;
 	}
 
-	void FMouse::OnMouseWheelDown()
+	void FMouse::OnMouseWheelDown(FMouseWheelEventArgs& e)
 	{
+		MouseWheelDown(e);
+
 		LOG_INFO << "FMouse Wheel Down";
 	}
 
-	void FMouse::OnMouseWheelUp()
+	void FMouse::OnMouseWheelUp(FMouseWheelEventArgs& e)
 	{
+		MouseWheelUp(e);
+
 		LOG_INFO << "FMouse Wheel Up";
 	}
 }

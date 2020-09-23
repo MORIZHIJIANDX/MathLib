@@ -21,6 +21,8 @@ namespace Dash
 		FMouseButtonEvent MouseButtonPressed;
 		FMouseButtonEvent MouseButtonReleased;
 		FMouseMotionEvent MouseMoved;
+		FMouseWheelEvent MouseWheelUp;
+		FMouseWheelEvent MouseWheelDown;
 		
 	private:
 		FMouse() : mMouseWheelAccumulate(0), mIsInWindow(false) {};
@@ -35,8 +37,8 @@ namespace Dash
 		void OnMouseLeave(FMouseMotionEventArgs& e);
 		void OnMouseEnter(FMouseMotionEventArgs& e);
 
-		void OnMouseWheelDown();
-		void OnMouseWheelUp();
+		void OnMouseWheelDown(FMouseWheelEventArgs& e);
+		void OnMouseWheelUp(FMouseWheelEventArgs& e);
 
 	private:
 		bool mIsInWindow;

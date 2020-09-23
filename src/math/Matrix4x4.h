@@ -202,6 +202,9 @@ namespace Dash
 
 		template <typename Scalar>
 		TScalarMatrix<Scalar, 4, 4> Orthographic(Scalar left, Scalar right, Scalar bottom, Scalar top, Scalar zNear, Scalar zFar) noexcept;
+
+		template <typename Scalar>
+		TScalarMatrix<Scalar, 4, 4> OriginCenteredOrthographic(Scalar width, Scalar height, Scalar zNear, Scalar zFar) noexcept;
 	}
 
 
@@ -907,14 +910,29 @@ namespace Dash
 		template<typename Scalar>
 		FORCEINLINE TScalarMatrix<Scalar, 4, 4> Orthographic(Scalar left, Scalar right, Scalar bottom, Scalar top, Scalar zNear, Scalar zFar) noexcept
 		{
-			Scalar oneOverWidth = Scalar{ 1 } / right - left;
-			Scalar oneOverHeight = Scalar{ 1 } / top - bottom;
-			Scalar oneOverDepth = Scalar{ 1 } / zFar - zNear;
+			Scalar oneOverWidth = Scalar{ 1 } / (right - left);
+			Scalar oneOverHeight = Scalar{ 1 } / (top - bottom);
+			Scalar oneOverDepth = Scalar{ 1 } / (zFar - zNear);
 
-			return TScalarMatrix<Scalar, 4, 4>{ TScalarArray<Scalar, 4>{ 2 * oneOverWidth, Scalar{}, Scalar{}, -(left + right) * oneOverWidth },
-				TScalarArray<Scalar, 4>{ Scalar{}, 2 * oneOverHeight, Scalar{}, -(bottom + top) * oneOverHeight },
-				TScalarArray<Scalar, 4>{ Scalar{}, Scalar{}, oneOverDepth, -zNear * oneOverDepth },
-				TScalarArray<Scalar, 4>{ Scalar{}, Scalar{}, Scalar{}, Scalar{ 1 } }};
+			return	TScalarMatrix<Scalar, 4, 4>{	
+				TScalarArray<Scalar, 4>{ 2 * oneOverWidth,			Scalar{},						Scalar{}, Scalar{} },
+				TScalarArray<Scalar, 4>{ Scalar{},					2 * oneOverHeight,				Scalar{}, Scalar{} },
+				TScalarArray<Scalar, 4>{ Scalar{},					 Scalar{},						oneOverDepth, Scalar{} },
+				TScalarArray<Scalar, 4>{ -(left + right) * oneOverWidth, -(bottom + top) * oneOverHeight, -zNear * oneOverDepth, Scalar{ 1 } }
+			};
+		}
+
+		template<typename Scalar>
+		TScalarMatrix<Scalar, 4, 4> OriginCenteredOrthographic(Scalar width, Scalar height, Scalar zNear, Scalar zFar) noexcept
+		{
+			Scalar oneOverDepth = Scalar{ 1 } / (zFar - zNear);
+
+			return TScalarMatrix<Scalar, 4, 4>{
+				TScalarArray<Scalar, 4>{ Scalar{2} / width, Scalar{}, Scalar{}, Scalar{} },
+				TScalarArray<Scalar, 4>{ Scalar{} ,			Scalar{ 2 } /height, Scalar{}, Scalar{} },
+				TScalarArray<Scalar, 4>{ Scalar{},			Scalar{}, oneOverDepth, Scalar{} },
+					TScalarArray<Scalar, 4>{ Scalar{}, Scalar{}, -zNear * oneOverDepth, Scalar{1} },
+			};
 		}
 	}
 }

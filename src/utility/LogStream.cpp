@@ -99,7 +99,7 @@ namespace Dash
 		switch (level)
 		{
 		case ELogLevel::Info:
-			SetConsoleTextAttribute(hConOut, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			SetConsoleTextAttribute(hConOut, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
 			std::wcout << logInfo;
 			break;
 		case ELogLevel::Warning:

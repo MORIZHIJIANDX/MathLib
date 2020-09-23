@@ -56,6 +56,10 @@ namespace Dash
 		void AddYaw(Scalar angle);
 		void AddRoll(Scalar angle);
 
+		virtual void Zoom(Scalar factor = Scalar{1.0f}) = 0;
+		void ZoomIn() { Zoom(Scalar{ 0.9f }); }
+		void ZoomOut() { Zoom(Scalar{ 1.1f }); }
+
 	protected:
 
 		void MakeWorldMatrixDirty() const { mWorldMatrixDirty = true; }
@@ -90,21 +94,29 @@ namespace Dash
 	};
 
 
-	class OrthographicCamera : public FCamera
+	class FOrthographicCamera : public FCamera
 	{
 	public:
-		OrthographicCamera(Scalar minX, Scalar minY, Scalar maxX, Scalar maxY, Scalar nearZ, Scalar farZ, const FViewport& vp = FViewport{});
-		virtual ~OrthographicCamera();
+		FOrthographicCamera();
+		FOrthographicCamera(Scalar minX, Scalar minY, Scalar maxX, Scalar maxY, Scalar nearZ, Scalar farZ, const FViewport& vp = FViewport{});
+		virtual ~FOrthographicCamera();
 
 		Scalar GetMinX() const { return mXMin; }
 		Scalar GetMinY() const { return mYMin; }
 		Scalar GetMaxX() const { return mXMax; }
 		Scalar GetMaxY() const { return mYMax; }
 
+		Scalar GetAspectRatio() const { return (mXMax - mXMin) / (mYMax - mYMin); }
+
 		void SetMinX(Scalar minX);
 		void SetMinY(Scalar minY);
 		void SetMaxX(Scalar maxX);
 		void SetMaxY(Scalar maxY);
+
+		void SetCameraParams(Scalar minX, Scalar minY, Scalar maxX, Scalar maxY, Scalar nearZ, Scalar farZ);
+		void SetCameraParams(Scalar width, Scalar height, Scalar nearZ, Scalar farZ);
+
+		void Zoom(Scalar factor = Scalar{ 1.0f }) override;
 
 	protected:
 
@@ -116,11 +128,12 @@ namespace Dash
 		Scalar mYMax;
 	};
 
-	class PerspectiveCamera : public FCamera
+	class FPerspectiveCamera : public FCamera
 	{
 	public:
-		PerspectiveCamera(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ, const FViewport& vp = FViewport{});
-		virtual ~PerspectiveCamera();
+		FPerspectiveCamera();
+		FPerspectiveCamera(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ, const FViewport& vp = FViewport{});
+		virtual ~FPerspectiveCamera();
 
 		Scalar GetFieldOfView() const { return mFov; }
 		Scalar GetAspectRatio() const { return mAspect; }
@@ -129,6 +142,10 @@ namespace Dash
 		void SetAspectRatio(Scalar aspect);
 
 		FRay GenerateRay(Scalar u, Scalar v) const;
+
+		void SetCameraParams(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ);
+
+		void Zoom(Scalar factor = Scalar{ 1.0f }) override;
 
 	protected:
 

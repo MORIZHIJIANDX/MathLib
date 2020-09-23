@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Application.h"
+#include "../math/Transform.h"
+#include "Camera.h"
 
 #include <wrl.h>
 #include <shellapi.h>
@@ -51,6 +53,9 @@ namespace Dash
             return 0;
         }
 
+        void OnMouseWhellUp(FMouseWheelEventArgs&);
+        void OnMouseWhellDown(FMouseWheelEventArgs&);
+
     public:
         static const UINT BackBufferFrameCount = 2;
 
@@ -87,9 +92,16 @@ namespace Dash
         UINT mUploadHeapSize;
         UINT mUploadHeapOffset;
 
+        Microsoft::WRL::ComPtr<ID3D12Heap> mRTDSHeap;
+        UINT mRTDSHeapSize;
+        UINT mRTDSHeapOffset;
+
         Microsoft::WRL::ComPtr<ID3D12Resource> mConstantBuffer;
         UINT8* mConstantBufferData;
         UINT mConstantBufferSize;
+
+        Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilBuffer;
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDepthStencilDescriptorHeap;
 
         UINT mBackBufferIndex;
         UINT mRTVDescriptorSize;
@@ -103,6 +115,13 @@ namespace Dash
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSamplerDescriptorHeap;
         const UINT mMaxSamplerCount = 5;
         int mCurrentSamplerIndex = 0;
+
+        FOrthographicCamera mCamera;
+
+        FTransform mObjectTransform;
+
+        FMouseWheelEventDelegate mMouseWheelUpDelegate;
+        FMouseWheelEventDelegate mMouseWheelDownDelegate;
 	};
 
 }

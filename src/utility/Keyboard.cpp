@@ -1,5 +1,7 @@
 #include "Keyboard.h"
 
+#include "LogManager.h"
+
 namespace Dash
 {
 	FKeyboard& FKeyboard::Get()
@@ -37,6 +39,8 @@ namespace Dash
 		}
 
 		KeyPressed(e);
+
+		LOG_INFO << "Key Pressed";
 	}
 
 	void FKeyboard::OnKeyReleased(FKeyEventArgs& e)
@@ -44,6 +48,8 @@ namespace Dash
 		mKeyStates[static_cast<unsigned int>(e.mKey)] = false;
 
 		KeyReleased(e);
+
+		LOG_INFO << "Key Released";
 	}
 
 

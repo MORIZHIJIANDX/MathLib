@@ -160,7 +160,7 @@ Dash::FVector3f GetRayColor(const Dash::FRay& r, std::shared_ptr<Dash::Shape> sh
 //
 //	Dash::FViewport vp{0.0f, 0.0f, imageWidth, imageHeight, 0.0f, 1.0f};
 //
-//	Dash::PerspectiveCamera camera{ 90.0f, aspectRatio, 1.0f, 1000.0f, vp };
+//	Dash::FPerspectiveCamera camera{ 90.0f, aspectRatio, 1.0f, 1000.0f, vp };
 //
 //	camera.SetLookAt(Dash::FVector3f{0.0f, 0.0f, 0.0f}, Dash::FVector3f{ 0.0f, 0.0f, 1.0f }, Dash::FVector3f{ 0.0f, 1.0f, 0.0f });
 //

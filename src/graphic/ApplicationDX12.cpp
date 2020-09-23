@@ -7,12 +7,16 @@
 #include <DirectXMath.h>
 #include <algorithm>
 #include "../utility/Keyboard.h"
+#include "../utility/Mouse.h"
 
 
 namespace Dash
 {
     struct __declspec(align(256)) FFrameConstantBuffer
     {
+        //FMatrix4x4 WorldMatrix;
+        FMatrix4x4 ViewMatrix;
+        FMatrix4x4 ProjectionMatrix;
         float Time;
         FVector2f Speed;
     };
@@ -37,10 +41,25 @@ namespace Dash
             mScissorRect.bottom = (UINT)mWindow.GetWindowHeight();
         }
 
+        {
+            float aspect = windowWidth / (float)windowHeight;
+            float projectionWindowHeight = 1.0f;
+            float projectionWindowWidth = aspect;
+
+            mCamera.SetCameraParams(projectionWindowWidth, projectionWindowHeight, 1.0f, 100.0f);
+            mCamera.SetPosition(FVector3f{0.0f, 0.0f, -5.0f});
+
+            mObjectTransform = FTransform{ FIdentity{} };
+        }
+
+        mMouseWheelUpDelegate = FMouseWheelEventDelegate::Create<FApplicationDX12, &FApplicationDX12::OnMouseWhellUp>(this);
+        mMouseWheelDownDelegate = FMouseWheelEventDelegate::Create<FApplicationDX12, &FApplicationDX12::OnMouseWhellDown>(this);
+
+        FMouse::Get().MouseWheelUp += mMouseWheelUpDelegate;
+        FMouse::Get().MouseWheelDown += mMouseWheelDownDelegate;
+
         LoadPipeline();
         LoadAssets();
-
-        //sFrameConstantBuffer.time = 0.0f;
 	}
 
 	FApplicationDX12::~FApplicationDX12()
@@ -50,6 +69,9 @@ namespace Dash
         mConstantBuffer->Unmap(0, nullptr);
 
         CloseHandle(mFenceEvent);
+
+        FMouse::Get().MouseWheelUp -= mMouseWheelUpDelegate;
+        FMouse::Get().MouseWheelDown -= mMouseWheelDownDelegate;
 	}
 
 	void FApplicationDX12::OnRender(const FRenderEventArgs& e)
@@ -64,6 +86,16 @@ namespace Dash
         WaitForPreviousFrame();
 	}
 
+    void FApplicationDX12::OnMouseWhellUp(FMouseWheelEventArgs&)
+    {
+        mCamera.ZoomIn();
+    }
+
+    void FApplicationDX12::OnMouseWhellDown(FMouseWheelEventArgs&)
+    {
+        mCamera.ZoomOut();
+    }
+
 	void FApplicationDX12::OnUpdate(const FUpdateEventArgs& e)
 	{
         if (FKeyboard::Get().IsKeyPressed(EKeyCode::U))
@@ -71,21 +103,43 @@ namespace Dash
             mCurrentSamplerIndex = (mCurrentSamplerIndex + 1) % 5;
         }
 
-        if (FKeyboard::Get().IsKeyPressed(EKeyCode::K))
+        const float moveSpeed = 0.1f;
+
+        if (FKeyboard::Get().IsKeyPressed(EKeyCode::W))
         {
-            if (sFrameConstantBuffer)
-            {
-                sFrameConstantBuffer->Speed = sFrameConstantBuffer->Speed.x == 0.0f ? FVector2f{ 1.0f, 0.0f } : FVector2f{0.0f, 1.0f};
-            }
+            mCamera.TranslateUp(moveSpeed);
+        }
+
+        if (FKeyboard::Get().IsKeyPressed(EKeyCode::S))
+        {
+            mCamera.TranslateDown(moveSpeed);
+        }
+
+        if (FKeyboard::Get().IsKeyPressed(EKeyCode::A))
+        {
+            mCamera.TranslateLeft(moveSpeed);
+        }
+
+        if (FKeyboard::Get().IsKeyPressed(EKeyCode::D))
+        {
+            mCamera.TranslateRight(moveSpeed);
         }
 	}
 
 	void FApplicationDX12::PopulateCommandList(const FRenderEventArgs& e)
 	{
+        {
+            if (sFrameConstantBuffer)
+            {
+                sFrameConstantBuffer->Time = (float)e.mTotalTime;
+                sFrameConstantBuffer->ViewMatrix = mCamera.GetViewMatrix();
+                sFrameConstantBuffer->ProjectionMatrix = mCamera.GetProjectionMatrix();
+            }
+        }
+
+
         HR(mCommandAllocator->Reset());
         HR(mCommandList->Reset(mCommandAllocator.Get(), mPipelineState.Get()));
-
-        sFrameConstantBuffer->Time = e.mTotalTime;
 
         mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
         mCommandList->SetPipelineState(mPipelineState.Get());
@@ -112,12 +166,14 @@ namespace Dash
             D3D12_RESOURCE_STATE_PRESENT,
             D3D12_RESOURCE_STATE_RENDER_TARGET));
 
-        CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mRTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), mBackBufferIndex, mRTVDescriptorSize);
+        CD3DX12_CPU_DESCRIPTOR_HANDLE rtDescriptorHandle(mRTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), mBackBufferIndex, mRTVDescriptorSize);
+        CD3DX12_CPU_DESCRIPTOR_HANDLE dsDescriptorHandle(mDepthStencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
-        mCommandList->OMSetRenderTargets(1, &descriptorHandle, FALSE, nullptr);
+        mCommandList->OMSetRenderTargets(1, &rtDescriptorHandle, FALSE, &dsDescriptorHandle);
 
         Dash::FVector4f clearColor{ Dash::FMath::Sin((float)e.mTotalTime) * 0.5f + 0.5f, Dash::FMath::Cos((float)e.mTotalTime + 0.5f) * 0.5f + 0.5f, 0.5f, 1.0f };
-        mCommandList->ClearRenderTargetView(descriptorHandle, clearColor, 0, nullptr);
+        mCommandList->ClearRenderTargetView(rtDescriptorHandle, clearColor, 0, nullptr);
+        mCommandList->ClearDepthStencilView(dsDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
         mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
         mCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
@@ -195,6 +251,50 @@ namespace Dash
         mBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
 
         {
+            //Create texture heap
+            mTextureHeapSize = UPPER_ALIGNMENT(32 * 1024 * 1024, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+            mTextureHeapOffset = 0;
+
+            D3D12_HEAP_DESC textureHeapDesc{};
+            textureHeapDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+            textureHeapDesc.Flags = D3D12_HEAP_FLAG_DENY_RT_DS_TEXTURES | D3D12_HEAP_FLAG_DENY_BUFFERS;
+            textureHeapDesc.SizeInBytes = mTextureHeapSize;
+            textureHeapDesc.Properties.Type = D3D12_HEAP_TYPE_DEFAULT;
+            textureHeapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+            textureHeapDesc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+            mD3DDevice->CreateHeap(&textureHeapDesc, IID_PPV_ARGS(&mTextureHeap));
+
+            //Create render texture & depth stencil heap
+            mRTDSHeapSize = UPPER_ALIGNMENT(32 * 1024 * 1024, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+            mRTDSHeapOffset = 0;
+
+            D3D12_HEAP_DESC rtDsHeapDesc{};
+            rtDsHeapDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+            rtDsHeapDesc.Flags = D3D12_HEAP_FLAG_DENY_NON_RT_DS_TEXTURES | D3D12_HEAP_FLAG_DENY_BUFFERS;
+            rtDsHeapDesc.SizeInBytes = mRTDSHeapSize;
+            rtDsHeapDesc.Properties.Type = D3D12_HEAP_TYPE_DEFAULT;
+            rtDsHeapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+            rtDsHeapDesc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+            mD3DDevice->CreateHeap(&rtDsHeapDesc, IID_PPV_ARGS(&mRTDSHeap));
+
+            //Create upload heap
+            mUploadHeapSize = UPPER_ALIGNMENT(32 * 1024 * 1024, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+            mUploadHeapOffset = 0;
+
+            D3D12_HEAP_DESC uploadHeapDesc{};
+            uploadHeapDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+            uploadHeapDesc.Flags = D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
+            uploadHeapDesc.SizeInBytes = mUploadHeapSize;
+            uploadHeapDesc.Properties.Type = D3D12_HEAP_TYPE_UPLOAD;
+            uploadHeapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+            uploadHeapDesc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+            mD3DDevice->CreateHeap(&uploadHeapDesc, IID_PPV_ARGS(&mUploadHeap));
+        }
+
+        {
             //Create rtv descriptor heap
             D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
             rtvHeapDesc.NumDescriptors = BackBufferFrameCount;
@@ -202,6 +302,14 @@ namespace Dash
             rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
             HR(mD3DDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&mRTVDescriptorHeap)));
+
+            //Create dsv descriptor heap
+            D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
+            dsvHeapDesc.NumDescriptors = 1;
+            dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+            dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+            HR(mD3DDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&mDepthStencilDescriptorHeap)));
 
             //Create srv descriptor heap
             D3D12_DESCRIPTOR_HEAP_DESC srvCBVHeapDesc{};
@@ -309,34 +417,34 @@ namespace Dash
             mD3DDevice->CreateSampler(&samplerDesc, samplerDescriptorHandle);
         }
 
+        //Create depth stencil buffer
         {
-            //Create texture heap
-            mTextureHeapSize = UPPER_ALIGNMENT(64 * 1024 * 1024, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
-            mTextureHeapOffset = 0;
+            D3D12_RESOURCE_DESC depthStencilDesc{};
+            depthStencilDesc.MipLevels = 1;
+            depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+            depthStencilDesc.Width = mWindow.GetWindowWidth();
+            depthStencilDesc.Height = (UINT)mWindow.GetWindowHeight();
+            depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+            depthStencilDesc.DepthOrArraySize = 1;
+            depthStencilDesc.MipLevels = 0;
+            depthStencilDesc.SampleDesc.Count = 1;
+            depthStencilDesc.SampleDesc.Quality = 0;
+            depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;       
 
-            D3D12_HEAP_DESC textureHeapDesc{};
-            textureHeapDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-            textureHeapDesc.Flags = D3D12_HEAP_FLAG_DENY_RT_DS_TEXTURES | D3D12_HEAP_FLAG_DENY_BUFFERS;
-            textureHeapDesc.SizeInBytes = mTextureHeapSize;
-            textureHeapDesc.Properties.Type = D3D12_HEAP_TYPE_DEFAULT;
-            textureHeapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-            textureHeapDesc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+            HR(mD3DDevice->CreatePlacedResource(
+                mRTDSHeap.Get(),
+                mRTDSHeapOffset,
+                &depthStencilDesc,
+                D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                nullptr,
+                IID_PPV_ARGS(&mDepthStencilBuffer)
+            ));
 
-            mD3DDevice->CreateHeap(&textureHeapDesc, IID_PPV_ARGS(&mTextureHeap));
+            D3D12_RESOURCE_ALLOCATION_INFO textureAllocationInfo = mD3DDevice->GetResourceAllocationInfo(0, 1, &depthStencilDesc);
 
-            //Create upload heap
-            mUploadHeapSize = UPPER_ALIGNMENT(64 * 1024 * 1024, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
-            mUploadHeapOffset = 0;
-
-            D3D12_HEAP_DESC uploadHeapDesc{};
-            uploadHeapDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-            uploadHeapDesc.Flags = D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
-            uploadHeapDesc.SizeInBytes = mUploadHeapSize;
-            uploadHeapDesc.Properties.Type = D3D12_HEAP_TYPE_UPLOAD;
-            uploadHeapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-            uploadHeapDesc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-
-            mD3DDevice->CreateHeap(&uploadHeapDesc, IID_PPV_ARGS(&mUploadHeap));
+            mRTDSHeapOffset += UPPER_ALIGNMENT(textureAllocationInfo.SizeInBytes, textureAllocationInfo.Alignment);
+            
+            mD3DDevice->CreateDepthStencilView(mDepthStencilBuffer.Get(), nullptr, mDepthStencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
         }
 
         //Create Command Allocator
@@ -381,6 +489,8 @@ namespace Dash
             shaderCompileFlag |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif // _DEBUG
 
+            shaderCompileFlag |= D3DCOMPILE_PACK_MATRIX_ROW_MAJOR;
+
             HR(D3DCompileFromFile(L"shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", shaderCompileFlag, 0, &vertexShader, nullptr));
             HR(D3DCompileFromFile(L"shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", shaderCompileFlag, 0, &pixelShader, nullptr));
 
@@ -398,7 +508,9 @@ namespace Dash
             pipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC{ D3D12_DEFAULT };
             pipelineStateDesc.BlendState = CD3DX12_BLEND_DESC{ D3D12_DEFAULT };
             pipelineStateDesc.DepthStencilState.StencilEnable = FALSE;
-            pipelineStateDesc.DepthStencilState.DepthEnable = FALSE;
+            pipelineStateDesc.DepthStencilState.DepthEnable = TRUE;
+            pipelineStateDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+            pipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
             pipelineStateDesc.SampleMask = UINT_MAX;
             pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
             pipelineStateDesc.NumRenderTargets = 1;
@@ -605,6 +717,8 @@ namespace Dash
 
             sFrameConstantBuffer->Time = 0.0f;
             sFrameConstantBuffer->Speed = FVector2f{1.0f, 0.0f};
+            sFrameConstantBuffer->ProjectionMatrix = mCamera.GetProjectionMatrix();
+            sFrameConstantBuffer->ViewMatrix = mCamera.GetViewMatrix();
         }
 
         HR(mCommandList->Close());
@@ -684,4 +798,5 @@ namespace Dash
 
         *ppAdapter = adapter.Detach();
     }
+
 }

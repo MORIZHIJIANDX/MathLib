@@ -57,7 +57,7 @@ namespace Dash
 		bool operator ==(const TDelegate<RET(PARAMS...)>& another) const {
 			if (IsNull() && another.IsNull()) return true;
 			if (another.IsNull() || (size() != 1)) return false;
-			return (another.m_Invocation == **mInvocation.begin());
+			return (another.mInvocation == **mInvocation.begin());
 		} //==
 		bool operator !=(const TDelegate<RET(PARAMS...)>& another) const { return !(*this == another); }
 
@@ -75,7 +75,7 @@ namespace Dash
 
 		TMulticastDelegate& operator +=(const TDelegate<RET(PARAMS...)>& another) {
 			if (another.IsNull()) return *this;
-			this->mInvocation.push_back(new typename TDelegateBase<RET(PARAMS...)>::InvocationElement(another.m_Invocation.mObject, another.m_Invocation.mStub));
+			this->mInvocation.push_back(new typename TDelegateBase<RET(PARAMS...)>::InvocationElement(another.mInvocation.mObject, another.mInvocation.mStub));
 			return *this;
 		} //operator +=
 
@@ -92,7 +92,7 @@ namespace Dash
 			auto it = mInvocation.begin();
 			for (; it != mInvocation.end(); ++it)
 			{
-				if ((**it) == another.m_Invocation)
+				if ((**it) == another.mInvocation)
 				{
 					break;
 				}

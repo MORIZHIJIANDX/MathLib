@@ -218,9 +218,19 @@ namespace Dash
 
 
 
-	//OrthographicCamera
+	//FOrthographicCamera
 
-	OrthographicCamera::OrthographicCamera(Scalar minX, Scalar minY, Scalar maxX, Scalar maxY, Scalar nearZ, Scalar farZ, const FViewport& vp)
+	FOrthographicCamera::FOrthographicCamera()
+		: FCamera(1.0f, 1000.0f, FViewport{})
+		, mXMin(-1.0f)
+		, mXMax(1.0f)
+		, mYMin(-1.0f)
+		, mYMax(1.0f)
+	{
+		UpdateProjectionMatrix();
+	}
+
+	FOrthographicCamera::FOrthographicCamera(Scalar minX, Scalar maxX, Scalar minY, Scalar maxY, Scalar nearZ, Scalar farZ, const FViewport& vp)
 		: FCamera(nearZ, farZ, vp)
 		, mXMin(minX)
 		, mXMax(maxX)
@@ -230,52 +240,104 @@ namespace Dash
 		UpdateProjectionMatrix();
 	}
 
-	OrthographicCamera::~OrthographicCamera()
+	FOrthographicCamera::~FOrthographicCamera()
 	{
 	}
 
-	void OrthographicCamera::SetMinX(Scalar minX)
+	void FOrthographicCamera::SetMinX(Scalar minX)
 	{
 		mXMin = minX;
 		MakeProjectionMatrixDirty();
 	}
 
-	void OrthographicCamera::SetMinY(Scalar minY)
+	void FOrthographicCamera::SetMinY(Scalar minY)
 	{
 		mYMin = minY;
 		MakeProjectionMatrixDirty();
 	}
 
-	void OrthographicCamera::SetMaxX(Scalar maxX)
+	void FOrthographicCamera::SetMaxX(Scalar maxX)
 	{
 		mXMax = maxX;
 		MakeProjectionMatrixDirty();
 	}
 
-	void OrthographicCamera::SetMaxY(Scalar maxY)
+	void FOrthographicCamera::SetMaxY(Scalar maxY)
 	{
 		mYMax = maxY;
 		MakeProjectionMatrixDirty();
 	}
 
-	void OrthographicCamera::CreateProjectionMatrix() const
+	void FOrthographicCamera::SetCameraParams(Scalar minX, Scalar maxX, Scalar minY,  Scalar maxY, Scalar nearZ, Scalar farZ)
 	{
-		Scalar oneOverWidth = Scalar{ 1 } / mXMax - mXMin;
-		Scalar oneOverHeight = Scalar{ 1 }/ mYMax - mYMin;
-		Scalar oneOverDepth = Scalar{ 1 } / mFar - mNear;
+		mXMin = minX;
+		mXMax = maxX;
 
-		mProjectionMatrix.SetRow(0, FVector4f{ 2 * oneOverWidth, Scalar{0}, Scalar{0}, -(mXMax + mXMin) * oneOverWidth });
-		mProjectionMatrix.SetRow(1, FVector4f{ Scalar{0}, 2 * oneOverHeight, Scalar{0}, -(mYMax + mYMin) * oneOverHeight });
-		mProjectionMatrix.SetRow(2, FVector4f{ Scalar{0}, Scalar{0}, oneOverDepth, -mNear * oneOverDepth });
-		mProjectionMatrix.SetRow(3, FVector4f{ Scalar{0}, Scalar{0}, Scalar{0}, Scalar{1} });
+		mYMin = minY;
+		mYMax = maxY;
+
+		mNear = nearZ;
+		mFar = farZ;
+
+		MakeProjectionMatrixDirty();
+	}
+
+	void FOrthographicCamera::SetCameraParams(Scalar width, Scalar height, Scalar nearZ, Scalar farZ)
+	{
+		Scalar halfWidth = 0.5f * width;
+		Scalar halfHeight = 0.5F * height;
+
+		mXMin = -halfWidth;
+		mXMax = halfWidth;
+
+		mYMin = -halfHeight;
+		mYMax = halfHeight;
+
+		mNear = nearZ;
+		mFar = farZ;
+
+		MakeProjectionMatrixDirty();
+	}
+
+	void FOrthographicCamera::Zoom(Scalar factor)
+	{
+		factor = FMath::Max(factor, Scalar{ 0.01f });
+
+		Scalar centerX = (mXMin + mXMax) * Scalar(0.5f);
+		Scalar centerY = (mYMin + mYMax) * Scalar(0.5f);
+
+		Scalar halfWidth = (mXMax - mXMin) * Scalar(0.5f);
+		Scalar halfHeight = (mYMax - mYMin) * Scalar(0.5f);
+
+		if (factor < Scalar{ 1 } && halfWidth < Scalar{ 0.005 } && halfHeight < Scalar{ 0.005 })
+		{
+			return;
+		}
+
+		Scalar zoomedHalfWidth = halfWidth * factor;
+		Scalar zoomedHalfHeight = halfHeight * factor;
+		SetCameraParams(centerX - zoomedHalfWidth, centerX + zoomedHalfWidth, centerY - zoomedHalfHeight, centerY + zoomedHalfHeight, mNear, mFar);
+	}
+
+	void FOrthographicCamera::CreateProjectionMatrix() const
+	{
+		mProjectionMatrix = FMath::Orthographic(mXMin, mXMax, mYMin, mYMax, mNear, mFar);
 	}
 
 
 
 
-	//PerspectiveCamera
+	//FPerspectiveCamera
 
-	PerspectiveCamera::PerspectiveCamera(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ, const FViewport& vp)
+	FPerspectiveCamera::FPerspectiveCamera()
+		: FCamera(1.0f, 1000.0f, FViewport{})
+		, mFov(0.5f)
+		, mAspect(0.5f)
+	{
+		UpdateProjectionMatrix();
+	}
+
+	FPerspectiveCamera::FPerspectiveCamera(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ, const FViewport& vp)
 		: FCamera(nearZ, farZ, vp)
 		, mFov(fov)
 		, mAspect(aspect)
@@ -283,23 +345,23 @@ namespace Dash
 		UpdateProjectionMatrix();
 	}
 
-	PerspectiveCamera::~PerspectiveCamera()
+	FPerspectiveCamera::~FPerspectiveCamera()
 	{
 	}
 
-	void PerspectiveCamera::SetFieldOfView(Scalar fov)
+	void FPerspectiveCamera::SetFieldOfView(Scalar fov)
 	{
 		mFov = fov;
 		MakeProjectionMatrixDirty();
 	}
 
-	void PerspectiveCamera::SetAspectRatio(Scalar aspect)
+	void FPerspectiveCamera::SetAspectRatio(Scalar aspect)
 	{
 		mAspect = aspect;
 		MakeProjectionMatrixDirty();
 	}
 
-	FRay PerspectiveCamera::GenerateRay(Scalar u, Scalar v) const
+	FRay FPerspectiveCamera::GenerateRay(Scalar u, Scalar v) const
 	{
 		FVector3f camPos = GetPosition();
 		FVector3f forward = GetForward();
@@ -317,7 +379,28 @@ namespace Dash
 		return FRay{ camPos, FMath::Normalize(topRightCorner + u * horizon - v * vertical - camPos), 0.0f, 1000.0f };
 	}
 
-	void PerspectiveCamera::CreateProjectionMatrix() const
+	void FPerspectiveCamera::SetCameraParams(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ)
+	{
+		mFov = fov;
+		mAspect = aspect;
+		mNear = nearZ;
+		mFar = farZ;
+
+		MakeProjectionMatrixDirty();
+	}
+
+	void FPerspectiveCamera::Zoom(Scalar factor)
+	{
+		factor = FMath::Max(factor, Scalar{ 0.01f });
+
+		mFov *= factor;
+
+		mFov = FMath::Clamp(mFov, Scalar{ 0.01f }, Scalar{179.99f});
+
+		MakeProjectionMatrixDirty();
+	}
+
+	void FPerspectiveCamera::CreateProjectionMatrix() const
 	{
 		mProjectionMatrix = FMath::Frustum(mFov, mAspect, mNear, mFar);
 	}
