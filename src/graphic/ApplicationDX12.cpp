@@ -9,6 +9,20 @@
 #include "../utility/Keyboard.h"
 #include "../utility/Mouse.h"
 
+#include "DX12Helper.h"
+
+//生成mipmap
+//导入DDS
+//Vertex Buffer和Index Buffer封装
+//sphere, box等内置模型支持
+//导入Cube map
+//Assimp或FBXSDK导入模型
+//constant buffer 封装
+//材质
+//多线程
+//ECS
+//反射
+//IMGUI
 
 namespace Dash
 {
@@ -586,50 +600,7 @@ namespace Dash
 
             mUploadHeapOffset += UPPER_ALIGNMENT(uploadBufferSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
             
-            UINT subresourceIndex = 0;
-            UINT subresourceCount = 1;
-            UINT numRows = 0;
-            UINT64 rowSizeInByte = 0;
-            UINT64 totalByte = 0;
-            D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
-
-            mD3DDevice->GetCopyableFootprints(
-                &(mTextureResource->GetDesc()),
-                subresourceIndex,
-                subresourceCount,
-                0,
-                &footprint,
-                &numRows,
-                &rowSizeInByte,
-                &totalByte
-            );
-
-            BYTE* resourceData = nullptr;
-
-            HR(uploadTextureBuffer->Map(0, nullptr, reinterpret_cast<void**>(&resourceData)));
-
-            size_t textureRowPitch = texture.GetRowPitch();
-            uint8_t* textureData = texture.GetRawData();
-
-            ASSERT(footprint.Footprint.RowPitch == textureRowPitch);
-            ASSERT(numRows == texture.GetHeight());
-
-            BYTE* resourceCopyStart = resourceData + footprint.Offset;
-            for (size_t rowIdx = 0; rowIdx < numRows; rowIdx++)
-            {
-                memcpy(resourceCopyStart + rowIdx * footprint.Footprint.RowPitch, 
-                    textureData + rowIdx * textureRowPitch,
-                    textureRowPitch);
-            }
-
-            uploadTextureBuffer->Unmap(0, nullptr);
-
-            CD3DX12_TEXTURE_COPY_LOCATION copyDst{ mTextureResource.Get(), 0};
-            CD3DX12_TEXTURE_COPY_LOCATION copySrc{ uploadTextureBuffer.Get(), footprint };
-
-            mCommandList->CopyTextureRegion(&copyDst, 0, 0, 0, &copySrc, nullptr);
-
-            mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(mTextureResource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+            UpdateTextureRegion(mD3DDevice, mCommandList, mTextureResource, uploadTextureBuffer, texture);
 
             //Create shader resource view
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
