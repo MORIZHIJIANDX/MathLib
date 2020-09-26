@@ -141,6 +141,7 @@
     <ClInclude Include="src\utility\ThreadSafeQueue.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\graphic\DX12Helper.cpp" />
     <ClCompile Include="src\math\Color.cpp" />
     <ClCompile Include="src\utility\Exception.cpp" />
     <ClCompile Include="src\utility\Image.cpp" />

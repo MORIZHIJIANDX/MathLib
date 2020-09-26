@@ -7,7 +7,26 @@
 
 namespace Dash
 {
-	static void UpdateTextureRegion(Microsoft::WRL::ComPtr<ID3D12Device> device, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList,
+    // Shorthand for creating a root signature
+    FORCEINLINE HRESULT CreateRootSignature(
+        Microsoft::WRL::ComPtr<ID3D12Device>& device,
+        const D3D12_ROOT_SIGNATURE_DESC* rootSignatureDesc,
+        Microsoft::WRL::ComPtr<ID3D12RootSignature>& rootSignature,
+        UINT nodeMask = 0) noexcept
+    {
+        Microsoft::WRL::ComPtr<ID3DBlob> pSignature;
+        Microsoft::WRL::ComPtr<ID3DBlob> pError;
+        HRESULT hr = D3D12SerializeRootSignature(rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, pSignature.GetAddressOf(), pError.GetAddressOf());
+        if (SUCCEEDED(hr))
+        {
+            hr = device->CreateRootSignature(nodeMask, pSignature->GetBufferPointer(), pSignature->GetBufferSize(),
+                IID_PPV_ARGS(&rootSignature)
+            );
+        }
+        return hr;
+    }
+
+	static void UpdateTextureRegion(Microsoft::WRL::ComPtr<ID3D12Device>& device, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList,
         Microsoft::WRL::ComPtr<ID3D12Resource>& destTexture, Microsoft::WRL::ComPtr<ID3D12Resource>& uploadBuffer,
 		const FTexture& texture, UINT destSubresourceIndex = 0)
 	{
@@ -61,8 +80,5 @@ namespace Dash
         commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	}
 
-    static void GenerateMipmap()
-    {
-    
-    }
+    static void GenerateMipmap();
 }
