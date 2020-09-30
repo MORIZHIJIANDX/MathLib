@@ -47,7 +47,9 @@ namespace Dash
 		/** Static lookup table used for FColor -> FLinearColor conversion. sRGB */
 		static float sRGBToLinearTable[256];
 
-		FORCEINLINE FLinearColor() {}
+		FORCEINLINE FLinearColor()
+			: r(0), g(0), b(0), a(0)
+		{}
 		FORCEINLINE explicit FLinearColor(FZero)
 			: r(0), g(0), b(0), a(0)
 		{}
@@ -395,7 +397,9 @@ namespace Dash
 		const uint32_t& DWColor(void) const { return *((uint32_t*)this); }
 
 		// Constructors.
-		FORCEINLINE FColor() {}
+		FORCEINLINE FColor() 
+			: r(0), g(0), b(0), a(0)
+		{}
 		FORCEINLINE explicit FColor(FZero)
 		{
 			// put these into the body for proper ordering with INTEL vs non-INTEL_BYTE_ORDER

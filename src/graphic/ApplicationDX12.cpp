@@ -11,6 +11,9 @@
 
 #include "DX12Helper.h"
 
+#include <filesystem>
+
+
 //生成mipmap
 //导入DDS
 //Vertex Buffer和Index Buffer封装
@@ -95,7 +98,9 @@ namespace Dash
         ID3D12CommandList* commands[] = { mCommandList.Get() };
         mD3DCommandQueue->ExecuteCommandLists(_countof(commands), commands);
 
-        HR(mSwapChain->Present(1, 0));
+        //HR(mSwapChain->Present(1, 0));
+
+        ThrowIfFailed(mSwapChain->Present(1, 0));
 
         WaitForPreviousFrame();
 	}
@@ -187,7 +192,8 @@ namespace Dash
 
         Dash::FVector4f clearColor{ Dash::FMath::Sin((float)e.mTotalTime) * 0.5f + 0.5f, Dash::FMath::Cos((float)e.mTotalTime + 0.5f) * 0.5f + 0.5f, 0.5f, 1.0f };
         mCommandList->ClearRenderTargetView(rtDescriptorHandle, clearColor, 0, nullptr);
-        mCommandList->ClearDepthStencilView(dsDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+        mCommandList->ClearDepthStencilView(dsDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH, mDepthStencilClearValue.DepthStencil.Depth, 
+            mDepthStencilClearValue.DepthStencil.Stencil, 0, nullptr);
 
         mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
         mCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
@@ -234,7 +240,7 @@ namespace Dash
         Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgiAdapter;
         GetHardwareAdapter(mDXGIFatory.Get(), &dxgiAdapter, true);
 
-        HR(D3D12CreateDevice(dxgiAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&mD3DDevice)));
+        HR(D3D12CreateDevice(dxgiAdapter.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&mD3DDevice)));
 
         D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
         commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -435,7 +441,8 @@ namespace Dash
         {
             D3D12_RESOURCE_DESC depthStencilDesc{};
             depthStencilDesc.MipLevels = 1;
-            depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+            //depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+            depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
             depthStencilDesc.Width = mWindow.GetWindowWidth();
             depthStencilDesc.Height = (UINT)mWindow.GetWindowHeight();
             depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
@@ -445,12 +452,16 @@ namespace Dash
             depthStencilDesc.SampleDesc.Quality = 0;
             depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;       
 
+            mDepthStencilClearValue.DepthStencil.Depth = 1.0f;
+            mDepthStencilClearValue.DepthStencil.Stencil = 0;
+            mDepthStencilClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+
             HR(mD3DDevice->CreatePlacedResource(
                 mRTDSHeap.Get(),
                 mRTDSHeapOffset,
                 &depthStencilDesc,
                 D3D12_RESOURCE_STATE_DEPTH_WRITE,
-                nullptr,
+                &mDepthStencilClearValue,
                 IID_PPV_ARGS(&mDepthStencilBuffer)
             ));
 
@@ -505,8 +516,14 @@ namespace Dash
 
             shaderCompileFlag |= D3DCOMPILE_PACK_MATRIX_ROW_MAJOR;
 
-            HR(D3DCompileFromFile(L"shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", shaderCompileFlag, 0, &vertexShader, nullptr));
-            HR(D3DCompileFromFile(L"shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", shaderCompileFlag, 0, &pixelShader, nullptr));
+            CHAR assetsPath[512];
+            DWORD size = GetModuleFileName(nullptr, assetsPath, _countof(assetsPath));
+
+            std::filesystem::path currentPath = std::filesystem::current_path();
+            std::filesystem::path shaderPath = currentPath / "src\\resources\\shader.hlsl";
+           
+            HR(D3DCompileFromFile(shaderPath.c_str(), nullptr, nullptr, "VSMain", "vs_5_0", shaderCompileFlag, 0, &vertexShader, nullptr));
+            HR(D3DCompileFromFile(shaderPath.c_str(), nullptr, nullptr, "PSMain", "ps_5_0", shaderCompileFlag, 0, &pixelShader, nullptr));
 
             D3D12_INPUT_ELEMENT_DESC inputElements[] =
             {
@@ -525,6 +542,7 @@ namespace Dash
             pipelineStateDesc.DepthStencilState.DepthEnable = TRUE;
             pipelineStateDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
             pipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+            pipelineStateDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
             pipelineStateDesc.SampleMask = UINT_MAX;
             pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
             pipelineStateDesc.NumRenderTargets = 1;
@@ -543,7 +561,7 @@ namespace Dash
             FTexture texture = LoadWICTexture(L"coma.png");
 
             D3D12_RESOURCE_DESC resourceDesc{};
-            resourceDesc.MipLevels = 1;
+            resourceDesc.MipLevels = CountMips(texture.GetWidth(), texture.GetHeight());
             resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
             resourceDesc.Width = texture.GetWidth();
             resourceDesc.Height = (UINT)texture.GetHeight();
@@ -601,6 +619,8 @@ namespace Dash
             mUploadHeapOffset += UPPER_ALIGNMENT(uploadBufferSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
             
             UpdateTextureRegion(mD3DDevice, mCommandList, mTextureResource, uploadTextureBuffer, texture);
+
+            //GenerateMipmap(mD3DDevice, mCommandList, mTextureResource);
 
             //Create shader resource view
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};

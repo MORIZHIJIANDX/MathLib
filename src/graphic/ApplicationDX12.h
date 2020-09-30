@@ -102,6 +102,7 @@ namespace Dash
 
         Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilBuffer;
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDepthStencilDescriptorHeap;
+        D3D12_CLEAR_VALUE mDepthStencilClearValue;
 
         UINT mBackBufferIndex;
         UINT mRTVDescriptorSize;

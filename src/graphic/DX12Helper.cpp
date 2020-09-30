@@ -1,5 +1,6 @@
 #include "DX12Helper.h"
 #include <D3Dcompiler.h>
+#include <filesystem>
 
 namespace Dash
 {
@@ -167,13 +168,13 @@ namespace Dash
         }
     }
     
-    struct GenerateMipsResources
+    struct GenerateMips
     {
 #pragma pack(push, 4)
         struct ConstantData
         {
             FVector2f InvOutTexelSize;
-            uint32_t SrcMipIndex;
+            uint32_t SrcMipIndex = 0;
         };
 #pragma pack(pop)
 
@@ -187,252 +188,254 @@ namespace Dash
             TargetTexture,
             RootParameterCount
         };
+
+        static Microsoft::WRL::ComPtr<ID3D12RootSignature> CreateGenMipsRootSignature(
+            Microsoft::WRL::ComPtr<ID3D12Device>& device)
+        {
+            D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+                D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS |
+                D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+                D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+                D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+                D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+
+            CD3DX12_STATIC_SAMPLER_DESC sampler(
+                0, // register
+                D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+
+            CD3DX12_DESCRIPTOR_RANGE sourceDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+            CD3DX12_DESCRIPTOR_RANGE targetDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
+
+            CD3DX12_ROOT_PARAMETER rootParameters[GenerateMips::RootParameterCount] = {};
+            rootParameters[GenerateMips::Constants].InitAsConstants(GenerateMips::Num32BitConstants, 0);
+            rootParameters[GenerateMips::SourceTexture].InitAsDescriptorTable(1, &sourceDescriptorRange);
+            rootParameters[GenerateMips::TargetTexture].InitAsDescriptorTable(1, &targetDescriptorRange);
+
+            CD3DX12_ROOT_SIGNATURE_DESC rsigDesc;
+            rsigDesc.Init(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
+
+            Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
+            HR(CreateRootSignature(device, &rsigDesc, rootSignature));
+
+            return rootSignature;
+        }
+
+        static Microsoft::WRL::ComPtr<ID3D12PipelineState> CreateGenMipsPipelineState(
+            Microsoft::WRL::ComPtr<ID3D12Device>& device,
+            Microsoft::WRL::ComPtr<ID3D12RootSignature>& rootSignature,
+            const void* bytecode,
+            size_t bytecodeSize)
+        {
+            D3D12_COMPUTE_PIPELINE_STATE_DESC desc = {};
+            desc.CS.BytecodeLength = bytecodeSize;
+            desc.CS.pShaderBytecode = bytecode;
+            desc.pRootSignature = rootSignature.Get();
+
+            Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
+            HR(device->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pso)));
+
+            return pso;
+        }
+
+        // Resource is UAV compatible
+        static void GenerateMips_UnorderedAccessPath(Microsoft::WRL::ComPtr<ID3D12Device>& device, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& resource, Microsoft::WRL::ComPtr<ID3D12PipelineState>& pso, Microsoft::WRL::ComPtr<ID3D12RootSignature>& rootSignature)
+        {
+            const auto desc = resource->GetDesc();
+            ASSERT(!FormatIsBGR(desc.Format) && !FormatIsSRGB(desc.Format));
+
+            CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
+
+            D3D12_COMMAND_LIST_TYPE commandListType = commandList->GetType();
+
+            ASSERT(commandListType != D3D12_COMMAND_LIST_TYPE_COPY);
+            const D3D12_RESOURCE_STATES originalState = (commandListType == D3D12_COMMAND_LIST_TYPE_COMPUTE)
+                ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+            // Create a staging resource if we have to
+            Microsoft::WRL::ComPtr<ID3D12Resource> staging;
+            if ((desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS) == 0)
+            {
+                D3D12_RESOURCE_DESC stagingDesc = desc;
+                stagingDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+                stagingDesc.Format = ConvertSRVtoResourceFormat(desc.Format);
+
+                ThrowIfFailed(device->CreateCommittedResource(
+                    &defaultHeapProperties,
+                    D3D12_HEAP_FLAG_NONE,
+                    &stagingDesc,
+                    D3D12_RESOURCE_STATE_COPY_DEST,
+                    nullptr,
+                    IID_PPV_ARGS(staging.GetAddressOf())));
+
+                // Copy the top mip of resource to staging
+                //TransitionResource(commandList.Get(), resource, originalState, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+                commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(resource.Get(), originalState, D3D12_RESOURCE_STATE_COPY_SOURCE));
+
+                CD3DX12_TEXTURE_COPY_LOCATION src(resource.Get(), 0);
+                CD3DX12_TEXTURE_COPY_LOCATION dst(staging.Get(), 0);
+                commandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+
+                //TransitionResource(commandList.Get(), staging.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+                commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(staging.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+            }
+            else
+            {
+                // Resource is already a UAV so we can do this in-place
+                staging = resource;
+
+                //TransitionResource(commandList.Get(), staging.Get(), originalState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+                commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(staging.Get(), originalState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+            }
+
+            // Create a descriptor heap that holds our resource descriptors
+            Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;
+            D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
+            descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            descriptorHeapDesc.NumDescriptors = desc.MipLevels;
+            device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(descriptorHeap.GetAddressOf()));
+
+            auto descriptorSize = static_cast<int>(device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+
+            // Create SRV for all mips
+            CD3DX12_CPU_DESCRIPTOR_HANDLE handleIt(descriptorHeap->GetCPUDescriptorHandleForHeapStart());
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Format = desc.Format;
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Texture2D.MostDetailedMip = 0;
+            srvDesc.Texture2D.MipLevels = desc.MipLevels;
+
+            device->CreateShaderResourceView(staging.Get(), &srvDesc, handleIt);
+
+            // Create the UAVs for the tail
+            for (uint16_t mip = 1; mip < desc.MipLevels; ++mip)
+            {
+                D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+                uavDesc.Format = desc.Format;
+                uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+                uavDesc.Texture2D.MipSlice = mip;
+
+                handleIt.Offset(descriptorSize);
+                device->CreateUnorderedAccessView(staging.Get(), nullptr, &uavDesc, handleIt);
+            }
+
+            // Set up UAV barrier (used in loop)
+            D3D12_RESOURCE_BARRIER barrierUAV = {};
+            barrierUAV.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+            barrierUAV.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+            barrierUAV.UAV.pResource = staging.Get();
+
+            // Barrier for transitioning the subresources to UAVs
+            D3D12_RESOURCE_BARRIER srv2uavDesc = {};
+            srv2uavDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+            srv2uavDesc.Transition.pResource = staging.Get();
+            srv2uavDesc.Transition.Subresource = 0;
+            srv2uavDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+            srv2uavDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+
+            // Barrier for transitioning the subresources to SRVs
+            D3D12_RESOURCE_BARRIER uav2srvDesc = {};
+            uav2srvDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+            uav2srvDesc.Transition.pResource = staging.Get();
+            uav2srvDesc.Transition.Subresource = 0;
+            uav2srvDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+            uav2srvDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+            // based on format, select srgb or not
+            //Microsoft::WRL::ComPtr<ID3D12PipelineState> pso = mGenMipsResources->generateMipsPSO;
+
+            // Set up state
+            commandList->SetComputeRootSignature(rootSignature.Get());
+            commandList->SetPipelineState(pso.Get());
+            commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
+            commandList->SetComputeRootDescriptorTable(GenerateMips::SourceTexture, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
+            // Get the descriptor handle -- uavH will increment over each loop
+            CD3DX12_GPU_DESCRIPTOR_HANDLE uavH(
+                descriptorHeap->GetGPUDescriptorHandleForHeapStart(),
+                descriptorSize); // offset by 1 descriptor
+
+            // Process each mip
+            auto mipWidth = static_cast<uint32_t>(desc.Width);
+            uint32_t mipHeight = desc.Height;
+            for (uint32_t mip = 1; mip < desc.MipLevels; ++mip)
+            {
+                mipWidth = std::max<uint32_t>(1, mipWidth >> 1);
+                mipHeight = std::max<uint32_t>(1, mipHeight >> 1);
+
+                // Transition the mip to a UAV
+                srv2uavDesc.Transition.Subresource = mip;
+                commandList->ResourceBarrier(1, &srv2uavDesc);
+
+                // Bind the mip subresources
+                commandList->SetComputeRootDescriptorTable(GenerateMips::TargetTexture, uavH);
+
+                // Set constants
+                GenerateMips::ConstantData constants;
+                constants.SrcMipIndex = mip - 1;
+                constants.InvOutTexelSize = FVector2f(1 / float(mipWidth), 1 / float(mipHeight));
+                commandList->SetComputeRoot32BitConstants(
+                    GenerateMips::Constants,
+                    GenerateMips::Num32BitConstants,
+                    &constants,
+                    0);
+
+                // Process this mip
+                // Every thread process one pixel ( ThreadGroupSize == 8 )
+                commandList->Dispatch(
+                    (mipWidth + GenerateMips::ThreadGroupSize - 1) / GenerateMips::ThreadGroupSize,
+                    (mipHeight + GenerateMips::ThreadGroupSize - 1) / GenerateMips::ThreadGroupSize,
+                    1);
+
+                //Transition uav resource to flag none
+                commandList->ResourceBarrier(1, &barrierUAV);
+
+                // Transition the mip to an SRV
+                uav2srvDesc.Transition.Subresource = mip;
+                commandList->ResourceBarrier(1, &uav2srvDesc);
+
+                // Offset the descriptor heap handles
+                uavH.Offset(descriptorSize);
+            }
+
+            // If the staging resource is NOT the same as the resource, we need to copy everything back
+            if (staging.Get() != resource.Get())
+            {
+                // Transition the resources ready for copy
+                D3D12_RESOURCE_BARRIER barrier[2] = {};
+                barrier[0].Type = barrier[1].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+                barrier[0].Transition.Subresource = barrier[1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+                barrier[0].Transition.pResource = staging.Get();
+                barrier[0].Transition.StateBefore = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+                barrier[0].Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
+
+                barrier[1].Transition.pResource = resource.Get();
+                barrier[1].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
+                barrier[1].Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+
+                commandList->ResourceBarrier(2, barrier);
+
+                // Copy the entire resource back
+                commandList->CopyResource(resource.Get(), staging.Get());
+
+                // Transition the target resource back to pixel shader resource
+                //TransitionResource(commandList.Get(), resource, D3D12_RESOURCE_STATE_COPY_DEST, originalState);
+                commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, originalState));
+            }
+            else
+            {
+                //TransitionResource(commandList.Get(), staging.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, originalState);
+                commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(staging.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, originalState));
+            }
+        }
     };
-
-    static Microsoft::WRL::ComPtr<ID3D12RootSignature> CreateGenMipsRootSignature(
-        Microsoft::WRL::ComPtr<ID3D12Device>& device)
-    {
-        D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
-
-        CD3DX12_STATIC_SAMPLER_DESC sampler(
-            0, // register
-            D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT,
-            D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-            D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-            D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-
-        CD3DX12_DESCRIPTOR_RANGE sourceDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
-        CD3DX12_DESCRIPTOR_RANGE targetDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
-
-        CD3DX12_ROOT_PARAMETER rootParameters[GenerateMipsResources::RootParameterCount] = {};
-        rootParameters[GenerateMipsResources::Constants].InitAsConstants(GenerateMipsResources::Num32BitConstants, 0);
-        rootParameters[GenerateMipsResources::SourceTexture].InitAsDescriptorTable(1, &sourceDescriptorRange);
-        rootParameters[GenerateMipsResources::TargetTexture].InitAsDescriptorTable(1, &targetDescriptorRange);
-
-        CD3DX12_ROOT_SIGNATURE_DESC rsigDesc;
-        rsigDesc.Init(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
-
-        Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
-        HR(CreateRootSignature(device, &rsigDesc, rootSignature));
-
-        return rootSignature;
-    }
-
-    static Microsoft::WRL::ComPtr<ID3D12PipelineState> CreateGenMipsPipelineState(
-        Microsoft::WRL::ComPtr<ID3D12Device>& device,
-        Microsoft::WRL::ComPtr<ID3D12RootSignature>& rootSignature,
-        const void* bytecode,
-        size_t bytecodeSize)
-    {
-        D3D12_COMPUTE_PIPELINE_STATE_DESC desc = {};
-        desc.CS.BytecodeLength = bytecodeSize;
-        desc.CS.pShaderBytecode = bytecode;
-        desc.pRootSignature = rootSignature.Get();
-
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
-        HR(device->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pso)));
-
-        return pso;
-    }
-
-    // Resource is UAV compatible
-    void GenerateMips_UnorderedAccessPath(Microsoft::WRL::ComPtr<ID3D12Device>& device, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList,
-        Microsoft::WRL::ComPtr<ID3D12Resource>& resource, Microsoft::WRL::ComPtr<ID3D12PipelineState>& pso, Microsoft::WRL::ComPtr<ID3D12RootSignature>& rootSignature)
-    {
-        const auto desc = resource->GetDesc();
-        ASSERT(!FormatIsBGR(desc.Format) && !FormatIsSRGB(desc.Format));
-
-        CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-
-        D3D12_COMMAND_LIST_TYPE commandListType = commandList->GetType();
-
-        ASSERT(commandListType != D3D12_COMMAND_LIST_TYPE_COPY);
-        const D3D12_RESOURCE_STATES originalState = (commandListType == D3D12_COMMAND_LIST_TYPE_COMPUTE)
-            ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-
-        // Create a staging resource if we have to
-        Microsoft::WRL::ComPtr<ID3D12Resource> staging;
-        if ((desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS) == 0)
-        {
-            D3D12_RESOURCE_DESC stagingDesc = desc;
-            stagingDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-            stagingDesc.Format = ConvertSRVtoResourceFormat(desc.Format);
-
-            ThrowIfFailed(device->CreateCommittedResource(
-                &defaultHeapProperties,
-                D3D12_HEAP_FLAG_NONE,
-                &stagingDesc,
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                nullptr,
-                IID_PPV_ARGS(staging.GetAddressOf())));
-
-            // Copy the top mip of resource to staging
-            //TransitionResource(commandList.Get(), resource, originalState, D3D12_RESOURCE_STATE_COPY_SOURCE);
-
-            commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(resource.Get(), originalState, D3D12_RESOURCE_STATE_COPY_SOURCE));
-
-            CD3DX12_TEXTURE_COPY_LOCATION src(resource.Get(), 0);
-            CD3DX12_TEXTURE_COPY_LOCATION dst(staging.Get(), 0);
-            commandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
-
-            //TransitionResource(commandList.Get(), staging.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
-            commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(staging.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
-        }
-        else
-        {
-            // Resource is already a UAV so we can do this in-place
-            staging = resource;
-
-            //TransitionResource(commandList.Get(), staging.Get(), originalState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-            commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(staging.Get(), originalState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
-        }
-
-        // Create a descriptor heap that holds our resource descriptors
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;
-        D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
-        descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-        descriptorHeapDesc.NumDescriptors = desc.MipLevels;
-        device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(descriptorHeap.GetAddressOf()));
-
-        auto descriptorSize = static_cast<int>(device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-
-        // Create the top-level SRV
-        CD3DX12_CPU_DESCRIPTOR_HANDLE handleIt(descriptorHeap->GetCPUDescriptorHandleForHeapStart());
-        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        srvDesc.Format = desc.Format;
-        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        srvDesc.Texture2D.MostDetailedMip = 0;
-        srvDesc.Texture2D.MipLevels = desc.MipLevels;
-
-        device->CreateShaderResourceView(staging.Get(), &srvDesc, handleIt);
-
-        // Create the UAVs for the tail
-        for (uint16_t mip = 1; mip < desc.MipLevels; ++mip)
-        {
-            D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-            uavDesc.Format = desc.Format;
-            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-            uavDesc.Texture2D.MipSlice = mip;
-
-            handleIt.Offset(descriptorSize);
-            device->CreateUnorderedAccessView(staging.Get(), nullptr, &uavDesc, handleIt);
-        }
-
-        // Set up UAV barrier (used in loop)
-        D3D12_RESOURCE_BARRIER barrierUAV = {};
-        barrierUAV.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-        barrierUAV.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-        barrierUAV.UAV.pResource = staging.Get();
-
-        // Barrier for transitioning the subresources to UAVs
-        D3D12_RESOURCE_BARRIER srv2uavDesc = {};
-        srv2uavDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        srv2uavDesc.Transition.pResource = staging.Get();
-        srv2uavDesc.Transition.Subresource = 0;
-        srv2uavDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-        srv2uavDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-
-        // Barrier for transitioning the subresources to SRVs
-        D3D12_RESOURCE_BARRIER uav2srvDesc = {};
-        uav2srvDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        uav2srvDesc.Transition.pResource = staging.Get();
-        uav2srvDesc.Transition.Subresource = 0;
-        uav2srvDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-        uav2srvDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-
-        // based on format, select srgb or not
-        //Microsoft::WRL::ComPtr<ID3D12PipelineState> pso = mGenMipsResources->generateMipsPSO;
-
-        // Set up state
-        commandList->SetComputeRootSignature(rootSignature.Get());
-        commandList->SetPipelineState(pso.Get());
-        commandList->SetDescriptorHeaps(1, descriptorHeap.GetAddressOf());
-        commandList->SetComputeRootDescriptorTable(GenerateMipsResources::SourceTexture, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
-
-        // Get the descriptor handle -- uavH will increment over each loop
-        CD3DX12_GPU_DESCRIPTOR_HANDLE uavH(
-            descriptorHeap->GetGPUDescriptorHandleForHeapStart(),
-            descriptorSize); // offset by 1 descriptor
-
-        // Process each mip
-        auto mipWidth = static_cast<uint32_t>(desc.Width);
-        uint32_t mipHeight = desc.Height;
-        for (uint32_t mip = 1; mip < desc.MipLevels; ++mip)
-        {
-            mipWidth = std::max<uint32_t>(1, mipWidth >> 1);
-            mipHeight = std::max<uint32_t>(1, mipHeight >> 1);
-
-            // Transition the mip to a UAV
-            srv2uavDesc.Transition.Subresource = mip;
-            commandList->ResourceBarrier(1, &srv2uavDesc);
-
-            // Bind the mip subresources
-            commandList->SetComputeRootDescriptorTable(GenerateMipsResources::TargetTexture, uavH);
-
-            // Set constants
-            GenerateMipsResources::ConstantData constants;
-            constants.SrcMipIndex = mip - 1;
-            constants.InvOutTexelSize = FVector2f(1 / float(mipWidth), 1 / float(mipHeight));
-            commandList->SetComputeRoot32BitConstants(
-                GenerateMipsResources::Constants,
-                GenerateMipsResources::Num32BitConstants,
-                &constants,
-                0);
-
-            // Process this mip
-            commandList->Dispatch(
-                (mipWidth + GenerateMipsResources::ThreadGroupSize - 1) / GenerateMipsResources::ThreadGroupSize,
-                (mipHeight + GenerateMipsResources::ThreadGroupSize - 1) / GenerateMipsResources::ThreadGroupSize,
-                1);
-
-            commandList->ResourceBarrier(1, &barrierUAV);
-
-            // Transition the mip to an SRV
-            uav2srvDesc.Transition.Subresource = mip;
-            commandList->ResourceBarrier(1, &uav2srvDesc);
-
-            // Offset the descriptor heap handles
-            uavH.Offset(descriptorSize);
-        }
-
-        // If the staging resource is NOT the same as the resource, we need to copy everything back
-        if (staging.Get() != resource.Get())
-        {
-            // Transition the resources ready for copy
-            D3D12_RESOURCE_BARRIER barrier[2] = {};
-            barrier[0].Type = barrier[1].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-            barrier[0].Transition.Subresource = barrier[1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-            barrier[0].Transition.pResource = staging.Get();
-            barrier[0].Transition.StateBefore = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-            barrier[0].Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
-
-            barrier[1].Transition.pResource = resource.Get();
-            barrier[1].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
-            barrier[1].Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
-
-            commandList->ResourceBarrier(2, barrier);
-
-            // Copy the entire resource back
-            commandList->CopyResource(resource.Get(), staging.Get());
-
-            // Transition the target resource back to pixel shader resource
-            //TransitionResource(commandList.Get(), resource, D3D12_RESOURCE_STATE_COPY_DEST, originalState);
-            commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, originalState));
-        }
-        else
-        {
-            //TransitionResource(commandList.Get(), staging.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, originalState);
-            commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(staging.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, originalState));
-        }
-    }
 
 	void GenerateMipmap(Microsoft::WRL::ComPtr<ID3D12Device>& device, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList,
         Microsoft::WRL::ComPtr<ID3D12Resource>& resource)
@@ -476,10 +479,13 @@ namespace Dash
 
         shaderCompileFlag |= D3DCOMPILE_PACK_MATRIX_ROW_MAJOR;
 
-        HR(D3DCompileFromFile(L"generateMips.hlsl", nullptr, nullptr, "CSMain", "cs_5_0", shaderCompileFlag, 0, &generateMipsShader, nullptr));
+        std::filesystem::path currentPath = std::filesystem::current_path();
+        std::filesystem::path shaderPath = currentPath / "src\\resources\\generateMips.hlsl";
 
-        Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature = CreateGenMipsRootSignature(device);
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> generateMipsPSO = CreateGenMipsPipelineState(device, rootSignature, generateMipsShader->GetBufferPointer(), generateMipsShader->GetBufferSize());
+        HR(D3DCompileFromFile(shaderPath.c_str(), nullptr, nullptr, "CSMain", "cs_5_0", shaderCompileFlag, 0, &generateMipsShader, nullptr));
+
+        Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature = GenerateMips::CreateGenMipsRootSignature(device);
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> generateMipsPSO = GenerateMips::CreateGenMipsPipelineState(device, rootSignature, generateMipsShader->GetBufferPointer(), generateMipsShader->GetBufferSize());
 
         bool mTypedUAVLoadAdditionalFormats = false;
         bool mStandardSwizzle64KBSupported = false;
@@ -503,7 +509,8 @@ namespace Dash
         
         if (uavCompat)
         {
-
+            GenerateMips::GenerateMips_UnorderedAccessPath(device, commandList, resource, generateMipsPSO, rootSignature);
         }
 	}
+    
 }

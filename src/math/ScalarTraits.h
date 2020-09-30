@@ -4,6 +4,9 @@
 
 namespace Dash
 {
+    #undef min
+    #undef max
+
     template<typename Scalar>
     struct TScalarTraits {};
 

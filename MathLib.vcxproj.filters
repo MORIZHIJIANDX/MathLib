@@ -244,6 +244,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shader.hlsl" />
+    <FxCompile Include="src\resources\shader.hlsl" />
+    <FxCompile Include="src\resources\generateMips.hlsl" />
   </ItemGroup>
 </Project>
