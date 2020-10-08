@@ -16,10 +16,17 @@
 
 //生成mipmap
 //导入DDS
-//Vertex Buffer和Index Buffer封装
-//sphere, box等内置模型支持
 //导入Cube map
+//create from memory
+//grab screen
+//Resize
+
+
+//Vertex Buffer和Index Buffer封装
+
+//sphere, box等内置模型支持
 //Assimp或FBXSDK导入模型
+
 //constant buffer 封装
 //材质
 //多线程
@@ -43,6 +50,8 @@ namespace Dash
 
 	FApplicationDX12::FApplicationDX12(size_t windowWidth, size_t windowHeight)
 		: FApplication(windowWidth, windowHeight)
+        , mWindowedMode(true)
+        , mWindowVisible(true)
 	{
         {
             mViewport.Width = (FLOAT)mWindow.GetWindowWidth();
@@ -75,12 +84,18 @@ namespace Dash
         FMouse::Get().MouseWheelUp += mMouseWheelUpDelegate;
         FMouse::Get().MouseWheelDown += mMouseWheelDownDelegate;
 
+        mWindowResizeDelegate = FResizeEventDelegate::Create<FApplicationDX12, &FApplicationDX12::OnWindowResize>(this);
+
+        mWindow.WindowResize += mWindowResizeDelegate;
+
         LoadPipeline();
         LoadAssets();
 	}
 
 	FApplicationDX12::~FApplicationDX12()
 	{
+        FTextureHelper::Get()->Destroy();
+
         WaitForPreviousFrame();
 
         mConstantBuffer->Unmap(0, nullptr);
@@ -89,20 +104,25 @@ namespace Dash
 
         FMouse::Get().MouseWheelUp -= mMouseWheelUpDelegate;
         FMouse::Get().MouseWheelDown -= mMouseWheelDownDelegate;
+
+        mWindow.WindowResize -= mWindowResizeDelegate;
 	}
 
 	void FApplicationDX12::OnRender(const FRenderEventArgs& e)
 	{
-        PopulateCommandList(e);
+        if (mWindowVisible)
+        {
+            PopulateCommandList(e);
 
-        ID3D12CommandList* commands[] = { mCommandList.Get() };
-        mD3DCommandQueue->ExecuteCommandLists(_countof(commands), commands);
+            ID3D12CommandList* commands[] = { mCommandList.Get() };
+            mD3DCommandQueue->ExecuteCommandLists(_countof(commands), commands);
 
-        //HR(mSwapChain->Present(1, 0));
+            //HR(mSwapChain->Present(1, 0));
 
-        ThrowIfFailed(mSwapChain->Present(1, 0));
+            ThrowIfFailed(mSwapChain->Present(1, 0));
 
-        WaitForPreviousFrame();
+            WaitForPreviousFrame();
+        }
 	}
 
     void FApplicationDX12::OnMouseWhellUp(FMouseWheelEventArgs&)
@@ -113,6 +133,87 @@ namespace Dash
     void FApplicationDX12::OnMouseWhellDown(FMouseWheelEventArgs&)
     {
         mCamera.ZoomOut();
+    }
+
+    void FApplicationDX12::OnWindowResize(FResizeEventArgs& args)
+    {
+        LOG_INFO << "Window Resize";
+
+        if (!args.mMinimized)
+        {
+            //WaitForPreviousFrame();
+            WaitForGpu();
+
+            for (UINT i = 0; i < FApplicationDX12::BackBufferFrameCount; i++)
+            {
+                mBackBuffers[i].Reset();
+            }
+
+            DXGI_SWAP_CHAIN_DESC swapchainDesc{};
+            HR(mSwapChain->GetDesc(&swapchainDesc));
+            HR(mSwapChain->ResizeBuffers(FApplicationDX12::BackBufferFrameCount, args.mWidth, args.mHeight, swapchainDesc.BufferDesc.Format, swapchainDesc.Flags));
+
+            BOOL fullscreenState;
+            HR(mSwapChain->GetFullscreenState(&fullscreenState, nullptr));
+            mWindowedMode = !fullscreenState;
+
+            {
+                float aspect = args.mWidth / (float)args.mHeight;
+                float projectionWindowHeight = 1.0f;
+                float projectionWindowWidth = aspect;
+
+                mCamera.SetCameraParams(projectionWindowWidth, projectionWindowHeight, 1.0f, 100.0f);
+            }
+
+            {
+                mViewport.Width = (FLOAT)args.mWidth;
+                mViewport.Height = (FLOAT)args.mHeight;
+                mViewport.TopLeftX = 0.0f;
+                mViewport.TopLeftY = 0.0f;
+                mViewport.MinDepth = 0.0f;
+                mViewport.MaxDepth = 1.0f;
+
+                mScissorRect.left = 0;
+                mScissorRect.right = (UINT)args.mWidth;
+                mScissorRect.top = 0;
+                mScissorRect.bottom = (UINT)args.mHeight;
+            }
+
+            {
+                //Create Rendertarget view
+                CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mRTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+                for (UINT i = 0; i < FApplicationDX12::BackBufferFrameCount; i++)
+                {
+                    HR(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mBackBuffers[i])));
+                    mD3DDevice->CreateRenderTargetView(mBackBuffers[i].Get(), nullptr, descriptorHandle);
+                    descriptorHandle.Offset(1, mRTVDescriptorSize);
+                }
+
+                mBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
+            }
+
+            {
+                D3D12_RESOURCE_DESC depthstencilDesc{};
+                depthstencilDesc = mDepthStencilBuffer->GetDesc();
+                mDepthStencilBuffer.Reset();
+
+                depthstencilDesc.Width = args.mWidth;
+                depthstencilDesc.Height = args.mHeight;
+
+                HR(mD3DDevice->CreatePlacedResource(
+                    mRTDSHeap.Get(),
+                    mRTDSHeapOffset,
+                    &depthstencilDesc,
+                    D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                    &mDepthStencilClearValue,
+                    IID_PPV_ARGS(&mDepthStencilBuffer)
+                ));
+
+                mD3DDevice->CreateDepthStencilView(mDepthStencilBuffer.Get(), nullptr, mDepthStencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+            }
+        }
+
+        mWindowVisible = !args.mMinimized;
     }
 
 	void FApplicationDX12::OnUpdate(const FUpdateEventArgs& e)
@@ -221,6 +322,17 @@ namespace Dash
         mBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
 	}
 
+    void FApplicationDX12::WaitForGpu()
+    {
+        UINT valueToWait = mFenceValue;
+        HR(mD3DCommandQueue->Signal(mFence.Get(), valueToWait));
+        
+        HR(mFence->SetEventOnCompletion(valueToWait, mFenceEvent));
+        WaitForSingleObjectEx(mFenceEvent, INFINITE, FALSE);
+
+        ++mFenceValue;
+    }
+
 	void FApplicationDX12::LoadPipeline()
 	{
         UINT dxgiFactoryFlag = 0;
@@ -241,6 +353,8 @@ namespace Dash
         GetHardwareAdapter(mDXGIFatory.Get(), &dxgiAdapter, true);
 
         HR(D3D12CreateDevice(dxgiAdapter.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&mD3DDevice)));
+
+        FTextureHelper::Get(mD3DDevice);
 
         D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
         commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -467,7 +581,7 @@ namespace Dash
 
             D3D12_RESOURCE_ALLOCATION_INFO textureAllocationInfo = mD3DDevice->GetResourceAllocationInfo(0, 1, &depthStencilDesc);
 
-            mRTDSHeapOffset += UPPER_ALIGNMENT(textureAllocationInfo.SizeInBytes, textureAllocationInfo.Alignment);
+            //mRTDSHeapOffset += UPPER_ALIGNMENT(textureAllocationInfo.SizeInBytes, textureAllocationInfo.Alignment);
             
             mD3DDevice->CreateDepthStencilView(mDepthStencilBuffer.Get(), nullptr, mDepthStencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
         }
@@ -557,11 +671,11 @@ namespace Dash
 
         //Create Texture
         {
-            
+            /*
             FTexture texture = LoadWICTexture(L"coma.png");
 
             D3D12_RESOURCE_DESC resourceDesc{};
-            resourceDesc.MipLevels = CountMips(texture.GetWidth(), texture.GetHeight());
+            resourceDesc.MipLevels = CountMips((uint32_t)texture.GetWidth(), (uint32_t)texture.GetHeight());
             resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
             resourceDesc.Width = texture.GetWidth();
             resourceDesc.Height = (UINT)texture.GetHeight();
@@ -572,16 +686,6 @@ namespace Dash
             resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
             //Create texture resource
-
-            //HR(mD3DDevice->CreateCommittedResource(
-            //    &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT),
-            //    D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
-            //    &resourceDesc,
-            //    D3D12_RESOURCE_STATE_COPY_DEST,
-            //    nullptr,
-            //    IID_PPV_ARGS(&mTextureResource)
-            //));
-
             HR(mD3DDevice->CreatePlacedResource(
                 mTextureHeap.Get(),
                 mTextureHeapOffset,
@@ -597,16 +701,9 @@ namespace Dash
 
             //Create upload buffer
             UINT64 uploadBufferSize = GetRequiredIntermediateSize(mTextureResource.Get(), 0, 1);
+            */
 
-            //HR(mD3DDevice->CreateCommittedResource(
-            //    &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD),
-            //    D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
-            //    &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
-            //    D3D12_RESOURCE_STATE_GENERIC_READ,
-            //    nullptr,
-            //    IID_PPV_ARGS(&uploadTextureBuffer)
-            //));
-
+            /*
             HR(mD3DDevice->CreatePlacedResource(
                 mUploadHeap.Get(),
                 mUploadHeapOffset,
@@ -615,19 +712,55 @@ namespace Dash
                 nullptr,
                 IID_PPV_ARGS(&uploadTextureBuffer)
             ));
-
-            mUploadHeapOffset += UPPER_ALIGNMENT(uploadBufferSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
             
-            UpdateTextureRegion(mD3DDevice, mCommandList, mTextureResource, uploadTextureBuffer, texture);
+            mUploadHeapOffset += UPPER_ALIGNMENT(uploadBufferSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+            */
 
-            //GenerateMipmap(mD3DDevice, mCommandList, mTextureResource);
+            FTexture texture;
+
+            FTextureHelper::Get()->Begin();
+
+            //FTextureHelper::Get()->CreateWICTextureFromFileEx(
+            //    L"coma.png",
+            //    mTextureResource,
+            //    texture,
+            //    D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE,
+            //    EWIC_LOADER_FLAGS::WIC_LOADER_MIP_AUTOGEN);
+
+            FTextureHelper::Get()->CreateDDSTextureFromFileEx(
+                L"DDSTest.dds",              
+                mTextureResource,
+                D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE,
+                EDDS_LOADER_FLAGS::DDS_LOADER_DEFAULT);
+
+            //std::vector<std::wstring> fileNames;
+            //fileNames.push_back(L"coma.png");
+            //fileNames.push_back(L"template.png");
+
+            //FTextureHelper::Get()->CreateWICTextureArrayFromFileEx(
+            //    fileNames,
+            //    mTextureResource,
+            //    D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE,
+            //    EWIC_LOADER_FLAGS::WIC_LOADER_MIP_AUTOGEN | EWIC_LOADER_FLAGS::WIC_LOADER_IGNORE_SRGB
+            //);
+
+            FTextureHelper::Get()->End(mD3DCommandQueue);
+
+            D3D12_RESOURCE_DESC textureDesc = mTextureResource->GetDesc();
 
             //Create shader resource view
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
             srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            srvDesc.Format = resourceDesc.Format;
+            srvDesc.Format = textureDesc.Format;
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
-            srvDesc.Texture2D.MipLevels = 1;
+            srvDesc.Texture2D.MipLevels = textureDesc.MipLevels;
+
+            //D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+            //srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            //srvDesc.Format = textureDesc.Format;
+            //srvDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+            //srvDesc.Texture2DArray.MipLevels = textureDesc.MipLevels;
+            //srvDesc.Texture2DArray.ArraySize = textureDesc.DepthOrArraySize;
 
             mD3DDevice->CreateShaderResourceView(mTextureResource.Get(), &srvDesc, mSRVCBVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
         }
@@ -715,6 +848,8 @@ namespace Dash
         HR(mCommandList->Close());
         ID3D12CommandList* commands[] = { mCommandList.Get() };
         mD3DCommandQueue->ExecuteCommandLists(_countof(commands), commands);
+
+        //FTextureHelper::Get()->GenerateMipmap(mTextureResource, mD3DCommandQueue);
 
         HR(mD3DDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
         mFenceValue = 1;

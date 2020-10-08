@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include "../utility/Events.h"
 #include <thread>
 #include "../consolid/DashWinAPI.h"
 #include "../design_patterns/Singleton.h"
@@ -14,7 +15,7 @@ namespace Dash
 		FWindow(const std::string& name, const std::string title, size_t width = 1080, size_t height = 720);
 		virtual ~FWindow();
 
-		const std::string& GetWindowName() const noexcept { return WindowClassRegister::Get()->GetWindowClassName(); }
+		const std::string& GetWindowName() const noexcept { return FWindowClassRegister::Get()->GetWindowClassName(); }
 
 		size_t GetWindowWidth() const noexcept { return mWindowWidth; }
 		size_t GetWindowHeight() const noexcept { return mWindowHeight; }
@@ -34,24 +35,29 @@ namespace Dash
 
 		HWND GetWindowHandle() noexcept { return mWindowHandle; }
 
+	public:
+		FResizeEvent WindowResize;
+
+		void OnWindowResize(FResizeEventArgs& args);
+
 	private:
 
 		static LRESULT CALLBACK WinProcFunc(HWND, UINT, WPARAM, LPARAM);
 		static LRESULT CALLBACK HandleMsgThunk(HWND, UINT, WPARAM, LPARAM);
 		LRESULT HandleMsg(HWND, UINT, WPARAM, LPARAM) noexcept;
 
-		class WindowClassRegister : public TSingleton<WindowClassRegister>
+		class FWindowClassRegister : public TSingleton<FWindowClassRegister>
 		{
 		public:
 			HINSTANCE GetWindowInstance() const noexcept;
 			const std::string& GetWindowClassName() const noexcept;
 
-			WindowClassRegister();
-			WindowClassRegister(const std::string& windowName, HINSTANCE windowInstance);
-			~WindowClassRegister();
+			FWindowClassRegister();
+			FWindowClassRegister(const std::string& windowName, HINSTANCE windowInstance);
+			~FWindowClassRegister();
 			
-			WindowClassRegister(WindowClassRegister&) = delete;
-			WindowClassRegister& operator=(const WindowClassRegister&) = delete;
+			FWindowClassRegister(FWindowClassRegister&) = delete;
+			FWindowClassRegister& operator=(const FWindowClassRegister&) = delete;
 
 		private:
 

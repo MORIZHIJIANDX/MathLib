@@ -175,9 +175,10 @@ namespace Dash
 	public:
 		using base = FEventArgs;
 
-		FResizeEventArgs(int width, int height)
+		FResizeEventArgs(int width, int height, bool minimize)
 			: mWidth(width)
 			, mHeight(height)
+			, mMinimized(minimize)
 		{}
 
 		// The new width of the window
@@ -185,6 +186,7 @@ namespace Dash
 		// The new height of the window.
 		int mHeight;
 
+		bool mMinimized;
 	};
 
 	using FResizeEvent = TMulticastDelegate<void(FResizeEventArgs&)>;

@@ -17,7 +17,7 @@ namespace Dash
 		, mWindowHeight(height)
 		, mRequestQuit(false)
 	{
-		FWindow::WindowClassRegister::Get(name, ::GetModuleHandle(NULL));
+		FWindow::FWindowClassRegister::Get(name, ::GetModuleHandle(NULL));
 		
 		RECT winRect;
 		winRect.left = 100;
@@ -37,7 +37,7 @@ namespace Dash
 			static_cast<int>(winRect.bottom - winRect.top),
 			nullptr,      
 			nullptr,       
-			FWindow::WindowClassRegister::Get()->GetWindowInstance(),
+			FWindow::FWindowClassRegister::Get()->GetWindowInstance(),
 			this);
 
 		ShowWindow();
@@ -150,6 +150,17 @@ namespace Dash
 		return mouseButton;
 	}
 
+	void FWindow::OnWindowResize(FResizeEventArgs& args)
+	{
+		if (args.mWidth != mWindowWidth || args.mHeight != mWindowHeight)
+		{
+			WindowResize(args);
+
+			mWindowWidth = args.mWidth;
+			mWindowHeight = args.mHeight;
+		}
+	}
+
 	LRESULT FWindow::WinProcFunc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		if (msg == WM_CREATE)
@@ -189,8 +200,17 @@ namespace Dash
 		case WM_KILLFOCUS:
 			MessageQueue.Push(std::bind(&FKeyboard::ClearStates, &FKeyboard::Get()));
 			break;
+		case WM_SIZE:
+		{
+			RECT clientRect = {};
+			GetClientRect(hWnd, &clientRect);
 
-			/*********** KEYBOARD MESSAGES ***********/
+			FResizeEventArgs windowResizeArgs{ clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, wParam == SIZE_MINIMIZED };
+
+			MessageQueue.Push(std::bind(&FWindow::OnWindowResize, this, windowResizeArgs));
+			break;
+		}			
+		/*********** KEYBOARD MESSAGES ***********/
 		case WM_KEYDOWN:
 			// syskey commands need to be handled to track ALT key (VK_MENU) and F10
 		case WM_SYSKEYDOWN:
@@ -340,23 +360,23 @@ namespace Dash
 		return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
 
-	HINSTANCE FWindow::WindowClassRegister::GetWindowInstance() const noexcept
+	HINSTANCE FWindow::FWindowClassRegister::GetWindowInstance() const noexcept
 	{
 		return mWindowInstance;
 	}
 
-	const std::string& FWindow::WindowClassRegister::GetWindowClassName() const noexcept
+	const std::string& FWindow::FWindowClassRegister::GetWindowClassName() const noexcept
 	{
 		return mWindowClassName;
 	}
 
-	FWindow::WindowClassRegister::WindowClassRegister()
+	FWindow::FWindowClassRegister::FWindowClassRegister()
 		: mWindowClassName()
 		, mWindowInstance(nullptr)
 	{
 	}
 
-	FWindow::WindowClassRegister::WindowClassRegister(const std::string& windowName, HINSTANCE windowInstance)
+	FWindow::FWindowClassRegister::FWindowClassRegister(const std::string& windowName, HINSTANCE windowInstance)
 		: mWindowClassName(windowName)
 		, mWindowInstance(windowInstance)
 	{
@@ -380,7 +400,7 @@ namespace Dash
 		RegisterClassEx(&winClass);
 	}
 
-	FWindow::WindowClassRegister::~WindowClassRegister()
+	FWindow::FWindowClassRegister::~FWindowClassRegister()
 	{
 		UnregisterClass(mWindowClassName.c_str(), mWindowInstance);
 	}

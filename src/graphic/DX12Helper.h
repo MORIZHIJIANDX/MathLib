@@ -5,6 +5,7 @@
 #include "../utility/Image.h"
 #include "../utility/Exception.h"
 #include "../design_patterns/Singleton.h"
+#include "../utility/ImageHelper.h"
 
 /*
 Create Mips
@@ -35,13 +36,23 @@ namespace Dash
     template<UINT TNameLength>
     FORCEINLINE void SetDebugObjectName(_In_ ID3D12DeviceChild* resource, _In_z_ const char(&name)[TNameLength]) noexcept
     {
+        //#define CP_UTF8                   65001
+
+        std::string str{ name };
+        std::wstring wstr(str.length(), L' '); // Make room for characters
+
+        // Copy string to wstring.
+        std::copy(str.begin(), str.end(), wstr.begin());
+
+        resource->SetName(wstr.c_str());
+
 #if !defined(NO_D3D12_DEBUG_NAME) && (defined(_DEBUG) || defined(PROFILE))
-        wchar_t wname[MAX_PATH];
-        int result = MultiByteToWideChar(CP_UTF8, 0, name, TNameLength, wname, MAX_PATH);
-        if (result > 0)
-        {
-            resource->SetName(wname);
-        }
+        //wchar_t wname[MAX_PATH];
+        //int result = MultiByteToWideChar(CP_UTF8, 0, name, TNameLength, wname, MAX_PATH);
+        //if (result > 0)
+        //{
+        //    resource->SetName(wname);
+        //}
 #else
         UNREFERENCED_PARAMETER(resource);
         UNREFERENCED_PARAMETER(name);
@@ -132,8 +143,99 @@ namespace Dash
         commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	}
 
-    struct FGenerateMips : public TSingleton<FGenerateMips>
+    struct FTextureHelper : public TSingleton<FTextureHelper>
     {
+        FTextureHelper() {};
+        FTextureHelper(Microsoft::WRL::ComPtr<ID3D12Device>& device);
+
+        void Destroy();
+
+        void GenerateMipmap(Microsoft::WRL::ComPtr<ID3D12Resource>& resource);
+
+        HRESULT CreateWICTextureFromFileEx(
+            const std::wstring& fileName,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& destTexture,
+            FTexture& decodeTexture,
+            D3D12_RESOURCE_FLAGS resFlags,
+            EWIC_LOADER_FLAGS loadFlags);
+
+        HRESULT CreateWICTextureFromMemory(
+            Microsoft::WRL::ComPtr<ID3D12Resource>& destTexture,
+            FTexture& decodeTexture,
+            D3D12_RESOURCE_FLAGS resFlags,
+            bool autoGenMips = true);
+
+        HRESULT CreateWICTextureArrayFromFileEx(
+            const std::vector<std::wstring>& fileName,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& destTexture,
+            D3D12_RESOURCE_FLAGS resFlags,
+            EWIC_LOADER_FLAGS loadFlags);
+
+        //  Texture Sequence :
+        //	POSITIVE_X = 0,
+        //  NEGATIVE_X = 1,
+        //  POSITIVE_Y = 2,
+        //  NEGATIVE_Y = 3,
+        //  POSITIVE_Z = 4,
+        //  NEGATIVE_Z = 5  
+        HRESULT CreateWICTextureCubeFromFileEx(
+            const std::vector<std::wstring>& fileName,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& destTexture,
+            D3D12_RESOURCE_FLAGS resFlags,
+            EWIC_LOADER_FLAGS loadFlags);
+
+        HRESULT CreateWICTextureCubeFromFileEx(
+            const std::wstring& fileName,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& destTexture,
+            D3D12_RESOURCE_FLAGS resFlags,
+            EWIC_LOADER_FLAGS loadFlags);
+        
+        HRESULT SaveWICTextureToFile(
+            Microsoft::WRL::ComPtr<ID3D12CommandQueue> pCommandQ,
+            Microsoft::WRL::ComPtr<ID3D12Resource> pSource,
+            REFGUID guidContainerFormat,
+            const std::wstring& fileName,
+            D3D12_RESOURCE_STATES beforeState,
+            D3D12_RESOURCE_STATES afterState,
+            const GUID* targetFormat,
+            bool forceSRGB);
+
+        HRESULT CreateDDSTextureFromFileEx(
+            const std::wstring& fileName,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& texture,
+            D3D12_RESOURCE_FLAGS resFlags,
+            EDDS_LOADER_FLAGS loadFlags,
+            DirectX::DDS_ALPHA_MODE* alphaMode = nullptr,
+            bool* isCubeMap = nullptr);
+
+        HRESULT __cdecl SaveDDSTextureToFile(
+            Microsoft::WRL::ComPtr<ID3D12CommandQueue>& pCommandQueue,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& pSource,
+            const std::wstring& fileName,
+            D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_RENDER_TARGET,
+            D3D12_RESOURCE_STATES afterState = D3D12_RESOURCE_STATE_RENDER_TARGET) noexcept;
+
+        void Upload(
+            Microsoft::WRL::ComPtr<ID3D12Resource>& resource,
+            uint32_t subresourceIndexStart,
+            const D3D12_SUBRESOURCE_DATA* subRes,
+            uint32_t numSubresources);
+
+        UINT64 UpdateSubresources(
+            Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& pCmdList,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& pDestinationResource,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& pIntermediate,
+            UINT64 IntermediateOffset,
+            UINT FirstSubresource,
+            UINT NumSubresources,
+            const D3D12_SUBRESOURCE_DATA* pSrcData) noexcept;
+
+        void Begin();
+
+        void End(Microsoft::WRL::ComPtr<ID3D12CommandQueue>& commandQueue);
+
+    private:
+
 #pragma pack(push, 4)
         struct ConstantData
         {
@@ -147,31 +249,105 @@ namespace Dash
 
         enum RootParameterIndex
         {
-            Constants,
+            Constants = 0,
             SourceTexture,
             TargetTexture,
             RootParameterCount
         };
 
-        void Init(Microsoft::WRL::ComPtr<ID3D12Device>& device);
+        //--------------------------------------------------------------------------------------
+        DXGI_FORMAT GetDDSPixelFormat(const DirectX::DDS_HEADER* header) noexcept;
 
-        void GenerateMipmap(Microsoft::WRL::ComPtr<ID3D12Device>& device, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList,
-            Microsoft::WRL::ComPtr<ID3D12Resource>& resource);
-    
-    private:
-        Microsoft::WRL::ComPtr<ID3D12RootSignature> CreateGenMipsRootSignature(
-            Microsoft::WRL::ComPtr<ID3D12Device>& device);
+        bool IsSupportedForGenerateMips(DXGI_FORMAT format) noexcept;
+
+        //--------------------------------------------------------------------------------------
+        HRESULT CreateTextureFromDDS(
+            const DirectX::DDS_HEADER* header,
+            const uint8_t* bitData,
+            size_t bitSize,
+            size_t maxsize,
+            D3D12_RESOURCE_FLAGS resFlags,
+            EDDS_LOADER_FLAGS loadFlags,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& texture,
+            std::vector<D3D12_SUBRESOURCE_DATA>& subresources,
+            bool* outIsCubeMap);
+
+        HRESULT FillInitData(
+            size_t width,
+            size_t height,
+            size_t depth,
+            size_t mipCount,
+            size_t arraySize,
+            size_t numberOfPlanes,
+            DXGI_FORMAT format,
+            size_t maxsize,
+            size_t bitSize,
+            const uint8_t* bitData,
+            size_t& twidth,
+            size_t& theight,
+            size_t& tdepth,
+            size_t& skipMip,
+            std::vector<D3D12_SUBRESOURCE_DATA>& initData);
+
+        HRESULT CreateTextureResource(
+            D3D12_RESOURCE_DIMENSION resDim,
+            size_t width,
+            size_t height,
+            size_t depth,
+            size_t mipCount,
+            size_t arraySize,
+            DXGI_FORMAT format,
+            D3D12_RESOURCE_FLAGS resFlags,
+            EDDS_LOADER_FLAGS loadFlags,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& texture) noexcept;
+
+        UINT64 UpdateSubresources(
+            Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& pCmdList,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& pDestinationResource,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& pIntermediate,
+            UINT FirstSubresource,
+            UINT NumSubresources,
+            UINT64 RequiredSize,
+            const D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts,
+            const UINT* pNumRows,
+            const UINT64* pRowSizesInBytes,
+            const D3D12_SUBRESOURCE_DATA* pSrcData) noexcept;
+
+        HRESULT CaptureTexture(
+            Microsoft::WRL::ComPtr<ID3D12CommandQueue> pCommandQ,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& pSource,
+            UINT64 srcPitch,
+            const D3D12_RESOURCE_DESC& desc,
+            Microsoft::WRL::ComPtr<ID3D12Resource>& pStaging,
+            D3D12_RESOURCE_STATES beforeState,
+            D3D12_RESOURCE_STATES afterState) noexcept;
+
+        Microsoft::WRL::ComPtr<ID3D12RootSignature> CreateGenMipsRootSignature();
 
         Microsoft::WRL::ComPtr<ID3D12PipelineState> CreateGenMipsPipelineState(
-            Microsoft::WRL::ComPtr<ID3D12Device>& device,
             Microsoft::WRL::ComPtr<ID3D12RootSignature>& rootSignature,
             const void* bytecode,
             size_t bytecodeSize);
 
-        void GenerateMips_UnorderedAccessPath(Microsoft::WRL::ComPtr<ID3D12Device>& device, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList,
-            Microsoft::WRL::ComPtr<ID3D12Resource>& resource, Microsoft::WRL::ComPtr<ID3D12PipelineState>& pso, Microsoft::WRL::ComPtr<ID3D12RootSignature>& rootSignature);
+        void GenerateMips_UnorderedAccessPath(Microsoft::WRL::ComPtr<ID3D12Resource>& resource);
+
+        // Resource is not UAV compatible
+        void GenerateMips_TexturePath(Microsoft::WRL::ComPtr<ID3D12Resource>& resource);
+
+        // Resource is not UAV compatible (copy via alias to avoid validation failure)
+        void GenerateMips_TexturePathBGR(Microsoft::WRL::ComPtr<ID3D12Resource>& resource);
+
+        Microsoft::WRL::ComPtr<ID3D12Device> mD3DDevice;
+        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
+        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
+
+        Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
+
+        bool mTypedUAVLoadAdditionalFormats = false;
+        bool mStandardSwizzle64KBSupported = false;
+
+        std::vector<Microsoft::WRL::ComPtr<ID3D12DeviceChild>>   mTrackedObjects;
     };
 
-    void GenerateMipmap(Microsoft::WRL::ComPtr<ID3D12Device>& device, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList,
-        Microsoft::WRL::ComPtr<ID3D12Resource>& resource);
 }

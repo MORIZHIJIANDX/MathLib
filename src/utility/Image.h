@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../math/MathType.h"
+#include <d3d12.h>
 #include <vector>
 #include <fstream>
 #include <vector>
@@ -21,6 +22,8 @@ namespace Dash
 		FTexture& operator=(FTexture&& other) noexcept;
 
 		EDASH_FORMAT GetFormat() const { return mFormat; }
+
+		DXGI_FORMAT GetDXGIFormat() const;
 
 		size_t GetBitPerPixel() const { return mBitPerPixel; }
 

@@ -86,6 +86,7 @@
   <ItemGroup>
     <ClInclude Include="src\graphic\DX12Helper.h" />
     <ClInclude Include="src\math\Color.h" />
+    <ClInclude Include="src\utility\DDS.h" />
     <ClInclude Include="src\utility\Image.h" />
     <ClInclude Include="src\consolid\consolid.h" />
     <ClInclude Include="src\consolid\DashWinAPI.h" />
@@ -177,6 +178,9 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VSMain</EntryPointName>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

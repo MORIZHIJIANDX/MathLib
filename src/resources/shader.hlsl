@@ -11,6 +11,9 @@ struct PSInput
 };
 
 Texture2D g_texture : register(t0);
+
+//Texture2DArray g_texture : register(t0);
+
 SamplerState g_sampler : register(s0);
 
 cbuffer FrameBuffer : register(b0)
@@ -46,7 +49,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 	//return input.Color;
 	return g_texture.Sample(g_sampler, input.UV);
 
-	//float x = TotalTime;
+	//return g_texture.Sample(g_sampler, float3(input.UV, 1));
 
-	//return float4(x, x, x, 1.0f);
+	//return g_texture.SampleLevel(g_sampler, input.UV, 5);
 }

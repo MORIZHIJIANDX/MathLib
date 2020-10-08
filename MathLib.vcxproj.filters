@@ -180,6 +180,9 @@
     <ClInclude Include="src\graphic\DX12Helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\utility\DDS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -246,5 +249,8 @@
   <ItemGroup>
     <FxCompile Include="src\resources\shader.hlsl" />
     <FxCompile Include="src\resources\generateMips.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

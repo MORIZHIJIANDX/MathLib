@@ -1,4 +1,5 @@
 #include "Image.h"
+#include "ImageHelper.h"
 
 namespace Dash
 {
@@ -72,6 +73,11 @@ namespace Dash
 			mData = std::move(other.mData);
 		}
 		return *this;
+	}
+
+	DXGI_FORMAT FTexture::GetDXGIFormat() const
+	{
+		return DashFormatToDXGIFormat(mFormat);
 	}
 
 	void FTexture::Resize(size_t x, size_t y)

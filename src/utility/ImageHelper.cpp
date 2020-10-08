@@ -331,9 +331,7 @@ namespace Dash
 			ifactory)) ? TRUE : FALSE;
 	}
 
-	IWICImagingFactory2* _GetWIC() noexcept;
 	// Also used by ScreenGrab
-
 	IWICImagingFactory2* _GetWIC() noexcept
 	{
 		static INIT_ONCE s_initOnce = INIT_ONCE_STATIC_INIT;
@@ -391,21 +389,6 @@ namespace Dash
 		return bpp;
 	}
 
-	FORCEINLINE EWIC_LOADER_FLAGS operator&(const EWIC_LOADER_FLAGS& a, const EWIC_LOADER_FLAGS& b)
-	{
-		return static_cast<EWIC_LOADER_FLAGS>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
-	}
-
-	FORCEINLINE EWIC_LOADER_FLAGS operator|(const EWIC_LOADER_FLAGS& a, const EWIC_LOADER_FLAGS& b)
-	{
-		return static_cast<EWIC_LOADER_FLAGS>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
-	}
-
-	bool Valid(const EWIC_LOADER_FLAGS& a)
-	{
-		return a != EWIC_LOADER_FLAGS::WIC_LOADER_DEFAULT;
-	}
-
 	inline void FitPowerOf2(UINT origx, UINT origy, UINT& targetx, UINT& targety, size_t maxsize)
 	{
 		float origAR = float(origx) / float(origy);
@@ -447,7 +430,7 @@ namespace Dash
 	}
 
 	//--------------------------------------------------------------------------------------
-	inline DXGI_FORMAT MakeSRGB(_In_ DXGI_FORMAT format) noexcept
+	DXGI_FORMAT MakeSRGB(DXGI_FORMAT format) noexcept
 	{
 		switch (format)
 		{
@@ -492,33 +475,158 @@ namespace Dash
 		return count;
 	}
 
-
-	class auto_delete_file_wic
+	HRESULT GetSurfaceInfo(size_t width, size_t height, DXGI_FORMAT fmt, size_t* outNumBytes, size_t* outRowBytes, size_t* outNumRows) noexcept
 	{
-	public:
-		auto_delete_file_wic(Microsoft::WRL::ComPtr<IWICStream>& hFile, LPCWSTR szFile) noexcept : m_filename(szFile), m_handle(hFile) {}
+		uint64_t numBytes = 0;
+		uint64_t rowBytes = 0;
+		uint64_t numRows = 0;
 
-		auto_delete_file_wic(const auto_delete_file_wic&) = delete;
-		auto_delete_file_wic& operator=(const auto_delete_file_wic&) = delete;
-
-		auto_delete_file_wic(const auto_delete_file_wic&&) = delete;
-		auto_delete_file_wic& operator=(const auto_delete_file_wic&&) = delete;
-
-		~auto_delete_file_wic()
+		bool bc = false;
+		bool packed = false;
+		bool planar = false;
+		size_t bpe = 0;
+		switch (fmt)
 		{
-			if (m_filename)
-			{
-				m_handle.Reset();
-				DeleteFileW(m_filename);
-			}
+		case DXGI_FORMAT_BC1_TYPELESS:
+		case DXGI_FORMAT_BC1_UNORM:
+		case DXGI_FORMAT_BC1_UNORM_SRGB:
+		case DXGI_FORMAT_BC4_TYPELESS:
+		case DXGI_FORMAT_BC4_UNORM:
+		case DXGI_FORMAT_BC4_SNORM:
+			bc = true;
+			bpe = 8;
+			break;
+
+		case DXGI_FORMAT_BC2_TYPELESS:
+		case DXGI_FORMAT_BC2_UNORM:
+		case DXGI_FORMAT_BC2_UNORM_SRGB:
+		case DXGI_FORMAT_BC3_TYPELESS:
+		case DXGI_FORMAT_BC3_UNORM:
+		case DXGI_FORMAT_BC3_UNORM_SRGB:
+		case DXGI_FORMAT_BC5_TYPELESS:
+		case DXGI_FORMAT_BC5_UNORM:
+		case DXGI_FORMAT_BC5_SNORM:
+		case DXGI_FORMAT_BC6H_TYPELESS:
+		case DXGI_FORMAT_BC6H_UF16:
+		case DXGI_FORMAT_BC6H_SF16:
+		case DXGI_FORMAT_BC7_TYPELESS:
+		case DXGI_FORMAT_BC7_UNORM:
+		case DXGI_FORMAT_BC7_UNORM_SRGB:
+			bc = true;
+			bpe = 16;
+			break;
+
+		case DXGI_FORMAT_R8G8_B8G8_UNORM:
+		case DXGI_FORMAT_G8R8_G8B8_UNORM:
+		case DXGI_FORMAT_YUY2:
+			packed = true;
+			bpe = 4;
+			break;
+
+		case DXGI_FORMAT_Y210:
+		case DXGI_FORMAT_Y216:
+			packed = true;
+			bpe = 8;
+			break;
+
+		case DXGI_FORMAT_NV12:
+		case DXGI_FORMAT_420_OPAQUE:
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN10)
+		case DXGI_FORMAT_P208:
+#endif
+			planar = true;
+			bpe = 2;
+			break;
+
+		case DXGI_FORMAT_P010:
+		case DXGI_FORMAT_P016:
+			planar = true;
+			bpe = 4;
+			break;
+
+#if (defined(_XBOX_ONE) && defined(_TITLE)) || defined(_GAMING_XBOX)
+
+		case DXGI_FORMAT_D16_UNORM_S8_UINT:
+		case DXGI_FORMAT_R16_UNORM_X8_TYPELESS:
+		case DXGI_FORMAT_X16_TYPELESS_G8_UINT:
+			planar = true;
+			bpe = 4;
+			break;
+
+#endif
+
+		default:
+			break;
 		}
 
-		void clear() noexcept { m_filename = nullptr; }
+		if (bc)
+		{
+			uint64_t numBlocksWide = 0;
+			if (width > 0)
+			{
+				numBlocksWide = std::max<uint64_t>(1u, (uint64_t(width) + 3u) / 4u);
+			}
+			uint64_t numBlocksHigh = 0;
+			if (height > 0)
+			{
+				numBlocksHigh = std::max<uint64_t>(1u, (uint64_t(height) + 3u) / 4u);
+			}
+			rowBytes = numBlocksWide * bpe;
+			numRows = numBlocksHigh;
+			numBytes = rowBytes * numBlocksHigh;
+		}
+		else if (packed)
+		{
+			rowBytes = ((uint64_t(width) + 1u) >> 1) * bpe;
+			numRows = uint64_t(height);
+			numBytes = rowBytes * height;
+		}
+		else if (fmt == DXGI_FORMAT_NV11)
+		{
+			rowBytes = ((uint64_t(width) + 3u) >> 2) * 4u;
+			numRows = uint64_t(height) * 2u; // Direct3D makes this simplifying assumption, although it is larger than the 4:1:1 data
+			numBytes = rowBytes * numRows;
+		}
+		else if (planar)
+		{
+			rowBytes = ((uint64_t(width) + 1u) >> 1) * bpe;
+			numBytes = (rowBytes * uint64_t(height)) + ((rowBytes * uint64_t(height) + 1u) >> 1);
+			numRows = height + ((uint64_t(height) + 1u) >> 1);
+		}
+		else
+		{
+			size_t bpp = BitsPerPixel(fmt);
+			if (!bpp)
+				return E_INVALIDARG;
 
-	private:
-		LPCWSTR m_filename;
-		Microsoft::WRL::ComPtr<IWICStream>& m_handle;
-	};
+			rowBytes = (uint64_t(width) * bpp + 7u) / 8u; // round up to nearest byte
+			numRows = uint64_t(height);
+			numBytes = rowBytes * height;
+		}
+
+#if defined(_M_IX86) || defined(_M_ARM) || defined(_M_HYBRID_X86_ARM64)
+		static_assert(sizeof(size_t) == 4, "Not a 32-bit platform!");
+		if (numBytes > UINT32_MAX || rowBytes > UINT32_MAX || numRows > UINT32_MAX)
+			return HRESULT_FROM_WIN32(ERROR_ARITHMETIC_OVERFLOW);
+#else
+		static_assert(sizeof(size_t) == 8, "Not a 64-bit platform!");
+#endif
+
+		if (outNumBytes)
+		{
+			*outNumBytes = static_cast<size_t>(numBytes);
+		}
+		if (outRowBytes)
+		{
+			*outRowBytes = static_cast<size_t>(rowBytes);
+		}
+		if (outNumRows)
+		{
+			*outNumRows = static_cast<size_t>(numRows);
+		}
+
+		return S_OK;
+	}
 
 	FTexture LoadWICTexture(const std::wstring& fileName, EWIC_LOADER_FLAGS loadFlags)
 	{
@@ -533,7 +641,6 @@ namespace Dash
 			GENERIC_READ,
 			WICDecodeMetadataCacheOnDemand,
 			decoder.GetAddressOf()));
-
 
 		Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;
 		HR(decoder->GetFrame(0, frame.GetAddressOf()));
@@ -866,7 +973,7 @@ namespace Dash
 
 		HR(stream->InitializeFromFilename(fileName.c_str(), GENERIC_WRITE));
 
-		auto_delete_file_wic delonfail(stream, fileName.c_str());
+		AutoDeleteFileWic delonfail(stream, fileName.c_str());
 
 		Microsoft::WRL::ComPtr<IWICBitmapEncoder> encoder;
 		HR(pWIC->CreateEncoder(guidContainerFormat, nullptr, encoder.GetAddressOf()));
@@ -1053,5 +1160,112 @@ namespace Dash
 		HR(encoder->Commit());
 
 		delonfail.clear();
+	}
+
+	HRESULT LoadDDSTextureDataFromFile(
+		const std::wstring& fileName,
+		std::unique_ptr<uint8_t[]>& ddsData, 
+		const DirectX::DDS_HEADER** header, 
+		const uint8_t** bitData, 
+		size_t* bitSize) noexcept
+	{
+		if (!header || !bitData || !bitSize)
+		{
+			return E_POINTER;
+		}
+
+		// open the file
+		ScopedHandle hFile(safe_handle(CreateFile2(fileName.c_str(),
+			GENERIC_READ,
+			FILE_SHARE_READ,
+			OPEN_EXISTING,
+			nullptr)));
+
+		if (!hFile)
+		{
+			return HRESULT_FROM_WIN32(GetLastError());
+		}
+
+		// Get the file size
+		FILE_STANDARD_INFO fileInfo;
+		if (!GetFileInformationByHandleEx(hFile.get(), FileStandardInfo, &fileInfo, sizeof(fileInfo)))
+		{
+			return HRESULT_FROM_WIN32(GetLastError());
+		}
+
+		// File is too big for 32-bit allocation, so reject read
+		if (fileInfo.EndOfFile.HighPart > 0)
+		{
+			return E_FAIL;
+		}
+
+		// Need at least enough data to fill the header and magic number to be a valid DDS
+		if (fileInfo.EndOfFile.LowPart < (sizeof(uint32_t) + sizeof(DirectX::DDS_HEADER)))
+		{
+			return E_FAIL;
+		}
+
+		// create enough space for the file data
+		ddsData.reset(new (std::nothrow) uint8_t[fileInfo.EndOfFile.LowPart]);
+		if (!ddsData)
+		{
+			return E_OUTOFMEMORY;
+		}
+
+		// read the data in
+		DWORD BytesRead = 0;
+		if (!ReadFile(hFile.get(),
+			ddsData.get(),
+			fileInfo.EndOfFile.LowPart,
+			&BytesRead,
+			nullptr
+		))
+		{
+			return HRESULT_FROM_WIN32(GetLastError());
+		}
+
+		if (BytesRead < fileInfo.EndOfFile.LowPart)
+		{
+			return E_FAIL;
+		}
+
+		// DDS files always start with the same magic number ("DDS ")
+		auto dwMagicNumber = *reinterpret_cast<const uint32_t*>(ddsData.get());
+		if (dwMagicNumber != DirectX::DDS_MAGIC)
+		{
+			return E_FAIL;
+		}
+
+		auto hdr = reinterpret_cast<const DirectX::DDS_HEADER*>(ddsData.get() + sizeof(uint32_t));
+
+		// Verify header to validate DDS file
+		if (hdr->size != sizeof(DirectX::DDS_HEADER) ||
+			hdr->ddspf.size != sizeof(DirectX::DDS_PIXELFORMAT))
+		{
+			return E_FAIL;
+		}
+
+		// Check for DX10 extension
+		bool bDXT10Header = false;
+		if ((hdr->ddspf.flags & DDS_FOURCC) &&
+			(MAKEFOURCC('D', 'X', '1', '0') == hdr->ddspf.fourCC))
+		{
+			// Must be long enough for both headers and magic value
+			if (fileInfo.EndOfFile.LowPart < (sizeof(DirectX::DDS_HEADER) + sizeof(uint32_t) + sizeof(DirectX::DDS_HEADER_DXT10)))
+			{
+				return E_FAIL;
+			}
+
+			bDXT10Header = true;
+		}
+
+		// setup the pointers in the process request
+		*header = hdr;
+		auto offset = sizeof(uint32_t) + sizeof(DirectX::DDS_HEADER)
+			+ (bDXT10Header ? sizeof(DirectX::DDS_HEADER_DXT10) : 0u);
+		*bitData = ddsData.get() + offset;
+		*bitSize = fileInfo.EndOfFile.LowPart - offset;
+
+		return S_OK;
 	}
 }

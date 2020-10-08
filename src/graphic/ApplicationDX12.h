@@ -35,6 +35,8 @@ namespace Dash
         void PopulateCommandList(const FRenderEventArgs& e);
         void WaitForPreviousFrame();
 
+        void WaitForGpu();
+
         void LoadPipeline();
         void LoadAssets();
 
@@ -55,6 +57,8 @@ namespace Dash
 
         void OnMouseWhellUp(FMouseWheelEventArgs&);
         void OnMouseWhellDown(FMouseWheelEventArgs&);
+
+        void OnWindowResize(FResizeEventArgs& args);
 
     public:
         static const UINT BackBufferFrameCount = 2;
@@ -123,6 +127,11 @@ namespace Dash
 
         FMouseWheelEventDelegate mMouseWheelUpDelegate;
         FMouseWheelEventDelegate mMouseWheelDownDelegate;
+
+        FResizeEventDelegate mWindowResizeDelegate;
+
+        bool mWindowedMode;
+        bool mWindowVisible;
 	};
 
 }
