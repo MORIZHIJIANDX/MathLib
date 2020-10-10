@@ -54,6 +54,9 @@ namespace Dash
 
 	void FMouse::OnMouseMove(FMouseMotionEventArgs& e)
 	{
+		e.mRelX = e.mX - mMousePos.x;
+		e.mRelY = e.mY - mMousePos.y;
+
 		mMousePos.x = e.mX;
 		mMousePos.y = e.mY;
 

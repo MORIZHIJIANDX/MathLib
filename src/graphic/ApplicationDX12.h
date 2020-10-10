@@ -55,8 +55,10 @@ namespace Dash
             return 0;
         }
 
-        void OnMouseWhellUp(FMouseWheelEventArgs&);
-        void OnMouseWhellDown(FMouseWheelEventArgs&);
+        void OnMouseWhellUp(FMouseWheelEventArgs& args);
+        void OnMouseWhellDown(FMouseWheelEventArgs& args);
+
+        void OnMouseMove(FMouseMotionEventArgs& args);
 
         void OnWindowResize(FResizeEventArgs& args);
 
@@ -78,8 +80,13 @@ namespace Dash
         Microsoft::WRL::ComPtr<ID3D12Resource> mBackBuffers[BackBufferFrameCount];
         Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
         Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
+
         Microsoft::WRL::ComPtr<ID3D12Resource> mVertexBuffer;
         D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
+
+        Microsoft::WRL::ComPtr<ID3D12Resource> mIndexBuffer;
+        D3D12_INDEX_BUFFER_VIEW mIndexBufferView;
+        UINT mIndexCount;
 
         Microsoft::WRL::ComPtr<ID3D12Resource> mTextureResource;
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSRVCBVDescriptorHeap;
@@ -121,12 +128,16 @@ namespace Dash
         const UINT mMaxSamplerCount = 5;
         int mCurrentSamplerIndex = 0;
 
-        FOrthographicCamera mCamera;
+        //FOrthographicCamera mCamera;
+        FirstPersonCamera mCamera;
+        Scalar mFov;
 
         FTransform mObjectTransform;
 
         FMouseWheelEventDelegate mMouseWheelUpDelegate;
         FMouseWheelEventDelegate mMouseWheelDownDelegate;
+
+        FMouseMotionEventDelegate mMouseMotionDelegate;
 
         FResizeEventDelegate mWindowResizeDelegate;
 

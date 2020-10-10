@@ -36,6 +36,121 @@
 
 namespace Dash
 {
+    struct Vertex
+    {
+        FVector3f Pos;
+        FVector3f Normal;
+        FVector4f Tangent;
+        FVector4f Color;
+        FVector2f UV;
+    };
+
+    struct MeshData
+    {
+        std::vector<Vertex> VertexData;    // 顶点数组
+        std::vector<UINT> IndexData;    // 索引数组
+
+        MeshData()
+        {
+            // 需检验索引类型合法性
+            //static_assert(sizeof(IndexType) == 2 || sizeof(IndexType) == 4, "The size of IndexType must be 2 bytes or 4 bytes!");
+            //static_assert(std::is_unsigned<IndexType>::value, "IndexType must be unsigned integer!");
+        }
+    };
+
+    static MeshData CreateBoxMesh(Scalar width, Scalar height, Scalar depth, FVector4f color)
+    {
+        const Scalar halfWidth = width * 0.5f;
+        const Scalar halfHeight = height * 0.5f;
+        const Scalar halfDepth = depth * 0.5f;
+
+        MeshData data;
+        data.VertexData.resize(24);
+
+        // 右面(+X面)
+        data.VertexData[0].Pos = FVector3f(halfWidth, -halfHeight, -halfDepth);
+        data.VertexData[1].Pos = FVector3f(halfWidth, halfHeight, -halfDepth);
+        data.VertexData[2].Pos = FVector3f(halfWidth, halfHeight, halfDepth);
+        data.VertexData[3].Pos = FVector3f(halfWidth, -halfHeight, halfDepth);
+        // 左面(-X面)
+        data.VertexData[4].Pos = FVector3f(-halfWidth, -halfHeight, halfDepth);
+        data.VertexData[5].Pos = FVector3f(-halfWidth, halfHeight, halfDepth);
+        data.VertexData[6].Pos = FVector3f(-halfWidth, halfHeight, -halfDepth);
+        data.VertexData[7].Pos = FVector3f(-halfWidth, -halfHeight, -halfDepth);
+        // 顶面(+Y面)
+        data.VertexData[8].Pos = FVector3f(-halfWidth, halfHeight, -halfDepth);
+        data.VertexData[9].Pos = FVector3f(-halfWidth, halfHeight, halfDepth);
+        data.VertexData[10].Pos = FVector3f(halfWidth, halfHeight, halfDepth);
+        data.VertexData[11].Pos = FVector3f(halfWidth, halfHeight, -halfDepth);
+        // 底面(-Y面)
+        data.VertexData[12].Pos = FVector3f(halfWidth, -halfHeight, -halfDepth);
+        data.VertexData[13].Pos = FVector3f(halfWidth, -halfHeight, halfDepth);
+        data.VertexData[14].Pos = FVector3f(-halfWidth, -halfHeight, halfDepth);
+        data.VertexData[15].Pos = FVector3f(-halfWidth, -halfHeight, -halfDepth);
+        // 背面(+Z面)
+        data.VertexData[16].Pos = FVector3f(halfWidth, -halfHeight, halfDepth);
+        data.VertexData[17].Pos = FVector3f(halfWidth, halfHeight, halfDepth);
+        data.VertexData[18].Pos = FVector3f(-halfWidth, halfHeight, halfDepth);
+        data.VertexData[19].Pos = FVector3f(-halfWidth, -halfHeight, halfDepth);
+        // 正面(-Z面)
+        data.VertexData[20].Pos = FVector3f(-halfWidth, -halfHeight, -halfDepth);
+        data.VertexData[21].Pos = FVector3f(-halfWidth, halfHeight, -halfDepth);
+        data.VertexData[22].Pos = FVector3f(halfWidth, halfHeight, -halfDepth);
+        data.VertexData[23].Pos = FVector3f(halfWidth, -halfHeight, -halfDepth);
+
+        for (UINT i = 0; i < 4; ++i)
+        {
+            // 右面(+X面)
+            data.VertexData[i].Normal = FVector3f(1.0f, 0.0f, 0.0f);
+            data.VertexData[i].Tangent = FVector4f(0.0f, 0.0f, 1.0f, 1.0f);
+            data.VertexData[i].Color = color;
+            // 左面(-X面)
+            data.VertexData[i + 4].Normal = FVector3f(-1.0f, 0.0f, 0.0f);
+            data.VertexData[i + 4].Tangent = FVector4f(0.0f, 0.0f, -1.0f, 1.0f);
+            data.VertexData[i + 4].Color = color;
+            // 顶面(+Y面)
+            data.VertexData[i + 8].Normal = FVector3f(0.0f, 1.0f, 0.0f);
+            data.VertexData[i + 8].Tangent = FVector4f(1.0f, 0.0f, 0.0f, 1.0f);
+            data.VertexData[i + 8].Color = color;
+            // 底面(-Y面)
+            data.VertexData[i + 12].Normal = FVector3f(0.0f, -1.0f, 0.0f);
+            data.VertexData[i + 12].Tangent = FVector4f(-1.0f, 0.0f, 0.0f, 1.0f);
+            data.VertexData[i + 12].Color = color;
+            // 背面(+Z面)
+            data.VertexData[i + 16].Normal = FVector3f(0.0f, 0.0f, 1.0f);
+            data.VertexData[i + 16].Tangent = FVector4f(-1.0f, 0.0f, 0.0f, 1.0f);
+            data.VertexData[i + 16].Color = color;
+            // 正面(-Z面)
+            data.VertexData[i + 20].Normal = FVector3f(0.0f, 0.0f, -1.0f);
+            data.VertexData[i + 20].Tangent = FVector4f(1.0f, 0.0f, 0.0f, 1.0f);
+            data.VertexData[i + 20].Color = color;
+        }
+
+        for (UINT i = 0; i < 6; ++i)
+        {
+            data.VertexData[i * 4].UV = FVector2f(0.0f, 1.0f);
+            data.VertexData[i * 4 + 1].UV = FVector2f(0.0f, 0.0f);
+            data.VertexData[i * 4 + 2].UV = FVector2f(1.0f, 0.0f);
+            data.VertexData[i * 4 + 3].UV = FVector2f(1.0f, 1.0f);
+        }
+
+        //for (UINT i = 0; i < 24; ++i)
+        //{
+        //    Internal::InsertVertexElement(meshData.vertexVec[i], data.VertexData[i]);
+        //}
+
+        data.IndexData = {
+            0, 1, 2, 2, 3, 0,        // 右面(+X面)
+            4, 5, 6, 6, 7, 4,        // 左面(-X面)
+            8, 9, 10, 10, 11, 8,    // 顶面(+Y面)
+            12, 13, 14, 14, 15, 12,    // 底面(-Y面)
+            16, 17, 18, 18, 19, 16, // 背面(+Z面)
+            20, 21, 22, 22, 23, 20    // 正面(-Z面)
+        };
+
+        return data;
+    }
+
     struct __declspec(align(256)) FFrameConstantBuffer
     {
         //FMatrix4x4 WorldMatrix;
@@ -72,17 +187,23 @@ namespace Dash
             float projectionWindowHeight = 1.0f;
             float projectionWindowWidth = aspect;
 
-            mCamera.SetCameraParams(projectionWindowWidth, projectionWindowHeight, 1.0f, 100.0f);
-            mCamera.SetPosition(FVector3f{0.0f, 0.0f, -5.0f});
+            //mCamera.SetCameraParams(projectionWindowWidth, projectionWindowHeight, 1.0f, 100.0f);
+
+            mFov = 45.0f;
+
+            mCamera.SetCameraParams(aspect, mFov, 0.1f, 100.0f);
+            mCamera.SetPosition(FVector3f{0.0f, 0.0f, -2.0f});
 
             mObjectTransform = FTransform{ FIdentity{} };
         }
 
         mMouseWheelUpDelegate = FMouseWheelEventDelegate::Create<FApplicationDX12, &FApplicationDX12::OnMouseWhellUp>(this);
         mMouseWheelDownDelegate = FMouseWheelEventDelegate::Create<FApplicationDX12, &FApplicationDX12::OnMouseWhellDown>(this);
+        mMouseMotionDelegate = FMouseMotionEventDelegate::Create<FApplicationDX12, &FApplicationDX12::OnMouseMove>(this);
 
         FMouse::Get().MouseWheelUp += mMouseWheelUpDelegate;
         FMouse::Get().MouseWheelDown += mMouseWheelDownDelegate;
+        FMouse::Get().MouseMoved += mMouseMotionDelegate;
 
         mWindowResizeDelegate = FResizeEventDelegate::Create<FApplicationDX12, &FApplicationDX12::OnWindowResize>(this);
 
@@ -102,8 +223,12 @@ namespace Dash
 
         CloseHandle(mFenceEvent);
 
+        mWindowVisible = false;
+
         FMouse::Get().MouseWheelUp -= mMouseWheelUpDelegate;
         FMouse::Get().MouseWheelDown -= mMouseWheelDownDelegate;
+
+        FMouse::Get().MouseMoved -= mMouseMotionDelegate;
 
         mWindow.WindowResize -= mWindowResizeDelegate;
 	}
@@ -119,7 +244,7 @@ namespace Dash
 
             //HR(mSwapChain->Present(1, 0));
 
-            ThrowIfFailed(mSwapChain->Present(1, 0));
+            HR(mSwapChain->Present(1, 0));
 
             WaitForPreviousFrame();
         }
@@ -135,13 +260,30 @@ namespace Dash
         mCamera.ZoomOut();
     }
 
+    void FApplicationDX12::OnMouseMove(FMouseMotionEventArgs& args)
+    {
+        if ((args.mRelX != 0 || args.mRelY != 0) && args.mRightButton)
+        {
+            if (args.mRelX != 0)
+            {
+                mCamera.AddYAxisRotation(args.mRelX * 0.25f);
+            }
+
+            if (args.mRelY != 0)
+            {
+                mCamera.AddXAxisRotation(args.mRelY * 0.25f);
+            }
+
+            LOG_INFO << mCamera.GetUp();
+
+            LOG_INFO << "Y Axis Rot : " << mCamera.YAxisRotation();
+        }
+    }
+
     void FApplicationDX12::OnWindowResize(FResizeEventArgs& args)
     {
-        LOG_INFO << "Window Resize";
-
         if (!args.mMinimized)
         {
-            //WaitForPreviousFrame();
             WaitForGpu();
 
             for (UINT i = 0; i < FApplicationDX12::BackBufferFrameCount; i++)
@@ -162,7 +304,8 @@ namespace Dash
                 float projectionWindowHeight = 1.0f;
                 float projectionWindowWidth = aspect;
 
-                mCamera.SetCameraParams(projectionWindowWidth, projectionWindowHeight, 1.0f, 100.0f);
+                //mCamera.SetCameraParams(projectionWindowWidth, projectionWindowHeight, 1.0f, 100.0f);
+                mCamera.SetCameraParams(aspect, mFov, 0.1f, 100.0f);
             }
 
             {
@@ -223,16 +366,23 @@ namespace Dash
             mCurrentSamplerIndex = (mCurrentSamplerIndex + 1) % 5;
         }
 
-        const float moveSpeed = 0.1f;
+        float moveSpeed = 0.1f;
+
+        if (FKeyboard::Get().IsKeyPressed(EKeyCode::LShiftKey))
+        {
+            moveSpeed = 0.2f;
+        }
 
         if (FKeyboard::Get().IsKeyPressed(EKeyCode::W))
         {
-            mCamera.TranslateUp(moveSpeed);
+            //mCamera.TranslateUp(moveSpeed);
+            mCamera.TranslateForward(moveSpeed);
         }
 
         if (FKeyboard::Get().IsKeyPressed(EKeyCode::S))
         {
-            mCamera.TranslateDown(moveSpeed);
+            //mCamera.TranslateDown(moveSpeed);
+            mCamera.TranslateBack(moveSpeed);
         }
 
         if (FKeyboard::Get().IsKeyPressed(EKeyCode::A))
@@ -291,14 +441,21 @@ namespace Dash
 
         mCommandList->OMSetRenderTargets(1, &rtDescriptorHandle, FALSE, &dsDescriptorHandle);
 
-        Dash::FVector4f clearColor{ Dash::FMath::Sin((float)e.mTotalTime) * 0.5f + 0.5f, Dash::FMath::Cos((float)e.mTotalTime + 0.5f) * 0.5f + 0.5f, 0.5f, 1.0f };
+       // Dash::FVector4f clearColor{ Dash::FMath::Sin((float)e.mTotalTime) * 0.5f + 0.5f, Dash::FMath::Cos((float)e.mTotalTime + 0.5f) * 0.5f + 0.5f, 0.5f, 1.0f };
+        Dash::FVector4f clearColor{ 0.0f, 0.2f, 0.4f, 1.0f };
+
         mCommandList->ClearRenderTargetView(rtDescriptorHandle, clearColor, 0, nullptr);
         mCommandList->ClearDepthStencilView(dsDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH, mDepthStencilClearValue.DepthStencil.Depth, 
             mDepthStencilClearValue.DepthStencil.Stencil, 0, nullptr);
 
-        mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+        //mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+        mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         mCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
-        mCommandList->DrawInstanced(4, 1, 0, 0);
+        mCommandList->IASetIndexBuffer(&mIndexBufferView);
+
+        //mCommandList->DrawInstanced(4, 1, 0, 0);
+
+        mCommandList->DrawIndexedInstanced(mIndexCount, 1, 0, 0, 0);
 
         mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(mBackBuffers[mBackBufferIndex].Get(),
             D3D12_RESOURCE_STATE_RENDER_TARGET,
@@ -639,10 +796,22 @@ namespace Dash
             HR(D3DCompileFromFile(shaderPath.c_str(), nullptr, nullptr, "VSMain", "vs_5_0", shaderCompileFlag, 0, &vertexShader, nullptr));
             HR(D3DCompileFromFile(shaderPath.c_str(), nullptr, nullptr, "PSMain", "ps_5_0", shaderCompileFlag, 0, &pixelShader, nullptr));
 
+            //struct Vertex
+            //{
+            //    FVector3f Pos;
+            //    FVector3f Normal;
+            //    FVector4f Tangent;
+            //    FVector4f Color;
+            //    FVector2f UV;
+            //};
+
             D3D12_INPUT_ELEMENT_DESC inputElements[] =
             {
                 { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-                { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+                { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+                { "TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+                { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 40, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+                { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 56, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
             };
 
             D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDesc{};
@@ -671,51 +840,6 @@ namespace Dash
 
         //Create Texture
         {
-            /*
-            FTexture texture = LoadWICTexture(L"coma.png");
-
-            D3D12_RESOURCE_DESC resourceDesc{};
-            resourceDesc.MipLevels = CountMips((uint32_t)texture.GetWidth(), (uint32_t)texture.GetHeight());
-            resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            resourceDesc.Width = texture.GetWidth();
-            resourceDesc.Height = (UINT)texture.GetHeight();
-            resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-            resourceDesc.DepthOrArraySize = 1;
-            resourceDesc.SampleDesc.Count = 1;
-            resourceDesc.SampleDesc.Quality = 0;
-            resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-
-            //Create texture resource
-            HR(mD3DDevice->CreatePlacedResource(
-                mTextureHeap.Get(),
-                mTextureHeapOffset,
-                &resourceDesc,
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                nullptr,
-                IID_PPV_ARGS(&mTextureResource)
-            ));
-
-            D3D12_RESOURCE_ALLOCATION_INFO textureAllocationInfo = mD3DDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
-
-            mTextureHeapOffset += UPPER_ALIGNMENT(textureAllocationInfo.SizeInBytes, textureAllocationInfo.Alignment);
-
-            //Create upload buffer
-            UINT64 uploadBufferSize = GetRequiredIntermediateSize(mTextureResource.Get(), 0, 1);
-            */
-
-            /*
-            HR(mD3DDevice->CreatePlacedResource(
-                mUploadHeap.Get(),
-                mUploadHeapOffset,
-                &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
-                D3D12_RESOURCE_STATE_GENERIC_READ,
-                nullptr,
-                IID_PPV_ARGS(&uploadTextureBuffer)
-            ));
-            
-            mUploadHeapOffset += UPPER_ALIGNMENT(uploadBufferSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
-            */
-
             FTexture texture;
 
             FTextureHelper::Get()->Begin();
@@ -733,17 +857,6 @@ namespace Dash
                 D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE,
                 EDDS_LOADER_FLAGS::DDS_LOADER_DEFAULT);
 
-            //std::vector<std::wstring> fileNames;
-            //fileNames.push_back(L"coma.png");
-            //fileNames.push_back(L"template.png");
-
-            //FTextureHelper::Get()->CreateWICTextureArrayFromFileEx(
-            //    fileNames,
-            //    mTextureResource,
-            //    D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE,
-            //    EWIC_LOADER_FLAGS::WIC_LOADER_MIP_AUTOGEN | EWIC_LOADER_FLAGS::WIC_LOADER_IGNORE_SRGB
-            //);
-
             FTextureHelper::Get()->End(mD3DCommandQueue);
 
             D3D12_RESOURCE_DESC textureDesc = mTextureResource->GetDesc();
@@ -755,33 +868,27 @@ namespace Dash
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
             srvDesc.Texture2D.MipLevels = textureDesc.MipLevels;
 
-            //D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-            //srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            //srvDesc.Format = textureDesc.Format;
-            //srvDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-            //srvDesc.Texture2DArray.MipLevels = textureDesc.MipLevels;
-            //srvDesc.Texture2DArray.ArraySize = textureDesc.DepthOrArraySize;
-
             mD3DDevice->CreateShaderResourceView(mTextureResource.Get(), &srvDesc, mSRVCBVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
         }
 
-        //Create Vertex Buffer
+
+
+        //Create Vertex & Index Buffer
         {
-            struct Vertex
-            {
-                Dash::FVector3f Pos;
-                Dash::FVector2f Color;
-            };
+            //Vertex triangle[] =
+            //{
+            //    { Dash::FVector3f{ -0.5f,  -0.5f , 0.0f }, Dash::FVector2f{ 0.0f, 2.0f } },
+            //    { Dash::FVector3f{ -0.5f,   0.5f , 0.0f }, Dash::FVector2f{ 0.0f, 0.0f } },
+            //    { Dash::FVector3f{  0.5f,  -0.5f , 0.0f }, Dash::FVector2f{ 2.0f, 2.0f } },
+            //    { Dash::FVector3f{  0.5f,   0.5f , 0.0f }, Dash::FVector2f{ 2.0f, 0.0f } }
+            //};
 
-            Vertex triangle[] =
-            {
-                { Dash::FVector3f{ -0.5f,  -0.5f , 0.0f }, Dash::FVector2f{ 0.0f, 2.0f } },
-                { Dash::FVector3f{ -0.5f,   0.5f , 0.0f }, Dash::FVector2f{ 0.0f, 0.0f } },
-                { Dash::FVector3f{  0.5f,  -0.5f , 0.0f }, Dash::FVector2f{ 2.0f, 2.0f } },
-                { Dash::FVector3f{  0.5f,   0.5f , 0.0f }, Dash::FVector2f{ 2.0f, 0.0f } }
-            };
+            MeshData boxMesh= CreateBoxMesh(1, 1, 1, FVector4f{0.5f, 0.5f, 0.5f, 1.0f});
 
-            const UINT vertexBufferSize = sizeof(triangle);
+            const UINT vertexBufferSize = boxMesh.VertexData.size() * sizeof(Vertex);
+            const UINT indexBufferSize = boxMesh.IndexData.size() * sizeof(UINT);
+
+            mIndexCount = boxMesh.IndexData.size();
 
             //HR(mD3DDevice->CreateCommittedResource(
             //    &CD3DX12_HEAP_PROPERTIES{ D3D12_HEAP_TYPE_UPLOAD },
@@ -790,6 +897,8 @@ namespace Dash
             //    D3D12_RESOURCE_STATE_GENERIC_READ,
             //    nullptr,
             //    IID_PPV_ARGS(&mVertexBuffer)));
+
+            //Create Vertex Buffer
 
             HR(mD3DDevice->CreatePlacedResource(
                 mUploadHeap.Get(),
@@ -802,14 +911,36 @@ namespace Dash
             mUploadHeapOffset += UPPER_ALIGNMENT(vertexBufferSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
 
             UINT8* vertexDataBegin;
-            CD3DX12_RANGE readRange{ 0, 0 };
-            mVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&vertexDataBegin));
-            memcpy(vertexDataBegin, triangle, vertexBufferSize);
+            CD3DX12_RANGE vertexReadRange{ 0, 0 };
+            mVertexBuffer->Map(0, &vertexReadRange, reinterpret_cast<void**>(&vertexDataBegin));
+            memcpy(vertexDataBegin, boxMesh.VertexData.data(), vertexBufferSize);
             mVertexBuffer->Unmap(0, nullptr);
 
             mVertexBufferView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
             mVertexBufferView.SizeInBytes = vertexBufferSize;
             mVertexBufferView.StrideInBytes = sizeof(Vertex);
+
+            //Create Index Buffer
+
+            HR(mD3DDevice->CreatePlacedResource(
+                mUploadHeap.Get(),
+                mUploadHeapOffset,
+                &CD3DX12_RESOURCE_DESC::Buffer(indexBufferSize),
+                D3D12_RESOURCE_STATE_GENERIC_READ,
+                nullptr,
+                IID_PPV_ARGS(&mIndexBuffer)));
+
+            mUploadHeapOffset += UPPER_ALIGNMENT(indexBufferSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+
+            UINT8* indexDataBegin;
+            CD3DX12_RANGE indexReadRange{ 0, 0 };
+            mIndexBuffer->Map(0, &indexReadRange, reinterpret_cast<void**>(&indexDataBegin));
+            memcpy(indexDataBegin, boxMesh.IndexData.data(), indexBufferSize);
+            mIndexBuffer->Unmap(0, nullptr);
+
+            mIndexBufferView.BufferLocation = mIndexBuffer->GetGPUVirtualAddress();
+            mIndexBufferView.SizeInBytes = indexBufferSize;
+            mIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
         };
 
         //Create constant buffer

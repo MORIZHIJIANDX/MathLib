@@ -52,8 +52,11 @@ namespace Dash
 		void TranslateLeft(Scalar speed);
 		void TranslateDown(Scalar speed);
 
+		// x axis
 		void AddPitch(Scalar angle);
+		// y axis
 		void AddYaw(Scalar angle);
+		// z axis
 		void AddRoll(Scalar angle);
 
 		virtual void Zoom(Scalar factor = Scalar{1.0f}) = 0;
@@ -132,7 +135,7 @@ namespace Dash
 	{
 	public:
 		FPerspectiveCamera();
-		FPerspectiveCamera(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ, const FViewport& vp = FViewport{});
+		FPerspectiveCamera(Scalar aspect, Scalar fov, Scalar nearZ, Scalar farZ, const FViewport& vp = FViewport{});
 		virtual ~FPerspectiveCamera();
 
 		Scalar GetFieldOfView() const { return mFov; }
@@ -143,7 +146,7 @@ namespace Dash
 
 		FRay GenerateRay(Scalar u, Scalar v) const;
 
-		void SetCameraParams(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ);
+		void SetCameraParams(Scalar aspect, Scalar fov, Scalar nearZ, Scalar farZ);
 
 		void Zoom(Scalar factor = Scalar{ 1.0f }) override;
 
@@ -155,5 +158,19 @@ namespace Dash
 		Scalar mAspect;
 	};
 
+	class FirstPersonCamera : public FPerspectiveCamera
+	{
+	public:
+		FirstPersonCamera(Scalar aspect = 16.0f / 9.0f, Scalar fov = TScalarTraits<Scalar>::Pi() * Scalar {0.25}, Scalar nearZ = 0.1f, Scalar farZ = 100.0f, const FViewport& vp = FViewport{});
+		
+		float XAxisRotation() const { return mXRot; }
+		float YAxisRotation() const { return mYRot; }
 
+		void AddXAxisRotation(Scalar angle);
+		void AddYAxisRotation(Scalar angle);
+
+	private:
+		Scalar mXRot;
+		Scalar mYRot;
+	};
 }

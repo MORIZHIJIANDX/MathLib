@@ -103,7 +103,7 @@ namespace Dash
 		template <typename Scalar> TScalarQuaternion<Scalar> FromAxisAngle(int axis, Scalar theta) noexcept;
 		template <typename Scalar> void ToAxisAngle(TScalarArray<Scalar, 3>& axis, Scalar& theta, const TScalarQuaternion<Scalar>& q) noexcept;
 
-		template <typename Scalar> TScalarQuaternion<Scalar> FromEuler(Scalar yaw, Scalar pitch, Scalar roll) noexcept;
+		template <typename Scalar> TScalarQuaternion<Scalar> FromEuler(Scalar pitch, Scalar yaw, Scalar roll) noexcept;
 		template <typename Scalar> TScalarQuaternion<Scalar> FromEuler(const TScalarArray<Scalar, 3>& euler) noexcept;
 
 		template <typename Scalar> void ToEuler(Scalar& yaw, Scalar& pitch, Scalar& roll, const TScalarQuaternion<Scalar>& q) noexcept;
@@ -434,19 +434,21 @@ namespace Dash
 		{
 			TScalarArray<Scalar, 4> angles{ pitch, yaw, roll, Scalar(0) };
 			angles *= Scalar(0.5);
+
 			TScalarArray<Scalar, 4> sinAngles{ Sin(angles.x), Sin(angles.y), Sin(angles.z), Scalar(0) };
 			TScalarArray<Scalar, 4> cosAngles{ Cos(angles.x), Cos(angles.y), Cos(angles.z), Scalar(0) };
 
 			TScalarArray<Scalar, 4> p0{ sinAngles.x, cosAngles.x, cosAngles.x, cosAngles.x };
 			TScalarArray<Scalar, 4> y0{ cosAngles.y, sinAngles.y, cosAngles.y, cosAngles.y };
 			TScalarArray<Scalar, 4> r0{ cosAngles.z, cosAngles.z, sinAngles.z, cosAngles.z };
+
 			TScalarArray<Scalar, 4> p1{ cosAngles.x, sinAngles.x, sinAngles.x, sinAngles.x };
 			TScalarArray<Scalar, 4> y1{ sinAngles.y, cosAngles.y, sinAngles.y, sinAngles.y };
 			TScalarArray<Scalar, 4> r1{ sinAngles.z, sinAngles.z, cosAngles.z, sinAngles.z };
 
 			TScalarArray<Scalar, 4> sign{ Scalar{1}, -Scalar{1}, -Scalar{1}, Scalar{1} };
 
-			TScalarArray<Scalar, 4> q1 = p0 * sign;
+			TScalarArray<Scalar, 4> q1 = p1 * sign;
 			TScalarArray<Scalar, 4> q0 = p0 * y0;
 			q1 = q1 * y1;
 			q0 = q0 * r0;

@@ -99,6 +99,8 @@ namespace Dash {
 
 		template <typename Scalar> constexpr void Swap(Scalar& x, Scalar& y) noexcept;
 
+		template <typename Scalar> constexpr Scalar ModAngle(Scalar rad) noexcept;
+
 		static FORCEINLINE int Rand() { return rand(); }
 
 		/** Seeds global random number functions Rand() and FRand() */
@@ -106,6 +108,9 @@ namespace Dash {
 
 		/** Returns a random float between 0 and 1, inclusive. */
 		static FORCEINLINE float FRand() { return Rand() / (float)RAND_MAX; }
+
+		// Modulo the range of the given angle such that -XM_PI <= Angle < XM_PI
+		
 
 		template<typename Scalar>
 		FORCEINLINE constexpr Scalar ACos(Scalar x) noexcept
@@ -506,6 +511,26 @@ namespace Dash {
 		FORCEINLINE constexpr void Swap(Scalar& x, Scalar& y) noexcept
 		{
 			return std::swap(x, y);
+		}
+
+		template<typename Scalar>
+		FORCEINLINE constexpr Scalar ModAngle(Scalar rad) noexcept
+		{
+			// Note: The modulo is performed with unsigned math only to work
+			// around a precision error on numbers that are close to PI
+
+			// Normalize the range from 0.0f to XM_2PI
+			rad = rad + TScalarTraits<Scalar>::Pi();
+			// Perform the modulo, unsigned
+			float fTemp = Abs(rad);
+			fTemp = fTemp - (TScalarTraits<Scalar>::TwoPi() * static_cast<float>(static_cast<int32_t>(fTemp / TScalarTraits<Scalar>::TwoPi())));
+			// Restore the number to the range of -XM_PI to XM_PI-epsilon
+			fTemp = fTemp - TScalarTraits<Scalar>::Pi();
+			// If the modulo'd value was negative, restore negation
+			if (rad < 0.0f) {
+				fTemp = -fTemp;
+			}
+			return fTemp;
 		}
 
 

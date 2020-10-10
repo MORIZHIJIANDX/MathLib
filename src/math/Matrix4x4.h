@@ -901,10 +901,10 @@ namespace Dash
 		{
 			Scalar oneOverDepth = Scalar{ 1 } / (zFar - zNear);
 			Scalar cotHalfFov = Scalar{ 1 } / Tan(Radians(fov) * Scalar { 0.5 });
-			return TScalarMatrix<Scalar, 4, 4>{ TScalarArray<Scalar, 4>{ Scalar{ 1 } / aspect * cotHalfFov, Scalar{}, Scalar{}, Scalar{} },
+			return TScalarMatrix<Scalar, 4, 4>{ TScalarArray<Scalar, 4>{ (Scalar{ 1 } / aspect) * cotHalfFov, Scalar{}, Scalar{}, Scalar{} },
 				TScalarArray<Scalar, 4>{ Scalar{}, cotHalfFov, Scalar{}, Scalar{} },
-				TScalarArray<Scalar, 4>{ Scalar{}, Scalar{}, zFar* oneOverDepth, -zFar * zNear * oneOverDepth },
-				TScalarArray<Scalar, 4>{ Scalar{}, Scalar{}, Scalar{ 1 }, Scalar{} }};
+				TScalarArray<Scalar, 4>{ Scalar{}, Scalar{}, zFar* oneOverDepth, Scalar{ 1 } },
+				TScalarArray<Scalar, 4>{ Scalar{}, Scalar{}, -zFar * zNear * oneOverDepth, Scalar{} }};
 		}
 
 		template<typename Scalar>

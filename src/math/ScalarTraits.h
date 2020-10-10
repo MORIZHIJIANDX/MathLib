@@ -77,6 +77,11 @@ namespace Dash
             return 0.1591549430918953357688f;
         }
 
+        static float HalfPi()
+        {
+            return 1.5707963267948966192313f;
+        }
+
         static float Infinity()
         {
             return std::numeric_limits<float>::infinity();
@@ -122,6 +127,11 @@ namespace Dash
             return 0.1591549430918953357688;
         }
 
+        static double HalfPi()
+        {
+            return 1.5707963267948966192313216916398;
+        }
+
         static double Infinity()
         {
             return std::numeric_limits<double>::infinity();
@@ -165,6 +175,11 @@ namespace Dash
         static long double InvTwoPi()
         {
             return 0.15915494309189533576888376337251L;
+        }
+
+        static long double HalfPi()
+        {
+            return 1.5707963267948966192313216916398L;
         }
 
         static long double Infinity()

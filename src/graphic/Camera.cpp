@@ -198,6 +198,7 @@ namespace Dash
 	{
 		FQuaternion rotation = FMath::FromAxisAngle(FMath::Mul(mTransform.GetRotation(), FVector3f(FUnit<0>{})), FMath::Radians(angle)) * mTransform.GetRotation();
 		mTransform.SetRotation(rotation);
+
 		MakeWorldMatrixDirty();
 	}
 
@@ -205,6 +206,7 @@ namespace Dash
 	{
 		FQuaternion rotation = FMath::FromAxisAngle(FMath::Mul(mTransform.GetRotation(), FVector3f(FUnit<1>{})), FMath::Radians(angle))* mTransform.GetRotation();
 		mTransform.SetRotation(rotation);
+
 		MakeWorldMatrixDirty();
 	}
 
@@ -330,17 +332,17 @@ namespace Dash
 	//FPerspectiveCamera
 
 	FPerspectiveCamera::FPerspectiveCamera()
-		: FCamera(1.0f, 1000.0f, FViewport{})
-		, mFov(0.5f)
-		, mAspect(0.5f)
+		: FCamera(1.0f, 100.0f, FViewport{})
+		, mAspect(16.0f / 9.0f)
+		, mFov(TScalarTraits<Scalar>::Pi()* Scalar { 0.25 })
 	{
 		UpdateProjectionMatrix();
 	}
 
-	FPerspectiveCamera::FPerspectiveCamera(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ, const FViewport& vp)
+	FPerspectiveCamera::FPerspectiveCamera(Scalar aspect, Scalar fov, Scalar nearZ, Scalar farZ, const FViewport& vp)
 		: FCamera(nearZ, farZ, vp)
-		, mFov(fov)
 		, mAspect(aspect)
+		, mFov(fov)
 	{
 		UpdateProjectionMatrix();
 	}
@@ -379,10 +381,10 @@ namespace Dash
 		return FRay{ camPos, FMath::Normalize(topRightCorner + u * horizon - v * vertical - camPos), 0.0f, 1000.0f };
 	}
 
-	void FPerspectiveCamera::SetCameraParams(Scalar fov, Scalar aspect, Scalar nearZ, Scalar farZ)
+	void FPerspectiveCamera::SetCameraParams(Scalar aspect, Scalar fov, Scalar nearZ, Scalar farZ)
 	{
-		mFov = fov;
 		mAspect = aspect;
+		mFov = fov;	
 		mNear = nearZ;
 		mFar = farZ;
 
@@ -403,6 +405,31 @@ namespace Dash
 	void FPerspectiveCamera::CreateProjectionMatrix() const
 	{
 		mProjectionMatrix = FMath::Frustum(mFov, mAspect, mNear, mFar);
+	}
+
+
+
+	// FirstPersonCamera
+
+	FirstPersonCamera::FirstPersonCamera(Scalar aspect, Scalar fov, Scalar nearZ, Scalar farZ, const FViewport& vp)
+		: FPerspectiveCamera(aspect, fov, nearZ, farZ, vp)
+		, mXRot(0)
+		, mYRot(0)
+	{
+	}
+
+	void FirstPersonCamera::AddXAxisRotation(Scalar angle)
+	{
+		mXRot += FMath::Radians(angle);
+		mXRot = FMath::Clamp(mXRot, -TScalarTraits<Scalar>::HalfPi(), TScalarTraits<Scalar>::HalfPi());
+		SetRotation(FMath::FromEuler(mXRot, mYRot, Scalar{0}));
+	}
+
+	void FirstPersonCamera::AddYAxisRotation(Scalar angle)
+	{
+		mYRot += FMath::Radians(angle);
+		mYRot = FMath::ModAngle(mYRot);
+		SetRotation(FMath::FromEuler(mXRot, mYRot, Scalar{ 0 }));
 	}
 
 }

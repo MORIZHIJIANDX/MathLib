@@ -1,6 +1,15 @@
+//struct VSInput
+//{
+//	float3 Position : POSITION;
+//	float2 UV : TEXCOORD;
+//};
+
 struct VSInput
 {
 	float3 Position : POSITION;
+	float3 Normal : NORMAL;
+	float4 Tangent : TANGENT;
+	float4 Color : COLOR;
 	float2 UV : TEXCOORD;
 };
 
