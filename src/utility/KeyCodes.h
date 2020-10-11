@@ -1,5 +1,23 @@
 #pragma once
 
+namespace Dash
+{
+	struct FKeyState
+	{
+		bool Pressed;
+		bool RisingEdge;
+		bool FallingEdge;
+
+		FKeyState()
+			: Pressed(false)
+			, RisingEdge(false)
+			, FallingEdge(false)
+		{}
+	};
+}
+
+
+
 // Key code values for Windows
 enum class EKeyCode : unsigned int
 {

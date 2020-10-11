@@ -231,6 +231,53 @@ namespace Dash
         FMouse::Get().MouseMoved -= mMouseMotionDelegate;
 
         mWindow.WindowResize -= mWindowResizeDelegate;
+        
+
+
+
+        mRTVDescriptorHeap.Reset();
+
+        for (UINT i = 0; i < BackBufferFrameCount; i++)
+        {
+            mBackBuffers[i].Reset();
+        }
+
+        //mBackBuffers[BackBufferFrameCount];
+        mRootSignature.Reset();
+        mPipelineState.Reset();
+
+        mVertexBuffer.Reset();
+
+        mIndexBuffer.Reset();
+
+
+        mTextureResource.Reset();
+        mSRVCBVDescriptorHeap.Reset();
+
+        mCommandAllocator.Reset();
+        mCommandList.Reset();
+        mFence.Reset();
+
+        mTextureHeap.Reset();
+
+        mUploadHeap.Reset();
+
+        mRTDSHeap.Reset();
+
+        mConstantBuffer.Reset();
+
+        mDepthStencilBuffer.Reset();
+        mDepthStencilDescriptorHeap.Reset();
+
+        mSamplerDescriptorHeap.Reset();
+
+
+
+        mD3DDevice.Reset();
+        mD3DCommandQueue.Reset();
+
+        mSwapChain.Reset();
+        mDXGIFatory.Reset();
 	}
 
 	void FApplicationDX12::OnRender(const FRenderEventArgs& e)
@@ -273,10 +320,6 @@ namespace Dash
             {
                 mCamera.AddXAxisRotation(args.mRelY * 0.25f);
             }
-
-            LOG_INFO << mCamera.GetUp();
-
-            LOG_INFO << "Y Axis Rot : " << mCamera.YAxisRotation();
         }
     }
 
@@ -361,7 +404,7 @@ namespace Dash
 
 	void FApplicationDX12::OnUpdate(const FUpdateEventArgs& e)
 	{
-        if (FKeyboard::Get().IsKeyPressed(EKeyCode::U))
+        if (FKeyboard::Get().GetKeyState(EKeyCode::U).RisingEdge)
         {
             mCurrentSamplerIndex = (mCurrentSamplerIndex + 1) % 5;
         }
@@ -885,10 +928,10 @@ namespace Dash
 
             MeshData boxMesh= CreateBoxMesh(1, 1, 1, FVector4f{0.5f, 0.5f, 0.5f, 1.0f});
 
-            const UINT vertexBufferSize = boxMesh.VertexData.size() * sizeof(Vertex);
-            const UINT indexBufferSize = boxMesh.IndexData.size() * sizeof(UINT);
+            const UINT vertexBufferSize = (UINT)boxMesh.VertexData.size() * sizeof(Vertex);
+            const UINT indexBufferSize = (UINT)boxMesh.IndexData.size() * sizeof(UINT);
 
-            mIndexCount = boxMesh.IndexData.size();
+            mIndexCount = (UINT)boxMesh.IndexData.size();
 
             //HR(mD3DDevice->CreateCommittedResource(
             //    &CD3DX12_HEAP_PROPERTIES{ D3D12_HEAP_TYPE_UPLOAD },

@@ -14,8 +14,12 @@ namespace Dash
 		
 		bool IsMouseButtonPressed(EMouseButton button) const;
 		bool IsInWindow() const;
-		FVector2i GetMousePos() const;
-	
+
+		FKeyState GetButtonState(EMouseButton button) const;
+		
+		FVector2i GetCursorPosition() const;
+		void SetCursorPosition(FVector2i pos);
+
 	public:
 
 		FMouseButtonEvent MouseButtonPressed;
@@ -41,9 +45,12 @@ namespace Dash
 		void OnMouseWheelUp(FMouseWheelEventArgs& e);
 
 	private:
-		bool mIsInWindow;
+		FKeyState mCurrentMouseButtonStates[3];
+		FKeyState mPrevMouseButtonStates[3];
 		FVector2i mMousePos;
+
+		HWND mFocusedWindow;
 		float mMouseWheelAccumulate;
-		std::bitset<3> mMouseButtonState;
+		bool mIsInWindow;
 	};
 }

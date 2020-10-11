@@ -4,6 +4,7 @@
 #include <optional>
 #include "KeyCodes.h"
 #include "Events.h"
+#include "../consolid/DashWinAPI.h"
 
 namespace Dash
 {
@@ -14,6 +15,8 @@ namespace Dash
 		static FKeyboard& Get();
 
 		bool IsKeyPressed(EKeyCode key) const;
+
+		FKeyState GetKeyState(EKeyCode key) const;
 
 		std::optional<char> ReadChar();
 
@@ -39,10 +42,15 @@ namespace Dash
 		static void TrimBuffer(std::queue<T>& buffer);
 
 		void ClearStates();
+
+		bool CheckKeyPressed(BYTE value) { return (value & 0x80) > 0; };
 	
 	private:
-		std::bitset<256> mKeyStates;
+		FKeyState mPrevKeyStates[256];
+
 		std::queue<char> mCharBuffer;
 		bool mAutoRepeat = false;
+
+		HWND mFocusedWindow;
 	};
 }

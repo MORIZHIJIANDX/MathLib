@@ -13,7 +13,7 @@ namespace Dash
 
 	bool FMouse::IsMouseButtonPressed(EMouseButton button) const
 	{
-		return mMouseButtonState[static_cast<unsigned int>(button)];
+		return mCurrentMouseButtonStates[static_cast<unsigned int>(button)].Pressed;
 	}
 
 	bool FMouse::IsInWindow() const
@@ -21,30 +21,79 @@ namespace Dash
 		return mIsInWindow;
 	}
 
-	FVector2i FMouse::GetMousePos() const
+	FKeyState FMouse::GetButtonState(EMouseButton button) const
+	{
+		return mCurrentMouseButtonStates[static_cast<unsigned int>(button)];
+	}
+
+	FVector2i FMouse::GetCursorPosition() const
 	{
 		return mMousePos;
 	}
 
+	void FMouse::SetCursorPosition(FVector2i pos)
+	{
+		POINT point;
+		point.x = pos.x;
+		point.y = pos.y;
+
+		if (mFocusedWindow != NULL)
+			if (!ClientToScreen(mFocusedWindow, &point))
+				LOG_ERROR << "Can't Transform Cursor Pos To Screen";
+
+		if (!::SetCursorPos(point.x, point.y))
+			LOG_ERROR << "Can't Set Cursor Pos";
+	}
+
 	void FMouse::OnMouseButtonPressed(FMouseButtonEventArgs& e)
 	{
-		mMouseButtonState[static_cast<unsigned int>(EMouseButton::Left)] = e.mLeftButton;
-		mMouseButtonState[static_cast<unsigned int>(EMouseButton::Middle)] = e.mMiddleButton;
-		mMouseButtonState[static_cast<unsigned int>(EMouseButton::Right)] = e.mRightButton;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].Pressed = e.mLeftButton;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].RisingEdge = 
+			mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].Pressed && !mPrevMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].Pressed;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].FallingEdge = 
+			!mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].Pressed && mPrevMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].Pressed;
+
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].Pressed = e.mMiddleButton;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].RisingEdge = 
+			mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].Pressed && !mPrevMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].Pressed;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].FallingEdge = 
+			!mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].Pressed && mPrevMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].Pressed;
+
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].Pressed = e.mRightButton;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].RisingEdge = 
+			mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].Pressed && !mPrevMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].Pressed;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].FallingEdge = 
+			!mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].Pressed && mPrevMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].Pressed;
+
+		memcpy(mPrevMouseButtonStates, mCurrentMouseButtonStates, sizeof(mCurrentMouseButtonStates));
 
 		mMousePos.x = e.mX;
 		mMousePos.y = e.mY;
 
 		MouseButtonPressed(e);
-
-		LOG_INFO << "Button : " << static_cast<unsigned int>(e.mButton) << " , State : " << static_cast<unsigned int>(e.mState);
 	}
 
 	void FMouse::OnMouseButtonReleased(FMouseButtonEventArgs& e)
 	{
-		mMouseButtonState[static_cast<unsigned int>(EMouseButton::Left)] = e.mLeftButton;
-		mMouseButtonState[static_cast<unsigned int>(EMouseButton::Middle)] = e.mMiddleButton;
-		mMouseButtonState[static_cast<unsigned int>(EMouseButton::Right)] = e.mRightButton;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].Pressed = !e.mLeftButton;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].RisingEdge =
+			mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].Pressed && !mPrevMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].Pressed;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].FallingEdge =
+			!mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].Pressed && mPrevMouseButtonStates[static_cast<unsigned int>(EMouseButton::Left)].Pressed;
+
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].Pressed = !e.mMiddleButton;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].RisingEdge =
+			mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].Pressed && !mPrevMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].Pressed;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].FallingEdge =
+			!mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].Pressed && mPrevMouseButtonStates[static_cast<unsigned int>(EMouseButton::Middle)].Pressed;
+
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].Pressed = !e.mRightButton;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].RisingEdge =
+			mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].Pressed && !mPrevMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].Pressed;
+		mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].FallingEdge =
+			!mCurrentMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].Pressed && mPrevMouseButtonStates[static_cast<unsigned int>(EMouseButton::Right)].Pressed;
+		
+		memcpy(mPrevMouseButtonStates, mCurrentMouseButtonStates, sizeof(mCurrentMouseButtonStates));
 
 		mMousePos.x = e.mX;
 		mMousePos.y = e.mY;

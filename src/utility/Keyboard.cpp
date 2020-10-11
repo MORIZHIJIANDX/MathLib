@@ -1,5 +1,6 @@
 #include "Keyboard.h"
 
+
 #include "LogManager.h"
 
 namespace Dash
@@ -12,7 +13,18 @@ namespace Dash
 
 	bool FKeyboard::IsKeyPressed(EKeyCode key) const
 	{
-		return mKeyStates[static_cast<unsigned int>(key)];
+		//return mKeyStates[static_cast<unsigned int>(key)];
+
+		return mPrevKeyStates[static_cast<unsigned int>(key)].Pressed;
+
+		//return mPrevState.KeyStates[static_cast<unsigned int>(key)].Pressed;
+	}
+
+	FKeyState FKeyboard::GetKeyState(EKeyCode key) const
+	{
+		return mPrevKeyStates[static_cast<unsigned int>(key)];
+
+		//return mPrevState.KeyStates[static_cast<unsigned int>(key)];
 	}
 
 	std::optional<char> FKeyboard::ReadChar()
@@ -30,7 +42,16 @@ namespace Dash
 	{
 		if (!e.mRepeat || IsAutoRepeatEnabled())
 		{
-			mKeyStates[static_cast<unsigned int>(e.mKey)] = true;
+			//mKeyStates[static_cast<unsigned int>(e.mKey)] = true;
+
+ 			FKeyState currentKeyState;
+			currentKeyState.Pressed = true;
+			currentKeyState.RisingEdge =
+				currentKeyState.Pressed && !mPrevKeyStates[static_cast<unsigned int>(e.mKey)].Pressed;
+			currentKeyState.FallingEdge =
+				!currentKeyState.Pressed && mPrevKeyStates[static_cast<unsigned int>(e.mKey)].Pressed;
+
+			mPrevKeyStates[static_cast<unsigned int>(e.mKey)] = currentKeyState;
 		}
 		
 		if (e.mChar != 0)
@@ -40,16 +61,27 @@ namespace Dash
 
 		KeyPressed(e);
 
-		LOG_INFO << "Key Pressed";
+		//LOG_INFO << "Key Pressed";
+
+		//LOG_INFO << "Key RisingEdge" << currentKeyState.RisingEdge;
 	}
 
 	void FKeyboard::OnKeyReleased(FKeyEventArgs& e)
 	{
-		mKeyStates[static_cast<unsigned int>(e.mKey)] = false;
+		//mKeyStates[static_cast<unsigned int>(e.mKey)] = false;
+
+		FKeyState currentKeyState;
+		currentKeyState.Pressed = false;
+		currentKeyState.RisingEdge =
+			currentKeyState.Pressed && !mPrevKeyStates[static_cast<unsigned int>(e.mKey)].Pressed;
+		currentKeyState.FallingEdge =
+			!currentKeyState.Pressed && mPrevKeyStates[static_cast<unsigned int>(e.mKey)].Pressed;
+
+		mPrevKeyStates[static_cast<unsigned int>(e.mKey)] = currentKeyState;
 
 		KeyReleased(e);
 
-		LOG_INFO << "Key Released";
+		//LOG_INFO << "Key Released";
 	}
 
 
@@ -71,7 +103,7 @@ namespace Dash
 
 	void FKeyboard::ClearStates()
 	{
-		mKeyStates.reset();
+		//mKeyStates.reset();
 	}
 
 	void FKeyboard::FlushCharBuffer()
@@ -93,5 +125,4 @@ namespace Dash
 	{
 		return mAutoRepeat;
 	}
-
 }
