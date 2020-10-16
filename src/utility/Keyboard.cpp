@@ -104,6 +104,21 @@ namespace Dash
 	void FKeyboard::ClearStates()
 	{
 		//mKeyStates.reset();
+		for (size_t i = 0; i < 256; i++)
+		{
+			mPrevKeyStates[i].Pressed = false;
+			mPrevKeyStates[i].RisingEdge = false;
+			mPrevKeyStates[i].FallingEdge = false;
+		}
+	}
+
+	void FKeyboard::FlushRepeatKey()
+	{
+		for (size_t i = 0; i < 256; i++)
+		{
+			mPrevKeyStates[i].RisingEdge = false;
+			mPrevKeyStates[i].FallingEdge = false;
+		}
 	}
 
 	void FKeyboard::FlushCharBuffer()

@@ -76,6 +76,8 @@ namespace Dash
 
 				++frameCount;
 
+				FKeyboard::Get().FlushRepeatKey();
+
 				std::this_thread::yield();
 			}
 		}

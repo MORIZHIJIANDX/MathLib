@@ -11,6 +11,7 @@ namespace Dash
 	class FKeyboard
 	{
 		friend class FWindow;
+		friend class FApplication;
 	public:
 		static FKeyboard& Get();
 
@@ -44,7 +45,8 @@ namespace Dash
 		void ClearStates();
 
 		bool CheckKeyPressed(BYTE value) { return (value & 0x80) > 0; };
-	
+		
+		void FlushRepeatKey();
 	private:
 		FKeyState mPrevKeyStates[256];
 
